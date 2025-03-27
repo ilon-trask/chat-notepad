@@ -58,11 +58,12 @@ function CreateChatDialog() {
   } = useForm();
   const db = useDBContext();
   const onSubmit = (data: any) => {
-    console.log(data);
     chatService.createChat(db, data.name);
+    setIsOpen(false);
   };
+  const [isOpen, setIsOpen] = useState(false);
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
           variant="ghost"
