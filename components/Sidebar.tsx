@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Plus, Search } from "lucide-react";
@@ -12,6 +12,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
+import { useForm } from "react-hook-form";
+import { useDBContext } from "@/contexts/dbContext";
+import chatService from "@/data/chatService";
+import { Chat } from "@/types/chat";
 
 export default function Sidebar() {
   return (
@@ -23,43 +27,62 @@ export default function Sidebar() {
 }
 
 function ChatList() {
-  const chats = [
-    {
-      id: 1,
-      name: "Chat 1",
-      lastMessage: "Last message preview...",
-      lastMessageTime: "12:30",
-    },
-  ];
+  const db = useDBContext();
+
+  const [chats, setChats] = useState<Chat[]>([]);
+
+  useEffect(() => {
+    chatService.getChats(db).then((chats) => setChats(chats));
+  }, [db]);
+
   return (
     <div className="overflow-y-auto h-[calc(100vh-73px)] no-scrollbar">
       <CreateChatDialog />
       {chats.map(({ id, ...el }) => (
-        <ChatItem key={id} {...el} />
+        <ChatItem
+          key={id}
+          name={el.name}
+          lastMessage="Last message preview..."
+          lastMessageTime=""
+        />
       ))}
     </div>
   );
 }
 
 function CreateChatDialog() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+  const db = useDBContext();
+  const onSubmit = (data: any) => {
+    console.log(data);
+    chatService.createChat(db, data.name);
+  };
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size={'default'}  className="px-4 w-full justify-start h-10 border-b-gray-200 border-1 rounded-none">
+        <Button
+          variant="ghost"
+          size={"default"}
+          className="px-4 w-full justify-start h-10 border-b-gray-200 border-1 rounded-none"
+        >
           <Plus /> Add chat
         </Button>
       </DialogTrigger>
-      <form action="">
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create Chat</DialogTitle>
-          </DialogHeader>
-          <Input placeholder="Chat name" />
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create Chat</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <Input placeholder="Chat name" {...register("name")} />
           <DialogFooter>
-            <Button>Create</Button>
+            <Button type="submit">Create</Button>
           </DialogFooter>
-        </DialogContent>
-      </form>
+        </form>
+      </DialogContent>
     </Dialog>
   );
 }

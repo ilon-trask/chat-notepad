@@ -1,5 +1,6 @@
+import { CHAT_LABEL } from "./chatService";
 
-const labels = ["chat", "message"];
+const labels = [CHAT_LABEL, "message"];
 
 export async function createDB(): Promise<IDBDatabase> {
   const db: IDBDatabase | DOMException = await new Promise(
