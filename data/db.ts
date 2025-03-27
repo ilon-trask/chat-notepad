@@ -1,6 +1,7 @@
 import { CHAT_LABEL } from "./chatService";
+import { MESSAGE_LABEL } from "./messageService";
 
-const labels = [CHAT_LABEL, "message"];
+const labels = [CHAT_LABEL, MESSAGE_LABEL];
 
 export async function createDB(): Promise<IDBDatabase> {
   const db: IDBDatabase | DOMException = await new Promise(

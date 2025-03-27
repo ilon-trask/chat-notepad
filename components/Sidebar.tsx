@@ -15,7 +15,7 @@ import {
 import { useForm } from "react-hook-form";
 import { useDBContext } from "@/contexts/dbContext";
 import chatService from "@/data/chatService";
-import { Chat } from "@/types/chat";
+import { useChatStore } from "@/store/chatStore";
 
 export default function Sidebar() {
   return (
@@ -25,28 +25,73 @@ export default function Sidebar() {
     </div>
   );
 }
-
 function ChatList() {
   const db = useDBContext();
-
-  const [chats, setChats] = useState<Chat[]>([]);
+  const chatStore = useChatStore();
 
   useEffect(() => {
-    chatService.getChats(db).then((chats) => setChats(chats));
-  }, [db]);
+    chatService.getAllChats(db, chatStore);
+  }, []);
 
   return (
     <div className="overflow-y-auto h-[calc(100vh-73px)] no-scrollbar">
       <CreateChatDialog />
-      {chats.map(({ id, ...el }) => (
+      {chatStore.chats.toReversed().map(({ id, ...el }) => (
         <ChatItem
           key={id}
           name={el.name}
           lastMessage="Last message preview..."
           lastMessageTime=""
+          onClick={() => chatStore.setChosenChatId(id)}
+          isActive={chatStore.chosenChatId === id}
         />
       ))}
     </div>
+  );
+}
+
+function ChatItem({
+  type = "button",
+  name,
+  lastMessage,
+  lastMessageTime,
+  isActive = false,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  name: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  isActive?: boolean;
+}) {
+  return (
+    <Button
+    type={type}
+    variant="ghost"
+    className={cn(
+      "w-full justify-start p-4 rounded-none hover:bg-sidebar-accent",
+      "h-auto",
+      isActive && "bg-sidebar-accent text-primary border-l-4 border-primary"
+    )}
+    {...props}
+    >
+      <div className="flex items-center gap-3 w-full">
+        <div className={cn(
+          "w-12 h-12 bg-sidebar-primary rounded-full shrink-0",
+          isActive && "border-2 border-primary"
+        )}></div>
+        <div className="flex-1 text-left">
+          <div className="flex justify-between">
+            <h3 className={"font-medium"}>{name}</h3>
+            <span className={"text-sm text-muted-foreground"}>
+              {lastMessageTime}
+            </span>
+          </div>
+          <p className={"text-sm text-muted-foreground truncate"}>
+            {lastMessage}
+          </p>
+        </div>
+      </div>
+    </Button>
   );
 }
 
@@ -57,11 +102,15 @@ function CreateChatDialog() {
     formState: { errors },
   } = useForm();
   const db = useDBContext();
+  const chatStore = useChatStore();
+
+  const [isOpen, setIsOpen] = useState(false);
+
   const onSubmit = (data: any) => {
-    chatService.createChat(db, data.name);
+    chatService.createChat(db, chatStore, data.name);
     setIsOpen(false);
   };
-  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -85,45 +134,6 @@ function CreateChatDialog() {
         </form>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function ChatItem({
-  type = "button",
-  name,
-  lastMessage,
-  lastMessageTime,
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  name: string;
-  lastMessage: string;
-  lastMessageTime: string;
-}) {
-  return (
-    <Button
-      type={type}
-      variant="ghost"
-      className={cn(
-        "w-full justify-start p-4 rounded-none hover:bg-sidebar-accent",
-        "h-auto"
-      )}
-      {...props}
-    >
-      <div className="flex items-center gap-3 w-full">
-        <div className="w-12 h-12 bg-sidebar-primary rounded-full shrink-0"></div>
-        <div className="flex-1 text-left">
-          <div className="flex justify-between">
-            <h3 className="font-medium">{name}</h3>
-            <span className="text-sm text-muted-foreground">
-              {lastMessageTime}
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground truncate">
-            {lastMessage}
-          </p>
-        </div>
-      </div>
-    </Button>
   );
 }
 
