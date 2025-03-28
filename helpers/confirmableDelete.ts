@@ -1,5 +1,7 @@
 import { toast } from "sonner";
 
+export const TOAST_DURATION = 2000;
+
 export default function confirmableDelete<T>({
   getEntity,
   onDelete,
@@ -18,7 +20,7 @@ export default function confirmableDelete<T>({
   onStoreDelete();
   const timeout = setTimeout(() => {
     onDelete();
-  }, 4000);
+  }, TOAST_DURATION);
   toast(name + " has been deleted", {
     action: {
       label: "Undo",
