@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { Plus, Search } from "lucide-react";
+import { Edit, MoreVertical, Plus, Search, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -16,6 +16,15 @@ import { useForm } from "react-hook-form";
 import { useDBContext } from "@/contexts/dbContext";
 import chatService from "@/data/chatService";
 import { useChatStore } from "@/store/chatStore";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { useMessageStore } from "@/store/messageStore";
+import confirmableDelete from "@/helpers/confirmableDelete";
+import { Chat } from "@/types/chat";
 
 export default function Sidebar() {
   return (
@@ -39,6 +48,7 @@ function ChatList() {
       {chatStore.chats.toReversed().map(({ id, ...el }) => (
         <ChatItem
           key={id}
+          id={id}
           name={el.name}
           lastMessage="Last message preview..."
           lastMessageTime=""
@@ -52,46 +62,90 @@ function ChatList() {
 
 function ChatItem({
   type = "button",
+  id,
   name,
   lastMessage,
   lastMessageTime,
   isActive = false,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  id: string;
   name: string;
   lastMessage: string;
   lastMessageTime: string;
   isActive?: boolean;
 }) {
+  const db = useDBContext();
+  const chatStore = useChatStore();
+  const messageStore = useMessageStore();
+
   return (
-    <Button
-    type={type}
-    variant="ghost"
-    className={cn(
-      "w-full justify-start p-4 rounded-none hover:bg-sidebar-accent",
-      "h-auto",
-      isActive && "bg-sidebar-accent text-primary border-l-4 border-primary"
-    )}
-    {...props}
-    >
-      <div className="flex items-center gap-3 w-full">
-        <div className={cn(
-          "w-12 h-12 bg-sidebar-primary rounded-full shrink-0",
-          isActive && "border-2 border-primary"
-        )}></div>
-        <div className="flex-1 text-left">
-          <div className="flex justify-between">
-            <h3 className={"font-medium"}>{name}</h3>
-            <span className={"text-sm text-muted-foreground"}>
-              {lastMessageTime}
-            </span>
+    <div className="relative group">
+      <Button
+        type={type}
+        variant="ghost"
+        className={cn(
+          "w-full justify-start p-4 rounded-none hover:bg-sidebar-accent",
+          "h-auto",
+          isActive && "bg-sidebar-accent text-primary border-l-4 border-primary"
+        )}
+        {...props}
+      >
+        <div className="flex items-center gap-3 w-full">
+          <div
+            className={cn(
+              "w-12 h-12 bg-sidebar-primary rounded-full shrink-0",
+              isActive && "border-2 border-primary"
+            )}
+          ></div>
+          <div className="flex-1 text-left">
+            <div className="flex justify-between">
+              <h3 className={"font-medium"}>{name}</h3>
+              <span className={"text-sm text-muted-foreground"}>
+                {lastMessageTime}
+              </span>
+            </div>
+            <p className={"text-sm text-muted-foreground truncate"}>
+              {lastMessage}
+            </p>
           </div>
-          <p className={"text-sm text-muted-foreground truncate"}>
-            {lastMessage}
-          </p>
         </div>
-      </div>
-    </Button>
+      </Button>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem>
+            <Edit className="mr-2 h-4 w-4" />
+            <span>Edit</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="text-destructive"
+            onClick={() => {
+              confirmableDelete<Chat>({
+                getEntity: () => chatStore.getChatById(id),
+                onDelete: () =>
+                  chatService.deleteChat(db, chatStore, messageStore, id),
+                onStoreDelete: () => chatStore.deleteChat(id),
+                onReverseDelete: (chat: Chat) => chatStore.addChat(chat),
+                name: "Chat",
+              });
+            }}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            <span>Delete</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }
 
