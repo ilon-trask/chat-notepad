@@ -16,7 +16,7 @@ export default function confirmableDelete<T>({
   name: string;
 }) {
   const entity = getEntity();
-  if (!entity) return null;
+  if (!entity) throw new Error(name + " not found");
   onStoreDelete();
   const timeout = setTimeout(() => {
     onDelete();
