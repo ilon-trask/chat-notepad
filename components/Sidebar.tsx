@@ -25,6 +25,7 @@ import {
 import { useMessageStore } from "@/store/messageStore";
 import confirmableDelete from "@/helpers/confirmableDelete";
 import { Chat } from "@/types/chat";
+import { useChatDialogStore } from "@/store/chatDialogStore";
 
 export default function Sidebar() {
   return (
@@ -78,6 +79,7 @@ function ChatItem({
   const db = useDBContext();
   const chatStore = useChatStore();
   const messageStore = useMessageStore();
+  const chatDialogStore = useChatDialogStore();
 
   return (
     <div className="relative group">
@@ -123,7 +125,13 @@ function ChatItem({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              chatDialogStore.setIsOpen(true);
+              chatDialogStore.setIsUpdate(true);
+              chatDialogStore.setChatId(id);
+            }}
+          >
             <Edit className="mr-2 h-4 w-4" />
             <span>Edit</span>
           </DropdownMenuItem>
@@ -149,24 +157,46 @@ function ChatItem({
   );
 }
 
+type ChatFormData = {
+  name: string;
+};
+
 function CreateChatDialog() {
+  const db = useDBContext();
+  const chatStore = useChatStore();
+  const chatDialogStore = useChatDialogStore();
+
+  const chat = chatStore.getChatById(chatDialogStore.chatId);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
-  const db = useDBContext();
-  const chatStore = useChatStore();
+  } = useForm<ChatFormData>({
+    values: {
+      name: chat?.name || "",
+    },
+  });
 
-  const [isOpen, setIsOpen] = useState(false);
-
-  const onSubmit = (data: any) => {
-    chatService.createChat(db, chatStore, data.name);
-    setIsOpen(false);
+  const onSubmit = (data: ChatFormData) => {
+    if (chatDialogStore.isUpdate) {
+      chatService.updateChat(db, chatStore, {
+        id: chatDialogStore.chatId,
+        name: data.name,
+      });
+    } else {
+      chatService.createChat(db, chatStore, data.name);
+    }
+    chatDialogStore.setIsOpen(false);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog
+      open={chatDialogStore.isOpen}
+      onOpenChange={(e) => {
+        chatDialogStore.setIsOpen(e);
+      }}
+    >
       <DialogTrigger asChild>
         <Button
           variant="ghost"

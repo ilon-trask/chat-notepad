@@ -1,4 +1,4 @@
-import { Chat } from "@/types/chat";
+import { Chat, ChatUpdate } from "@/types/chat";
 import { v4 as uuid } from "uuid";
 import messageService from "./messageService";
 import { ChatStore } from "@/store/chatStore";
@@ -31,9 +31,12 @@ class ChatService extends DBService<Chat> {
     await super.delete(db, id);
     chatStore.deleteChat(id);
   }
-  async updateChat(db: IDBDatabase, chatStore: ChatStore, data: Chat) {
-    await super.update(db, data.id, data);
-    chatStore.updateChat(data);
+  async updateChat(db: IDBDatabase, chatStore: ChatStore, data: ChatUpdate) {
+    const chat = chatStore.getChatById(data.id);
+    if (!chat) throw new Error("Chat not found");
+    const newChat = { ...data, createdAt: chat.createdAt };
+    await super.update(db, newChat);
+    chatStore.updateChat(newChat);
   }
 }
 

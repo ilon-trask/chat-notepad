@@ -49,7 +49,7 @@ class MessageService extends DBService<Message> {
     }
   }
   async updateMessage(db: IDBDatabase, messageStore: MessageStore, data: Message) {
-    await super.update(db, data.id, data);
+    await super.update(db, data);
     messageStore.updateMessage(data);
   }
 }

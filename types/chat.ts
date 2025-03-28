@@ -3,3 +3,7 @@ export type Chat = {
   name: string;
   createdAt: Date;
 };
+
+export type ChatUpdate = Omit<Chat, "createdAt"> & {
+  createdAt?: Chat["createdAt"];
+};

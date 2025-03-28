@@ -42,9 +42,9 @@ export class DBService<T> {
     const req = DB.delete(id);
     await DBResPromise(req);
   }
-  protected async update(db: IDBDatabase, id: string, data: T) {
+  protected async update(db: IDBDatabase, data: T) {
     const DB = this._getWriteDbObject(db);
-    const req = DB.put(data, id);
+    const req = DB.put(data);
     await DBResPromise(req);
   }
 }
