@@ -172,11 +172,8 @@ function CreateChatDialog() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<ChatFormData>({
-    values: {
-      name: chat?.name || "",
-    },
-  });
+    setValue,
+  } = useForm<ChatFormData>();
 
   const onSubmit = (data: ChatFormData) => {
     if (chatDialogStore.isUpdate) {
@@ -189,6 +186,12 @@ function CreateChatDialog() {
     }
     chatDialogStore.setIsOpen(false);
   };
+
+  useEffect(() => {
+    if (chatDialogStore.isUpdate) {
+      setValue("name", chat?.name || "");
+    }
+  }, [chatDialogStore.isUpdate, chat?.name, setValue]);
 
   return (
     <Dialog
