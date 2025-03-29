@@ -1,6 +1,6 @@
 "use client";
 import { Send, X } from "lucide-react";
-import React, { KeyboardEvent, useRef, useEffect } from "react";
+import React, { KeyboardEvent, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { useForm } from "react-hook-form";
@@ -96,7 +96,7 @@ export default function MessageInput() {
             onSubmit={handleSubmit(onSubmit)}
             className="flex w-full items-center gap-2"
           >
-            <textarea
+            <Textarea
               id="message-textarea"
               placeholder={
                 messageInputStore.isUpdate
