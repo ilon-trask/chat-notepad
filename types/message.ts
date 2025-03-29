@@ -6,3 +6,4 @@ export type Message = {
   chatId: string;
 };
 
+export type MessageUpdate = Omit<Message, "createdAt"> & { createdAt?: Date };

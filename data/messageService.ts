@@ -1,5 +1,5 @@
 import DBResPromise from "@/helpers/DBResPromise";
-import { Message } from "@/types/message";
+import { Message, MessageUpdate } from "@/types/message";
 import { v4 as uuid } from "uuid";
 import { DBService } from "./DBService";
 import { MessageStore } from "@/store/messageStore";
@@ -48,9 +48,12 @@ class MessageService extends DBService<Message> {
       }
     }
   }
-  async updateMessage(db: IDBDatabase, messageStore: MessageStore, data: Message) {
-    await super.update(db, data);
-    messageStore.updateMessage(data);
+  async updateMessage(db: IDBDatabase, messageStore: MessageStore, data: MessageUpdate) {
+    const message = messageStore.getMessageById(data.id);
+    if(!message) throw new Error("Message not found");
+    const newMessage = { ...data, createdAt: message.createdAt };
+    await super.update(db, newMessage);
+    messageStore.updateMessage(newMessage);
   }
 }
 

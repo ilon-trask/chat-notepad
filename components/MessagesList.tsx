@@ -15,6 +15,7 @@ import {
 } from "./ui/context-menu";
 import { Edit, Trash2 } from "lucide-react";
 import confirmableDelete from "@/helpers/confirmableDelete";
+import { useMessageInputStore } from "@/store/messageInputStore";
 
 export default function MessagesList() {
   const db = useDBContext();
@@ -53,6 +54,14 @@ function Message({
 }) {
   const db = useDBContext();
   const messageStore = useMessageStore();
+  const messageInputStore = useMessageInputStore();
+
+  const handleEdit = () => {
+    //timeout to prevent menu stealing focus form message input
+    setTimeout(() => {
+      messageInputStore.startEditing(id, children as string);
+    }, 200);
+  };
 
   return (
     <ContextMenu>
@@ -76,7 +85,7 @@ function Message({
         </Card>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem>
+        <ContextMenuItem onClick={handleEdit}>
           <Edit className="mr-2 h-4 w-4" />
           <span>Edit</span>
         </ContextMenuItem>
