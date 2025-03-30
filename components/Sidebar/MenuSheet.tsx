@@ -1,4 +1,12 @@
-import { Menu, Moon, Sun, Monitor, Check } from "lucide-react";
+import {
+  Menu,
+  Moon,
+  Sun,
+  Monitor,
+  Check,
+  Search,
+  Keyboard,
+} from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -70,6 +78,22 @@ export default function MenuSheet() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+
+          <div className="py-4">
+            <h3 className="mb-2 text-sm font-medium">Keyboard Shortcuts</h3>
+            <div className="mb-2 text-xs text-muted-foreground">
+              Useful shortcuts to improve your workflow
+            </div>
+            <div className="rounded-md border">
+              <div className="flex items-center justify-between p-3 border-b">
+                <div className="flex items-center">
+                  <Search className="mr-2 h-4 w-4" />
+                  <span className="text-sm">Command Palette</span>
+                </div>
+                <kbd className="px-2 py-1 text-xs bg-muted rounded">⌘K</kbd>
+              </div>
+            </div>
           </div>
         </div>
       </SheetContent>

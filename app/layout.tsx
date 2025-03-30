@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { TOAST_DURATION } from "@/helpers/confirmableDelete";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import CommandMenu from "@/components/CommandDialog";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <CommandMenu />
           <Toaster position="top-right" duration={TOAST_DURATION} />
         </ThemeProvider>
       </body>
