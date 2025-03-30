@@ -1,10 +1,10 @@
 import { cn } from "@/lib/utils";
-import React, { useEffect, useState } from "react";
-import { Card } from "./ui/card";
+import React, { useEffect} from "react";
+import { Card } from "../ui/card";
 import { useMessageStore } from "@/store/messageStore";
 import { useChatStore } from "@/store/chatStore";
 import { type Message } from "@/types/message";
-import { Badge } from "./ui/badge";
+import { Badge } from "../ui/badge";
 import messageService from "@/data/messageService";
 import { useDBContext } from "@/contexts/dbContext";
 import {
@@ -12,7 +12,7 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from "./ui/context-menu";
+} from "../ui/context-menu";
 import { Edit, Trash2 } from "lucide-react";
 import confirmableDelete from "@/helpers/confirmableDelete";
 import { useMessageInputStore } from "@/store/messageInputStore";

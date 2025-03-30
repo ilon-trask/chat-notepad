@@ -1,8 +1,8 @@
 "use client";
 import { Send, X } from "lucide-react";
 import React, { KeyboardEvent, useEffect } from "react";
-import { Button } from "./ui/button";
-import { Textarea } from "./ui/textarea";
+import { Button } from "../ui/button";
+import { Textarea } from "../ui/textarea";
 import { useForm } from "react-hook-form";
 import { useDBContext } from "@/contexts/dbContext";
 import { useMessageStore } from "@/store/messageStore";
