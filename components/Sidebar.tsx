@@ -46,7 +46,7 @@ function ChatList() {
   return (
     <div className="overflow-y-auto h-[calc(100vh-73px)] no-scrollbar">
       <CreateChatDialog />
-      {chatStore.chats.toReversed().map(({ id, ...el }) => (
+      {chatStore.getChats().map(({ id, ...el }) => (
         <ChatItem
           key={id}
           id={id}
