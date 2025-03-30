@@ -73,7 +73,7 @@ export default function MessageInput() {
   };
 
   return (
-    <div className="flex flex-col bg-white border-t border-gray-200">
+    <div className="flex flex-col  border-t border-gray-200 dark:border-gray-800  ">
       {/* Edit indicator */}
       {messageInputStore.isUpdate && (
         <div className="px-4 py-2 bg-muted/50 flex items-center justify-between border-b">

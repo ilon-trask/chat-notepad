@@ -38,7 +38,7 @@ export default function Home() {
       <ResizablePanelGroup direction="horizontal" className="h-screen">
         {/* Sidebar */}
         <ResizablePanel
-          defaultSize={30}
+          defaultSize={25}
           minSize={minSize}
           collapsible
           collapsedSize={maxSize}
