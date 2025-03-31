@@ -14,6 +14,7 @@ import { Edit, MoreVertical, Trash2 } from "lucide-react";
 import { SizeVariant } from "@/types/sizeVariant";
 import confirmableChatDelete from "@/helpers/comfirmableChatDelete";
 import { Muted, Small } from "../Typography";
+import useIsMobile from "@/hooks/useIsMobile";
 
 export default function ChatItem({
   type = "button",
@@ -34,6 +35,7 @@ export default function ChatItem({
   const chatStore = useChatStore();
   const messageStore = useMessageStore();
   const chatDialogStore = useChatDialogStore();
+  const isMobile = useIsMobile();
 
   return (
     <div className="relative group">
@@ -65,13 +67,23 @@ export default function ChatItem({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <MoreVertical className="h-4 w-4" />
-          </Button>
+          {isMobile ? (
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute right-2 top-1/2 -translate-y-1/2"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          )}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem

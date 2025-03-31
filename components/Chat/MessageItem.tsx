@@ -39,7 +39,7 @@ export default function MessageItem({
       <ContextMenuTrigger asChild>
         <Card
           className={cn(
-            "p-3 rounded-lg max-w-[70%] self-start gap-2",
+            "p-3 rounded-lg max-w-[70%] self-start gap-2 select-none",
             className
           )}
           {...props}
