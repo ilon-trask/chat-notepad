@@ -44,6 +44,7 @@ export default function MessageInput() {
   ]);
 
   const onSubmit = (data: MessageInputForm) => {
+    if (data.message.trim() === "") return;
     if (messageInputStore.isUpdate) {
       messageService.updateMessage(db, messageStore, {
         chatId,
