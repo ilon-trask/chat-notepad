@@ -46,21 +46,6 @@ export default function CommandMenu() {
       <CommandInput placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
-        <CommandGroup heading="Chats">
-          {chatStore.getChats().map((el) => (
-            <CommandItem
-              key={el.id}
-              onSelect={() => {
-                chatStore.setChosenChatId(el.id);
-                commandStore.setIsOpen(false);
-                messageInputStore.startFocus();
-              }}
-            >
-              {el.name}
-            </CommandItem>
-          ))}
-        </CommandGroup>
-        <CommandSeparator />
         <CommandGroup heading="Actions">
           <CommandItem
             onSelect={() => {
@@ -82,7 +67,12 @@ export default function CommandMenu() {
               </CommandItem>
               <CommandItem
                 onSelect={() => {
-                  confirmableChatDelete(db, chatStore, messageStore, chatStore.chosenChatId);
+                  confirmableChatDelete(
+                    db,
+                    chatStore,
+                    messageStore,
+                    chatStore.chosenChatId
+                  );
                   commandStore.setIsOpen(false);
                 }}
               >
@@ -90,6 +80,21 @@ export default function CommandMenu() {
               </CommandItem>
             </>
           )}
+        </CommandGroup>
+        <CommandSeparator />
+        <CommandGroup heading="Chats">
+          {chatStore.getChats().map((el) => (
+            <CommandItem
+              key={el.id}
+              onSelect={() => {
+                chatStore.setChosenChatId(el.id);
+                commandStore.setIsOpen(false);
+                messageInputStore.startFocus();
+              }}
+            >
+              {el.name}
+            </CommandItem>
+          ))}
         </CommandGroup>
       </CommandList>
     </CommandDialog>
