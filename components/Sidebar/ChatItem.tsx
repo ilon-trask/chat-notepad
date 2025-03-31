@@ -5,16 +5,14 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { useMessageStore } from "@/store/messageStore";
-import confirmableDelete from "@/helpers/confirmableDelete";
-import { Chat } from "@/types/chat";
 import { useDBContext } from "@/contexts/dbContext";
 import { useChatStore } from "@/store/chatStore";
 import { useChatDialogStore } from "@/store/chatDialogStore";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 import { Edit, MoreVertical, Trash2 } from "lucide-react";
-import chatService from "@/data/chatService";
 import { SizeVariant } from "@/types/sizeVariant";
+import confirmableChatDelete from "@/helpers/comfirmableChatDelete";
 
 export default function ChatItem({
   type = "button",
@@ -84,9 +82,7 @@ export default function ChatItem({
         <DropdownMenuContent align="end">
           <DropdownMenuItem
             onClick={() => {
-              chatDialogStore.setIsOpen(true);
-              chatDialogStore.setIsUpdate(true);
-              chatDialogStore.setChatId(id);
+              chatDialogStore.startEditing(id);
             }}
           >
             <Edit className="mr-2 h-4 w-4" />
@@ -95,14 +91,7 @@ export default function ChatItem({
           <DropdownMenuItem
             className="text-destructive"
             onClick={() => {
-              confirmableDelete<Chat>({
-                getEntity: () => chatStore.getChatById(id),
-                onDelete: () =>
-                  chatService.deleteChat(db, chatStore, messageStore, id),
-                onStoreDelete: () => chatStore.deleteChat(id),
-                onReverseDelete: (chat: Chat) => chatStore.addChat(chat),
-                name: "Chat",
-              });
+              confirmableChatDelete(db, chatStore, messageStore, id);
             }}
           >
             <Trash2 className="mr-2 h-4 w-4 text-destructive" />

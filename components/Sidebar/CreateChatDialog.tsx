@@ -39,14 +39,15 @@ export default function CreateChatDialog({
     setValue,
   } = useForm<ChatFormData>();
 
-  const onSubmit = (data: ChatFormData) => {
+  const onSubmit = async (data: ChatFormData) => {
     if (chatDialogStore.isUpdate) {
       chatService.updateChat(db, chatStore, {
         id: chatDialogStore.chatId,
         name: data.name,
       });
     } else {
-      chatService.createChat(db, chatStore, data.name);
+      const newChat = await chatService.createChat(db, chatStore, data.name);
+      chatStore.setChosenChatId(newChat.id);
     }
     chatDialogStore.setIsOpen(false);
   };

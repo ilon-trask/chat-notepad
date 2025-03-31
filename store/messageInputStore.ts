@@ -1,6 +1,8 @@
 import { create } from "zustand";
 
 export type MessageInputStore = {
+  toFocus: {};
+  startFocus: () => void;
   message: string;
   setMessage: (message: string) => void;
   isUpdate: boolean;
@@ -12,22 +14,24 @@ export type MessageInputStore = {
 };
 
 export const useMessageInputStore = create<MessageInputStore>((set) => ({
+  toFocus: {},
   message: "",
   isUpdate: false,
   messageId: "",
+  startFocus: () => set({ toFocus: {} }),
   setMessage: (message: string) => set({ message }),
   setIsUpdate: (isUpdate: boolean) => set({ isUpdate }),
   setMessageId: (messageId: string) => set({ messageId }),
-  startEditing: (messageId: string, messageText: string) => 
-    set({ 
-      messageId, 
-      message: messageText, 
-      isUpdate: true 
+  startEditing: (messageId: string, messageText: string) =>
+    set({
+      messageId,
+      message: messageText,
+      isUpdate: true,
     }),
-  cancelEditing: () => 
-    set({ 
-      messageId: "", 
-      message: "", 
-      isUpdate: false 
+  cancelEditing: () =>
+    set({
+      messageId: "",
+      message: "",
+      isUpdate: false,
     }),
 }));

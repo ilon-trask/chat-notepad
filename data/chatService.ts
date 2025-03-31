@@ -19,6 +19,7 @@ class ChatService extends DBService<Chat> {
     const newChat = { id: uuid(), name, createdAt: new Date() };
     await super.create(db, newChat);
     chatStore.addChat(newChat);
+    return newChat;
   }
   async deleteChat(
     db: IDBDatabase,

@@ -7,6 +7,7 @@ export type ChatDialogStore = {
   setIsUpdate: (isUpdate: boolean) => void;
   chatId: string;
   setChatId: (chatId: string) => void;
+  startEditing: (chatId: string) => void;
 };
 
 export const useChatDialogStore = create<ChatDialogStore>((set) => ({
@@ -22,4 +23,6 @@ export const useChatDialogStore = create<ChatDialogStore>((set) => ({
   setIsUpdate: (isUpdate: boolean) => set({ isUpdate }),
   chatId: "",
   setChatId: (chatId: string) => set({ chatId }),
+  startEditing: (chatId: string) =>
+    set({ isOpen: true, isUpdate: true, chatId }),
 }));

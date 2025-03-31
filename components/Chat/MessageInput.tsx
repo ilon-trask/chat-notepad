@@ -33,9 +33,10 @@ export default function MessageInput() {
   useEffect(() => {
     if (messageInputStore.isUpdate) {
       setValue("message", messageInputStore.message);
-      setFocus("message");
     }
+    setFocus("message");
   }, [
+    messageInputStore.toFocus,
     messageInputStore.isUpdate,
     messageInputStore.messageId,
     setValue,
