@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import React, { useEffect} from "react";
+import React, { useEffect, useState } from "react";
 import { Card } from "../ui/card";
 import { useMessageStore } from "@/store/messageStore";
 import { useChatStore } from "@/store/chatStore";
@@ -26,20 +26,61 @@ export default function MessagesList() {
     messageService.getAllMessages(db, messageStore);
   }, []);
 
+  const [dateMap, setDateMap] = useState<Map<string, Message[]>>(new Map());
+
+  useEffect(() => {
+    const newMap = new Map<string, Message[]>();
+    const messages = messageStore.getMessages(chatId);
+    messages.forEach((message) => {
+      const date = message.createdAt.toLocaleDateString();
+      if (newMap.has(date)) {
+        newMap.set(date, [...(newMap.get(date) || []), message]);
+      } else {
+        newMap.set(date, [message]);
+      }
+    });
+    setDateMap(newMap);
+  }, [messageStore, chatId]);
+
   return (
     <div className="flex-1 overflow-y-auto flex">
       <div className="flex-grow overflow-y-auto p-4 pt-auto flex flex-col justify-end">
-      {!chatId && (
-        <div className="flex justify-center items-center h-full">
-          <Badge variant="secondary" className="px-4 py-2 text-sm font-normal">
-            Select a chat to start messaging
-          </Badge>
-        </div>
-      )}
-      <div className="flex flex-col gap-2">
-        {messageStore.getMessages(chatId).map((el) => (
-          <Message key={el.id} id={el.id} children={el.content} />
-        ))}
+        {!chatId && (
+          <div className="flex justify-center items-center h-full">
+            <Badge
+              variant="secondary"
+              className="px-4 py-2 text-sm font-normal"
+            >
+              Select a chat to start messaging
+            </Badge>
+          </div>
+        )}
+        {chatId && dateMap.size === 0 && (
+          <div className="flex justify-center items-center h-full">
+            <Badge
+              variant="secondary"
+              className="px-4 py-2 text-sm font-normal"
+            >
+              No messages yet!
+            </Badge>
+          </div>
+        )}
+        <div className="flex flex-col gap-2">
+          {Array.from(dateMap.keys()).map((el) => (
+            <React.Fragment key={el}>
+              <div className="flex justify-center mb-2 mt-4">
+                <Badge
+                  variant="secondary"
+                  className="px-3 py-1 text-xs font-normal"
+                >
+                  {el}
+                </Badge>
+              </div>
+              {dateMap.get(el)?.map((el) => (
+                <Message key={el.id} id={el.id} children={el.content} />
+              ))}
+            </React.Fragment>
+          ))}
         </div>
       </div>
     </div>
