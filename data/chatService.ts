@@ -2,7 +2,6 @@ import { Chat, ChatUpdate } from "@/types/chat";
 import { v4 as uuid } from "uuid";
 import messageService from "./messageService";
 import { ChatStore } from "@/store/chatStore";
-import DBResPromise from "@/helpers/DBResPromise";
 import { DBService } from "./DBService";
 import { MessageStore } from "@/store/messageStore";
 

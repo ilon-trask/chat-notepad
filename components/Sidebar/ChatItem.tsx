@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { Edit, MoreVertical, Trash2 } from "lucide-react";
 import chatService from "@/data/chatService";
 import { SizeVariant } from "@/types/sizeVariant";
+
 export default function ChatItem({
   type = "button",
   id,

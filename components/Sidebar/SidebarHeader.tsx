@@ -3,8 +3,10 @@ import { Input } from "../ui/input";
 import { SizeVariant } from "@/types/sizeVariant";
 import MenuSheet from "./MenuSheet";
 import useCommandStore from "@/store/commandStore";
+
 export default function SidebarHeader({ variant }: { variant: SizeVariant }) {
   const commandStore = useCommandStore();
+
   return (
     <div className="flex items-center justify-center">
       <MenuSheet />
