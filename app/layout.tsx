@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TOAST_DURATION } from "@/helpers/confirmableDelete";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import CommandMenu from "@/components/CommandDialog";
+import { DbProvider } from "@/contexts/dbContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,16 +32,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <CommandMenu />
-          <Toaster position="top-right" duration={TOAST_DURATION} />
-        </ThemeProvider>
+        <DbProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <CommandMenu />
+            <Toaster position="top-right" duration={TOAST_DURATION} />
+          </ThemeProvider>{" "}
+        </DbProvider>
       </body>
     </html>
   );

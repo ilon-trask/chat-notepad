@@ -1,3 +1,4 @@
+'use client'
 import { useDatabase } from "@/hooks/useDatabase";
 import { createContext, useContext } from "react";
 

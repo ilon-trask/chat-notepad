@@ -8,7 +8,6 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import ChatHeader from "@/components/Chat/ChatHeader";
 import MessagesList from "@/components/Chat/MessagesList";
 import MessageInput from "@/components/Chat/MessageInput";
-import { DbProvider } from "@/contexts/dbContext";
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -34,7 +33,7 @@ export default function Home() {
   }, []);
 
   return (
-    <DbProvider>
+
       <ResizablePanelGroup direction="horizontal" className="h-screen">
         {/* Sidebar */}
         <ResizablePanel
@@ -59,6 +58,6 @@ export default function Home() {
           <MessageInput />
         </ResizablePanel>
       </ResizablePanelGroup>
-    </DbProvider>
+ 
   );
 }
