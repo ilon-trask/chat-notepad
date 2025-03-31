@@ -6,11 +6,7 @@ import CreateChatDialog from "./CreateChatDialog";
 import ChatItem from "./ChatItem";
 import { SizeVariant } from "@/types/sizeVariant";
 
-export default function ChatList({
-  variant,
-}: {
-  variant: SizeVariant;
-}) {
+export default function ChatList({ variant }: { variant: SizeVariant }) {
   const db = useDBContext();
   const chatStore = useChatStore();
 

@@ -30,7 +30,6 @@ export default function MessageInput() {
     setFocus,
   } = useForm<MessageInputForm>();
 
-
   useEffect(() => {
     if (messageInputStore.isUpdate) {
       setValue("message", messageInputStore.message);

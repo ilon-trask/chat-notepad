@@ -56,15 +56,9 @@ export default function ChatItem({
           />
           <div className="flex-1 text-left">
             <div className="flex justify-between">
-              {variant === "regular" ? (
-                <Small>{name}</Small>
-              ) : null}
+              {variant === "regular" ? <Small>{name}</Small> : null}
             </div>
-            {variant === "regular" ? (
-              <Muted >
-                {lastMessage}
-              </Muted>
-            ) : null}
+            {variant === "regular" ? <Muted>{lastMessage}</Muted> : null}
           </div>
         </div>
       </Button>

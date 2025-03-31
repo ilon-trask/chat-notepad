@@ -1,11 +1,4 @@
-import {
-  Menu,
-  Moon,
-  Sun,
-  Monitor,
-  Check,
-  Search,
-} from "lucide-react";
+import { Menu, Moon, Sun, Monitor, Check, Search } from "lucide-react";
 import {
   Sheet,
   SheetContent,
