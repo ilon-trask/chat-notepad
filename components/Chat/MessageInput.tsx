@@ -21,14 +21,8 @@ export default function MessageInput() {
   const chatId = useChatStore((state) => state.chosenChatId);
   const messageInputStore = useMessageInputStore();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    setValue,
-    setFocus,
-  } = useForm<MessageInputForm>();
+  const { register, handleSubmit, reset, setValue, setFocus } =
+    useForm<MessageInputForm>();
 
   useEffect(() => {
     if (messageInputStore.isUpdate) {

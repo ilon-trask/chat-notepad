@@ -32,12 +32,7 @@ export default function CreateChatDialog({
 
   const chat = chatStore.getChatById(chatDialogStore.chatId);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-  } = useForm<ChatFormData>();
+  const { register, handleSubmit, setValue } = useForm<ChatFormData>();
 
   const onSubmit = async (data: ChatFormData) => {
     if (chatDialogStore.isUpdate) {

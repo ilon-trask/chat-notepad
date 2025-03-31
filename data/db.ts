@@ -8,6 +8,7 @@ export async function createDB(): Promise<IDBDatabase> {
     (resolve, reject) => {
       const request = indexedDB.open("DB", 1);
       request.onupgradeneeded = (event) => {
+        //@ts-ignore
         const db = event.target?.result;
         labels.forEach((label) => {
           if (!db.objectStoreNames.contains(label)) {

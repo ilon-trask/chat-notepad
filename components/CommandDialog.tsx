@@ -1,6 +1,5 @@
 "use client";
 import {
-  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -8,7 +7,6 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-  CommandShortcut,
 } from "@/components/ui/command";
 import { useDBContext } from "@/contexts/dbContext";
 import confirmableChatDelete from "@/helpers/comfirmableChatDelete";

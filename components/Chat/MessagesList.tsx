@@ -73,7 +73,9 @@ export default function MessagesList() {
                 </Badge>
               </div>
               {dateMap.get(el)?.map((el) => (
-                <MessageItem key={el.id} id={el.id} children={el.content} />
+                <MessageItem key={el.id} id={el.id}>
+                  {el.content}
+                </MessageItem>
               ))}
             </React.Fragment>
           ))}
