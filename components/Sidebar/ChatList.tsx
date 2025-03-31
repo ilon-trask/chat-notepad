@@ -27,7 +27,6 @@ export default function ChatList({
           id={id}
           name={el.name}
           lastMessage="Last message preview..."
-          lastMessageTime=""
           onClick={() => chatStore.setChosenChatId(id)}
           isActive={chatStore.chosenChatId === id}
           variant={variant}

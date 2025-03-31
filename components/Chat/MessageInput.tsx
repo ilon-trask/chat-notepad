@@ -9,6 +9,7 @@ import { useMessageStore } from "@/store/messageStore";
 import { useChatStore } from "@/store/chatStore";
 import { useMessageInputStore } from "@/store/messageInputStore";
 import messageService from "@/data/messageService";
+import { Muted } from "../Typography";
 
 type MessageInputForm = {
   message: string;
@@ -78,7 +79,7 @@ export default function MessageInput() {
       {/* Edit indicator */}
       {messageInputStore.isUpdate && (
         <div className="px-4 py-2 bg-muted/50 flex items-center justify-between border-b">
-          <span className="text-sm text-muted-foreground">Editing message</span>
+          <Muted>Editing message</Muted>
           <Button
             variant="ghost"
             size="sm"

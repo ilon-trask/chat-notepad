@@ -77,7 +77,7 @@ export default function MessagesList() {
               ))}
             </React.Fragment>
           ))}
-          <div ref={messagesEndRef}/>
+          <div ref={messagesEndRef} />
         </div>
       </div>
     </div>

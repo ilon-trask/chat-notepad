@@ -13,21 +13,20 @@ import { cn } from "@/lib/utils";
 import { Edit, MoreVertical, Trash2 } from "lucide-react";
 import { SizeVariant } from "@/types/sizeVariant";
 import confirmableChatDelete from "@/helpers/comfirmableChatDelete";
+import { Muted, Small } from "../Typography";
 
 export default function ChatItem({
   type = "button",
   id,
   name,
   lastMessage,
-  lastMessageTime,
   isActive = false,
-  variant ,
+  variant,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
   id: string;
   name: string;
   lastMessage: string;
-  lastMessageTime: string;
   isActive?: boolean;
   variant: SizeVariant;
 }) {
@@ -54,17 +53,18 @@ export default function ChatItem({
               "w-12 h-12 bg-sidebar-primary rounded-full shrink-0",
               isActive && "border-2 border-primary"
             )}
-          ></div>
+          />
           <div className="flex-1 text-left">
             <div className="flex justify-between">
-            {variant==="regular" ? <h3 className={"font-medium"}>{name}</h3> : null}
-              {variant==="regular" ? <span className={"text-sm text-muted-foreground"}>
-                {lastMessageTime}
-              </span> : null}
+              {variant === "regular" ? (
+                <Small>{name}</Small>
+              ) : null}
             </div>
-            {variant==="regular" ? <p className={"text-sm text-muted-foreground truncate"}>
-              {lastMessage}
-            </p> : null}
+            {variant === "regular" ? (
+              <Muted >
+                {lastMessage}
+              </Muted>
+            ) : null}
           </div>
         </div>
       </Button>

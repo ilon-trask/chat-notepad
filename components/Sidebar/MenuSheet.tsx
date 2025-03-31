@@ -5,7 +5,6 @@ import {
   Monitor,
   Check,
   Search,
-  Keyboard,
 } from "lucide-react";
 import {
   Sheet,
@@ -23,6 +22,7 @@ import {
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { useTheme } from "next-themes";
+import { Muted, Large } from "../Typography";
 
 export default function MenuSheet() {
   const { setTheme, theme } = useTheme();
@@ -43,10 +43,8 @@ export default function MenuSheet() {
         </SheetHeader>
         <div className="p-4">
           <div className="py-4">
-            <h3 className="mb-2 text-sm font-medium">Appearance</h3>
-            <div className="mb-2 text-xs text-muted-foreground">
-              Choose your preferred theme mode
-            </div>
+            <Large className="mb-2 ">Appearance</Large>
+            <Muted className="mb-2">Choose your preferred theme mode</Muted>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
@@ -81,17 +79,17 @@ export default function MenuSheet() {
           </div>
 
           <div className="py-4">
-            <h3 className="mb-2 text-sm font-medium">Keyboard Shortcuts</h3>
-            <div className="mb-2 text-xs text-muted-foreground">
+            <Large className="mb-2">Keyboard Shortcuts</Large>
+            <Muted className="mb-2">
               Useful shortcuts to improve your workflow
-            </div>
+            </Muted>
             <div className="rounded-md border">
               <div className="flex items-center justify-between p-3 border-b">
                 <div className="flex items-center">
                   <Search className="mr-2 h-4 w-4" />
                   <span className="text-sm">Command Palette</span>
                 </div>
-                <kbd className="px-2 py-1 text-xs bg-muted rounded">⌘K</kbd>
+                <kbd className="px-2 py-1 text-xs bg-muted rounded">⌘ + K</kbd>
               </div>
             </div>
           </div>

@@ -13,6 +13,7 @@ import confirmableDelete from "@/helpers/confirmableDelete";
 import { cn } from "@/lib/utils";
 import { Message } from "@/types/message";
 import messageService from "@/data/messageService";
+import { P } from "../Typography";
 
 export default function MessageItem({
   children,
@@ -44,7 +45,7 @@ export default function MessageItem({
           {...props}
         >
           <div className="flex flex-col">
-            <p>{children}</p>
+            <P>{children}</P>
             <div className="text-xs text-gray-500 text-right text-[10px] mt-1 self-end">
               {new Date().toLocaleTimeString([], {
                 hour: "2-digit",
