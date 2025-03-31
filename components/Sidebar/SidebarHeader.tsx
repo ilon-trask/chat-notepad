@@ -12,18 +12,20 @@ export default function SidebarHeader({ variant }: { variant: SizeVariant }) {
       <MenuSheet />
       {variant === "regular" ? (
         <div
-          className="p-4 pl-0 border-b border-sidebar-border relative h-[73px] grow"
+          className="p-4 pl-0 border-sidebar-border relative grow"
           onClick={(e) => {
             e.preventDefault();
             commandStore.setIsOpen(true);
           }}
         >
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search"
-            className="pl-9 bg-sidebar-accent rounded-full w-full"
-          />
+          <div className="w-full flex items-center relative">
+            <Search className="h-4 w-4 text-muted-foreground absolute left-3 pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Search"
+              className="bg-sidebar-accent rounded-full w-full pl-9"
+            />
+          </div>
         </div>
       ) : null}
     </div>
