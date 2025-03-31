@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Card } from "../ui/card";
 import { useMessageStore } from "@/store/messageStore";
 import { useChatStore } from "@/store/chatStore";
@@ -20,7 +20,7 @@ import { useMessageInputStore } from "@/store/messageInputStore";
 export default function MessagesList() {
   const db = useDBContext();
   const messageStore = useMessageStore();
-  const chatId = useChatStore((state) => state.chosenChatId);
+  const chatId = useChatStore().chosenChatId;
 
   useEffect(() => {
     messageService.getAllMessages(db, messageStore);
@@ -42,11 +42,17 @@ export default function MessagesList() {
     setDateMap(newMap);
   }, [messageStore, chatId]);
 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView();
+  }, [dateMap]);
+
   return (
-    <div className="flex-1 overflow-y-auto flex">
-      <div className="flex-grow overflow-y-auto p-4 pt-auto flex flex-col justify-end">
+    <div className="flex-1 overflow-y-auto">
+      <div className="p-4 flex flex-col min-h-full">
         {!chatId && (
-          <div className="flex justify-center items-center h-full">
+          <div className="flex-1 flex justify-center items-center">
             <Badge
               variant="secondary"
               className="px-4 py-2 text-sm font-normal"
@@ -56,7 +62,7 @@ export default function MessagesList() {
           </div>
         )}
         {chatId && dateMap.size === 0 && (
-          <div className="flex justify-center items-center h-full">
+          <div className="flex-1 flex justify-center items-center">
             <Badge
               variant="secondary"
               className="px-4 py-2 text-sm font-normal"
@@ -65,7 +71,7 @@ export default function MessagesList() {
             </Badge>
           </div>
         )}
-        <div className="flex flex-col gap-2">
+        <div className={"flex flex-col gap-2 mt-auto"}>
           {Array.from(dateMap.keys()).map((el) => (
             <React.Fragment key={el}>
               <div className="flex justify-center mb-2 mt-4">
@@ -81,6 +87,7 @@ export default function MessagesList() {
               ))}
             </React.Fragment>
           ))}
+          <div ref={messagesEndRef}/>
         </div>
       </div>
     </div>

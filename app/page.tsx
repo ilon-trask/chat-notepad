@@ -45,11 +45,15 @@ export default function Home() {
           onCollapse={() => setIsCollapsed(true)}
           onExpand={() => setIsCollapsed(false)}
         >
-          {!isCollapsed ? <Sidebar variant="regular" /> : <Sidebar variant="mini" />}
+          {!isCollapsed ? (
+            <Sidebar variant="regular" />
+          ) : (
+            <Sidebar variant="mini" />
+          )}
         </ResizablePanel>
         <ResizableHandle />
         {/* Main Content */}
-        <ResizablePanel className="flex flex-col max-h-screen">
+        <ResizablePanel className="flex flex-col h-screen">
           <ChatHeader />
           <MessagesList />
           <MessageInput />
