@@ -27,7 +27,8 @@ export default function MessagesList() {
   }, []);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 pt-auto flex flex-col justify-end">
+    <div className="flex-1 overflow-y-auto flex">
+      <div className="flex-grow overflow-y-auto p-4 pt-auto flex flex-col justify-end">
       {!chatId && (
         <div className="flex justify-center items-center h-full">
           <Badge variant="secondary" className="px-4 py-2 text-sm font-normal">
@@ -39,6 +40,7 @@ export default function MessagesList() {
         {messageStore.getMessages(chatId).map((el) => (
           <Message key={el.id} id={el.id} children={el.content} />
         ))}
+        </div>
       </div>
     </div>
   );

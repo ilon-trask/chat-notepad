@@ -49,7 +49,7 @@ export default function Home() {
         </ResizablePanel>
         <ResizableHandle />
         {/* Main Content */}
-        <ResizablePanel className="flex flex-col">
+        <ResizablePanel className="flex flex-col max-h-screen">
           <ChatHeader />
           <MessagesList />
           <MessageInput />
