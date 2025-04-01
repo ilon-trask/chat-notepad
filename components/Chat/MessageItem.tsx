@@ -1,4 +1,4 @@
-import { useDBContext } from "@/contexts/dbContext";
+import { useDBContext } from "@/contexts/DBContext";
 import { useMessageInputStore } from "@/store/messageInputStore";
 import { useMessageStore } from "@/store/messageStore";
 import {

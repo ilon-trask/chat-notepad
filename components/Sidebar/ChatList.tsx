@@ -1,4 +1,4 @@
-import { useDBContext } from "@/contexts/dbContext";
+import { useDBContext } from "@/contexts/DBContext";
 import chatService from "@/data/chatService";
 import { useChatStore } from "@/store/chatStore";
 import { useEffect } from "react";

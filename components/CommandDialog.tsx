@@ -8,7 +8,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { useDBContext } from "@/contexts/dbContext";
+import { useDBContext } from "@/contexts/DBContext";
 import confirmableChatDelete from "@/helpers/comfirmableChatDelete";
 import { useChatDialogStore } from "@/store/chatDialogStore";
 import { useChatStore } from "@/store/chatStore";

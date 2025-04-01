@@ -1,4 +1,4 @@
-import { useDBContext } from "@/contexts/dbContext";
+import { useDBContext } from "@/contexts/DBContext";
 import chatService from "@/data/chatService";
 import { useChatDialogStore } from "@/store/chatDialogStore";
 import { useChatStore } from "@/store/chatStore";

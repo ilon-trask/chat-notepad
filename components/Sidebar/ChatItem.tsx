@@ -5,7 +5,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { useMessageStore } from "@/store/messageStore";
-import { useDBContext } from "@/contexts/dbContext";
+import { useDBContext } from "@/contexts/DBContext";
 import { useChatStore } from "@/store/chatStore";
 import { useChatDialogStore } from "@/store/chatDialogStore";
 import { Button } from "../ui/button";

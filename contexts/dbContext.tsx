@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { useDatabase } from "@/hooks/useDatabase";
 import { createContext, useContext } from "react";
 
@@ -12,7 +12,7 @@ export function useDBContext() {
   return db;
 }
 
-export function DbProvider({ children }: { children: React.ReactNode }) {
+export function DBProvider({ children }: { children: React.ReactNode }) {
   const { isLoading, db } = useDatabase();
   if (isLoading) return <div>Loading...</div>;
   if (!db) throw new Error("Database not found");

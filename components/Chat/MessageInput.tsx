@@ -4,7 +4,7 @@ import React, { KeyboardEvent, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { useForm } from "react-hook-form";
-import { useDBContext } from "@/contexts/dbContext";
+import { useDBContext } from "@/contexts/DBContext";
 import { useMessageStore } from "@/store/messageStore";
 import { useChatStore } from "@/store/chatStore";
 import { useMessageInputStore } from "@/store/messageInputStore";
@@ -73,10 +73,16 @@ export default function MessageInput() {
   };
 
   return (
-    <div className="flex flex-col  border-t border-gray-200 dark:border-gray-800  ">
+    <div
+      data-testid="MessageInput"
+      className="flex flex-col  border-t border-gray-200 dark:border-gray-800"
+    >
       {/* Edit indicator */}
       {messageInputStore.isUpdate && (
-        <div className="px-4 py-2 bg-muted/50 flex items-center justify-between border-b">
+        <div
+          data-testid="EditIndicator"
+          className="px-4 py-2 bg-muted/50 flex items-center justify-between border-b"
+        >
           <Muted>Editing message</Muted>
           <Button
             variant="ghost"
