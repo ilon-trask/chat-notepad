@@ -11,6 +11,7 @@ import MessageInput from "@/components/Chat/MessageInput";
 import { useEffect, useState } from "react";
 import { useChatStore } from "@/store/chatStore";
 import useIsMobile from "@/hooks/useIsMobile";
+import useDynamicFavicon from "@/hooks/useDynamicFavicon";
 
 export default function Home() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -18,6 +19,8 @@ export default function Home() {
   const [maxSize, setMaxSize] = useState(30);
   const isMobile = useIsMobile();
   const { chosenChatId } = useChatStore();
+
+  useDynamicFavicon();
 
   useEffect(() => {
     const calculateMinSize = () => {
