@@ -10,6 +10,7 @@ import { useChatStore } from "@/store/chatStore";
 import { useMessageInputStore } from "@/store/messageInputStore";
 import messageService from "@/data/messageService";
 import { Muted } from "../Typography";
+import { toast } from "sonner";
 
 type MessageInputForm = {
   message: string;
@@ -38,7 +39,10 @@ export default function MessageInput() {
   ]);
 
   const onSubmit = (data: MessageInputForm) => {
-    if (data.message.trim() === "") return;
+    if (data.message.trim() === "" || !chatId) {
+      toast.error("Please enter a message and select a chat");
+      return;
+    }
     if (messageInputStore.isUpdate) {
       messageService.updateMessage(db, messageStore, {
         chatId,
