@@ -4,16 +4,14 @@ import { useChatStore } from "@/store/chatStore";
 import { type Message } from "@/types/message";
 import { Badge } from "../ui/badge";
 import messageService from "@/data/messageService";
-import { useDBContext } from "@/contexts/DBContext";
 import MessageItem from "./MessageItem";
 
 export default function MessagesList() {
-  const db = useDBContext();
   const messageStore = useMessageStore();
   const chatId = useChatStore().chosenChatId;
 
   useEffect(() => {
-    messageService.getAllMessages(db, messageStore);
+    messageService.getAllMessages(messageStore);
   }, []);
 
   const [dateMap, setDateMap] = useState<Map<string, Message[]>>(new Map());

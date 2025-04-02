@@ -2,24 +2,22 @@ import { Message, MessageUpdate } from "@/types/message";
 import { v4 as uuid } from "uuid";
 import { DBService } from "./DBService";
 import { MessageStore } from "@/store/messageStore";
-
-export const MESSAGE_LABEL = "message";
+import { MESSAGE_LABEL } from "./db";
 
 class MessageService extends DBService<Message> {
   constructor() {
     super(MESSAGE_LABEL);
   }
-  async getAllMessages(db: IDBDatabase,messageStore: MessageStore) {
-    const messages = await super.getAll(db);
+  async getAllMessages(messageStore: MessageStore) {
+    const messages = await super.getAll();
     messageStore.setMessages(messages);
   }
   async createMessage(
-    db: IDBDatabase,
     messageStore: MessageStore,
     content: string,
     chatId: string
   ) {
-    if(!chatId) throw new Error("Chat ID is required");
+    if (!chatId) throw new Error("Chat ID is required");
     const newMessage = {
       id: uuid(),
       content,
@@ -27,31 +25,27 @@ class MessageService extends DBService<Message> {
       editedAt: new Date(),
       chatId,
     };
-    await super.create(db, newMessage);
+    await super.create(newMessage);
     messageStore.addMessage(newMessage);
   }
-  async deleteMessage(db: IDBDatabase, messageStore: MessageStore, id: string) {
-    await super.delete(db, id);
+  async deleteMessage(messageStore: MessageStore, id: string) {
+    await super.delete(id);
     messageStore.deleteMessage(id);
   }
-  async deleteChatMessages(
-    db: IDBDatabase,
-    messageStore: MessageStore,
-    chatId: string
-  ) {
-    const messages = await super.getAll(db);
+  async deleteChatMessages(messageStore: MessageStore, chatId: string) {
+    const messages = await super.getAll();
     for (const message of messages) {
       if (message.chatId == chatId) {
-        await super.delete(db, message.id);
+        await super.delete(message.id);
         messageStore.deleteMessage(message.id);
       }
     }
   }
-  async updateMessage(db: IDBDatabase, messageStore: MessageStore, data: MessageUpdate) {
+  async updateMessage(messageStore: MessageStore, data: MessageUpdate) {
     const message = messageStore.getMessageById(data.id);
-    if(!message) throw new Error("Message not found");
+    if (!message) throw new Error("Message not found");
     const newMessage = { ...data, createdAt: message.createdAt };
-    await super.update(db, newMessage);
+    await super.update(newMessage);
     messageStore.updateMessage(newMessage);
   }
 }

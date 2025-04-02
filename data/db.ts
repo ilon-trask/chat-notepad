@@ -1,5 +1,5 @@
-import { CHAT_LABEL } from "./chatService";
-import { MESSAGE_LABEL } from "./messageService";
+export const CHAT_LABEL = "chat";
+export const MESSAGE_LABEL = "message";
 
 const labels = [CHAT_LABEL, MESSAGE_LABEL];
 

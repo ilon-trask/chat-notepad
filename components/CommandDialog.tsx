@@ -8,7 +8,6 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { useDBContext } from "@/contexts/DBContext";
 import confirmableChatDelete from "@/helpers/comfirmableChatDelete";
 import { useChatDialogStore } from "@/store/chatDialogStore";
 import { useChatStore } from "@/store/chatStore";
@@ -21,7 +20,6 @@ export default function CommandMenu() {
   const commandStore = useCommandStore();
   const chatStore = useChatStore();
   const chatDialogStore = useChatDialogStore();
-  const db = useDBContext();
   const messageStore = useMessageStore();
   const messageInputStore = useMessageInputStore();
 
@@ -66,7 +64,6 @@ export default function CommandMenu() {
               <CommandItem
                 onSelect={() => {
                   confirmableChatDelete(
-                    db,
                     chatStore,
                     messageStore,
                     chatStore.chosenChatId

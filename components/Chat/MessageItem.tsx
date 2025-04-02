@@ -1,4 +1,3 @@
-import { useDBContext } from "@/contexts/DBContext";
 import { useMessageInputStore } from "@/store/messageInputStore";
 import { useMessageStore } from "@/store/messageStore";
 import {
@@ -25,7 +24,6 @@ export default function MessageItem({
   id: string;
   createdAt: Date;
 }) {
-  const db = useDBContext();
   const messageStore = useMessageStore();
   const messageInputStore = useMessageInputStore();
 
@@ -67,8 +65,7 @@ export default function MessageItem({
           onClick={() => {
             confirmableDelete<Message>({
               getEntity: () => messageStore.getMessageById(id),
-              onDelete: () =>
-                messageService.deleteMessage(db, messageStore, id),
+              onDelete: () => messageService.deleteMessage(messageStore, id),
               onStoreDelete: () => messageStore.deleteMessage(id),
               onReverseDelete: (message: Message) =>
                 messageStore.addMessage(message),

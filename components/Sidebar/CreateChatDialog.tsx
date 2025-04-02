@@ -1,4 +1,3 @@
-import { useDBContext } from "@/contexts/DBContext";
 import chatService from "@/data/chatService";
 import { useChatDialogStore } from "@/store/chatDialogStore";
 import { useChatStore } from "@/store/chatStore";
@@ -26,7 +25,6 @@ export default function CreateChatDialog({
 }: {
   variant: SizeVariant;
 }) {
-  const db = useDBContext();
   const chatStore = useChatStore();
   const chatDialogStore = useChatDialogStore();
 
@@ -36,12 +34,12 @@ export default function CreateChatDialog({
 
   const onSubmit = async (data: ChatFormData) => {
     if (chatDialogStore.isUpdate) {
-      chatService.updateChat(db, chatStore, {
+      chatService.updateChat(chatStore, {
         id: chatDialogStore.chatId,
         name: data.name,
       });
     } else {
-      const newChat = await chatService.createChat(db, chatStore, data.name);
+      const newChat = await chatService.createChat(chatStore, data.name);
       chatStore.setChosenChatId(newChat.id);
     }
     chatDialogStore.setIsOpen(false);

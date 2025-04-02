@@ -4,38 +4,36 @@ import messageService from "./messageService";
 import { ChatStore } from "@/store/chatStore";
 import { DBService } from "./DBService";
 import { MessageStore } from "@/store/messageStore";
-
-export const CHAT_LABEL = "chat";
+import { CHAT_LABEL } from "./db";
 
 class ChatService extends DBService<Chat> {
   constructor() {
     super(CHAT_LABEL);
   }
-  async getAllChats(db: IDBDatabase, chatStore: ChatStore) {
-    const chats = await super.getAll(db);
+  async getAllChats(chatStore: ChatStore) {
+    const chats = await super.getAll();
     chatStore.setChats(chats);
   }
-  async createChat(db: IDBDatabase, chatStore: ChatStore, name: string) {
+  async createChat(chatStore: ChatStore, name: string) {
     const newChat = { id: uuid(), name, createdAt: new Date() };
-    await super.create(db, newChat);
+    await super.create(newChat);
     chatStore.addChat(newChat);
     return newChat;
   }
   async deleteChat(
-    db: IDBDatabase,
     chatStore: ChatStore,
     messageStore: MessageStore,
     id: string
   ) {
-    await messageService.deleteChatMessages(db, messageStore, id);
-    await super.delete(db, id);
+    await messageService.deleteChatMessages(messageStore, id);
+    await super.delete(id);
     chatStore.deleteChat(id);
   }
-  async updateChat(db: IDBDatabase, chatStore: ChatStore, data: ChatUpdate) {
+  async updateChat(chatStore: ChatStore, data: ChatUpdate) {
     const chat = chatStore.getChatById(data.id);
     if (!chat) throw new Error("Chat not found");
     const newChat = { ...data, createdAt: chat.createdAt };
-    await super.update(db, newChat);
+    await super.update(newChat);
     chatStore.updateChat(newChat);
   }
 }

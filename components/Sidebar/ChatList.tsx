@@ -1,4 +1,3 @@
-import { useDBContext } from "@/contexts/DBContext";
 import chatService from "@/data/chatService";
 import { useChatStore } from "@/store/chatStore";
 import { useEffect } from "react";
@@ -7,11 +6,10 @@ import ChatItem from "./ChatItem";
 import { SizeVariant } from "@/types/sizeVariant";
 
 export default function ChatList({ variant }: { variant: SizeVariant }) {
-  const db = useDBContext();
   const chatStore = useChatStore();
 
   useEffect(() => {
-    chatService.getAllChats(db, chatStore);
+    chatService.getAllChats(chatStore);
   }, []);
 
   return (

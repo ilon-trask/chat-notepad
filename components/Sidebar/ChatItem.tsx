@@ -5,7 +5,6 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { useMessageStore } from "@/store/messageStore";
-import { useDBContext } from "@/contexts/DBContext";
 import { useChatStore } from "@/store/chatStore";
 import { useChatDialogStore } from "@/store/chatDialogStore";
 import { Button } from "../ui/button";
@@ -31,7 +30,6 @@ export default function ChatItem({
   isActive?: boolean;
   variant: SizeVariant;
 }) {
-  const db = useDBContext();
   const chatStore = useChatStore();
   const messageStore = useMessageStore();
   const chatDialogStore = useChatDialogStore();
@@ -97,7 +95,7 @@ export default function ChatItem({
           <DropdownMenuItem
             className="text-destructive"
             onClick={() => {
-              confirmableChatDelete(db, chatStore, messageStore, id);
+              confirmableChatDelete(chatStore, messageStore, id);
             }}
           >
             <Trash2 className="mr-2 h-4 w-4 text-destructive" />

@@ -4,7 +4,6 @@ import React, { KeyboardEvent, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { useForm } from "react-hook-form";
-import { useDBContext } from "@/contexts/DBContext";
 import { useMessageStore } from "@/store/messageStore";
 import { useChatStore } from "@/store/chatStore";
 import { useMessageInputStore } from "@/store/messageInputStore";
@@ -17,7 +16,6 @@ type MessageInputForm = {
 };
 
 export default function MessageInput() {
-  const db = useDBContext();
   const messageStore = useMessageStore();
   const chatId = useChatStore((state) => state.chosenChatId);
   const messageInputStore = useMessageInputStore();
@@ -44,7 +42,7 @@ export default function MessageInput() {
       return;
     }
     if (messageInputStore.isUpdate) {
-      messageService.updateMessage(db, messageStore, {
+      messageService.updateMessage(messageStore, {
         chatId,
         content: data.message,
         editedAt: new Date(),
@@ -52,7 +50,7 @@ export default function MessageInput() {
       });
       messageInputStore.cancelEditing();
     } else {
-      messageService.createMessage(db, messageStore, data.message, chatId);
+      messageService.createMessage(messageStore, data.message, chatId);
     }
     reset();
   };
@@ -103,6 +101,7 @@ export default function MessageInput() {
             className="flex w-full items-center gap-2"
           >
             <Textarea
+              data-testid="MessageInputTextarea"
               id="message-textarea"
               placeholder={
                 messageInputStore.isUpdate
