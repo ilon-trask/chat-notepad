@@ -19,9 +19,11 @@ export default function MessageItem({
   children,
   className,
   id,
+  createdAt,
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & {
   id: string;
+  createdAt: Date;
 }) {
   const db = useDBContext();
   const messageStore = useMessageStore();
@@ -47,7 +49,7 @@ export default function MessageItem({
           <div className="flex flex-col">
             <P>{children}</P>
             <div className="text-xs text-gray-500 text-right text-[10px] mt-1 self-end">
-              {new Date().toLocaleTimeString([], {
+              {new Date(createdAt).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               })}

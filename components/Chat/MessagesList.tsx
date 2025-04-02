@@ -73,7 +73,7 @@ export default function MessagesList() {
                 </Badge>
               </div>
               {dateMap.get(el)?.map((el) => (
-                <MessageItem key={el.id} id={el.id}>
+                <MessageItem key={el.id} id={el.id} createdAt={el.createdAt}>
                   {el.content}
                 </MessageItem>
               ))}
