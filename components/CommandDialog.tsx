@@ -25,7 +25,7 @@ export default function CommandMenu() {
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      if ((e.key === "k" || e.key === "л") && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         commandStore.setIsOpen(!commandStore.isOpen);
       }
