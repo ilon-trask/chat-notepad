@@ -85,7 +85,7 @@ export default function Home() {
       <ResizablePanel id="chat" className="flex flex-col h-screen">
         <ChatHeader />
         <MessagesList />
-        <MessageInput />
+        {chosenChatId && <MessageInput />}
       </ResizablePanel>
     </ResizablePanelGroup>
   );
