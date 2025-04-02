@@ -13,7 +13,10 @@ export default function ChatList({ variant }: { variant: SizeVariant }) {
   }, []);
 
   return (
-    <div className="overflow-y-auto h-[calc(100vh-73px)] no-scrollbar">
+    <div
+      data-testid="ChatList"
+      className="overflow-y-auto h-[calc(100vh-73px)] no-scrollbar"
+    >
       <CreateChatDialog variant={variant} />
       {chatStore.getChats().map(({ id, ...el }) => (
         <ChatItem
@@ -21,7 +24,6 @@ export default function ChatList({ variant }: { variant: SizeVariant }) {
           id={id}
           name={el.name}
           lastMessage="Last message preview..."
-          onClick={() => chatStore.setChosenChatId(id)}
           isActive={chatStore.chosenChatId === id}
           variant={variant}
         />

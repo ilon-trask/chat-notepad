@@ -40,10 +40,11 @@ export default function CommandMenu() {
       onOpenChange={commandStore.setIsOpen}
     >
       <CommandInput placeholder="Type a command or search..." />
-      <CommandList>
+      <CommandList data-testid="CommandDialogList">
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Actions">
           <CommandItem
+            data-testid="CommandDialogCreateChat"
             onSelect={() => {
               chatDialogStore.setIsOpen(true);
               commandStore.setIsOpen(false);

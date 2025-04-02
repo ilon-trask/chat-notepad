@@ -60,6 +60,7 @@ export default function CreateChatDialog({
     >
       <DialogTrigger asChild>
         <Button
+          data-testid="CreateChatButton"
           variant="ghost"
           size={"default"}
           className="px-4 w-full justify-start h-10 border-b-gray-200 border-1 rounded-none"
@@ -76,14 +77,20 @@ export default function CreateChatDialog({
           )}
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent data-testid="CreateChatDialogContent">
         <DialogHeader>
           <DialogTitle>Create Chat</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Input placeholder="Chat name" {...register("name")} />
+          <Input
+            data-testid="CreateChatDialogInput"
+            placeholder="Chat name"
+            {...register("name")}
+          />
           <DialogFooter>
-            <Button type="submit">Create</Button>
+            <Button data-testid="CreateChatDialogButton" type="submit">
+              Create
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

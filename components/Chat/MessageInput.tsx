@@ -114,6 +114,7 @@ export default function MessageInput() {
               {...register("message")}
             />
             <Button
+              data-testid="MessageInputSendButton"
               type="submit"
               size="icon"
               className="rounded-full"

@@ -59,7 +59,10 @@ export default function MessagesList() {
             </Badge>
           </div>
         )}
-        <div className={"flex flex-col gap-2 mt-auto"}>
+        <div
+          data-testid="MessageList"
+          className={"flex flex-col gap-2 mt-auto"}
+        >
           {Array.from(dateMap.keys()).map((el) => (
             <React.Fragment key={el}>
               <div className="flex justify-center mb-2 mt-4">

@@ -36,8 +36,9 @@ export default function ChatItem({
   const isMobile = useIsMobile();
 
   return (
-    <div className="relative group">
+    <div data-testid="ChatItemGroup" className="relative group">
       <Button
+        data-testid="ChatItemButton"
         type={type}
         variant="ghost"
         className={cn(
@@ -45,6 +46,7 @@ export default function ChatItem({
           "h-auto",
           isActive && "bg-sidebar-accent text-primary border-l-4 border-primary"
         )}
+        onClick={() => chatStore.setChosenChatId(id)}
         {...props}
       >
         <div className="flex items-center gap-3 w-full">
@@ -65,26 +67,22 @@ export default function ChatItem({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          {isMobile ? (
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute right-2 top-1/2 -translate-y-1/2"
-            >
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          )}
+          <Button
+            data-testid="ChatDropdownMenuTrigger"
+            variant={isMobile ? "outline" : "ghost"}
+            size="icon"
+            className={cn(
+              "absolute right-2 top-1/2 -translate-y-1/2",
+              !isMobile &&
+                "opacity-0 group-hover:opacity-100 transition-opacity"
+            )}
+          >
+            <MoreVertical className="h-4 w-4" />
+          </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent data-testid="ChatDropdownMenu" align="end">
           <DropdownMenuItem
+            data-testid="ChatEditButton"
             onClick={() => {
               chatDialogStore.startEditing(id);
             }}
@@ -93,6 +91,7 @@ export default function ChatItem({
             <span>Edit</span>
           </DropdownMenuItem>
           <DropdownMenuItem
+            data-testid="ChatDeleteButton"
             className="text-destructive"
             onClick={() => {
               confirmableChatDelete(chatStore, messageStore, id);

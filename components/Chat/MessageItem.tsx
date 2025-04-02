@@ -55,12 +55,13 @@ export default function MessageItem({
           </div>
         </Card>
       </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem onClick={handleEdit}>
+      <ContextMenuContent data-testid="MessageDropdownMenu">
+        <ContextMenuItem data-testid="MessageEditButton" onClick={handleEdit}>
           <Edit className="mr-2 h-4 w-4" />
           <span>Edit</span>
         </ContextMenuItem>
         <ContextMenuItem
+          data-testid="MessageDeleteButton"
           className="text-destructive"
           onClick={() => {
             confirmableDelete<Message>({
