@@ -1,5 +1,5 @@
-export * from "./large";
-export * from "./H3";
-export * from "./Muted";
-export * from "./Small";
-export * from "./P";
+export { Large } from "./large";
+export { H3 } from "./H3";
+export { Muted } from "./Muted";
+export { Small } from "./Small";
+export { P } from "./P";
