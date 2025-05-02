@@ -4,7 +4,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { useMessageStore } from "@/store/messageStore";
 import { useChatStore } from "@/store/chatStore";
 import { useChatDialogStore } from "@/store/chatDialogStore";
 import { Button } from "../ui/button";
@@ -14,6 +13,7 @@ import { SizeVariant } from "@/types/sizeVariant";
 import confirmableChatDelete from "@/helpers/comfirmableChatDelete";
 import { Muted, Small } from "../Typography";
 import useIsMobile from "@/hooks/useIsMobile";
+import { useServicesContext } from "../ServicesPrvider";
 
 export default function ChatItem({
   type = "button",
@@ -31,7 +31,7 @@ export default function ChatItem({
   variant: SizeVariant;
 }) {
   const chatStore = useChatStore();
-  const messageStore = useMessageStore();
+  const { chatService } = useServicesContext();
   const chatDialogStore = useChatDialogStore();
   const isMobile = useIsMobile();
 
@@ -94,7 +94,7 @@ export default function ChatItem({
             data-testid="ChatDeleteButton"
             className="text-destructive"
             onClick={() => {
-              confirmableChatDelete(chatStore, messageStore, id);
+              confirmableChatDelete(chatStore, id, chatService);
             }}
           >
             <Trash2 className="mr-2 h-4 w-4 text-destructive" />

@@ -1,67 +1,97 @@
 import DBResPromise from "@/helpers/DBResPromise";
-import { createDB } from "./db";
+import { createLocalDB, Labels } from "./createLocalDB";
+import isOnline from "@/helpers/isOnline";
+import { convex } from "@/components/ConvexClientProvider";
+import { api } from "../convex/_generated/api";
+import { PLURALS } from "./createLocalDB";
+
+const DB_METHODS = ["add", "put", "getAll", "delete", "clear"] as const;
 
 export class DBService<T> {
-  private _label: string;
-  private _db: Promise<IDBDatabase>;
+  private _label: Labels;
+  private _db: IDBDatabase;
 
-  constructor(label: string) {
+  constructor(label: Labels,db: IDBDatabase) {
     this._label = label;
-    this._db = createDB();
+    this._db = db;
   }
 
-  protected _changeDBType(chatDB: IDBObjectStore) {
-    type ChatDB = Omit<typeof chatDB, "add" | "put" | "getAll"> & {
-      add: (value: T, key?: IDBValidKey) => IDBRequest<IDBValidKey>;
-      put: (value: T, key?: IDBValidKey) => IDBRequest<IDBValidKey>;
-      getAll: (
-        query?: IDBValidKey | IDBKeyRange | null,
-        count?: number
-      ) => IDBRequest<T[]>;
+  protected _changeDBType(localDB: IDBObjectStore) {
+    type LocalDB = Omit<typeof localDB, typeof DB_METHODS[number]> & {
+      add: (value: T) => Promise<IDBValidKey>;
+      put: (value: T) => Promise<IDBValidKey>;
+      getAll: () => Promise<T[]>;
+      delete: (query: string) => Promise<undefined>
+      clear: () => Promise<undefined>
     };
-    return chatDB as ChatDB;
-  }
+    const { put, add, getAll, clear, delete: deleteDB, ...rest } = localDB;
 
+    const newLocalDB = {
+      ...rest,
+      put: async (...args) => await DBResPromise(put.apply(localDB, args)),
+      getAll: async (...args) => await DBResPromise(getAll.apply(localDB, args)),
+      add: async (...args) => await DBResPromise(add.apply(localDB, args)),
+      clear: async (...args) => await DBResPromise(clear.apply(localDB, args)),
+      delete: async (...args) => await DBResPromise(deleteDB.apply(localDB, args)),
+    } as LocalDB;
+
+    return newLocalDB;
+  }
   protected async _getReadDbObject() {
-    const transaction = (await this._db).transaction(this._label, "readonly");
+    // if (isOnline()) {
+    //   const DB = {
+    //     getAll: () => { },
+    //   }
+    //   return DB;
+    // }
+    const transaction = this._db.transaction(this._label, "readonly");
     const DB = transaction.objectStore(this._label);
     return this._changeDBType(DB);
   }
-
   protected async _getWriteDbObject() {
-    const transaction = (await this._db).transaction(this._label, "readwrite");
+    // if (isOnline()) {
+      // const label = this._label;
+      // const a = api['chats'].create._args;
+      // type a = typeof a;
+      // const obj = {
+      //   id: 'some',
+      //   name
+      // } satisfies a;
+      // await convex.mutation(api.chats.create, {});
+    //   const DB = {
+    //     async getAll() { return await convex.query(api[PLURALS[label]].getAll, {}) },
+    //     async create(value: T) { return await convex.query(api[PLURALS[label]].create, { value }) },
+    //   }
+    //   return DB;
+    // }
+    const transaction = this._db.transaction(this._label, "readwrite");
     const DB = transaction.objectStore(this._label);
     return this._changeDBType(DB);
   }
 
   async getAll() {
     const DB = await this._getReadDbObject();
-    const req = DB.getAll();
-    const res = await DBResPromise(req);
+    const res = await DB.getAll();
     return res;
   }
 
   async create(data: T) {
     const DB = await this._getWriteDbObject();
-    const req = DB.add(data);
-    await DBResPromise(req);
+    const req = await DB.add(data);
   }
 
   async delete(id: string) {
     const DB = await this._getWriteDbObject();
-    const req = DB.delete(id);
-    await DBResPromise(req);
+    const req = await DB.delete(id);
   }
 
   async deleteAll() {
     const DB = await this._getWriteDbObject();
-    const req = DB.clear();
-    await DBResPromise(req);
+    const req = await DB.clear();
   }
 
   async update(data: T) {
     const DB = await this._getWriteDbObject();
-    const req = DB.put(data);
-    await DBResPromise(req);
+    const req = await DB.put(data);
   }
 }

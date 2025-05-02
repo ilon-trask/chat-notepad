@@ -11,8 +11,8 @@ import { Card } from "../ui/card";
 import confirmableDelete from "@/helpers/confirmableDelete";
 import { cn } from "@/lib/utils";
 import { Message } from "@/types/message";
-import messageService from "@/data/messageService";
 import { Pre } from "../Typography";
+import { useServicesContext } from "../ServicesPrvider";
 
 export default function MessageItem({
   children,
@@ -24,6 +24,7 @@ export default function MessageItem({
   id: string;
   createdAt: Date;
 }) {
+  const { messageService } = useServicesContext();
   const messageStore = useMessageStore();
   const messageInputStore = useMessageInputStore();
 
@@ -66,7 +67,7 @@ export default function MessageItem({
           onClick={() => {
             confirmableDelete<Message>({
               getEntity: () => messageStore.getMessageById(id),
-              onDelete: () => messageService.deleteMessage(messageStore, id),
+              onDelete: () => messageService.deleteMessage(id),
               onStoreDelete: () => messageStore.deleteMessage(id),
               onReverseDelete: (message: Message) =>
                 messageStore.addMessage(message),

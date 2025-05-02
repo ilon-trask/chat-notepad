@@ -1,41 +1,42 @@
 import { Chat, ChatUpdate } from "@/types/chat";
 import { v4 as uuid } from "uuid";
-import messageService from "./messageService";
+import MessageService from "./messageService";
 import { ChatStore } from "@/store/chatStore";
 import { DBService } from "./DBService";
-import { MessageStore } from "@/store/messageStore";
-import { CHAT_LABEL } from "./db";
+import { CHAT_LABEL } from "./createLocalDB";
 
 class ChatService extends DBService<Chat> {
-  constructor() {
-    super(CHAT_LABEL);
+  private _messageService: MessageService;
+  private _chatStore: ChatStore;
+  constructor(db: IDBDatabase, messageService: MessageService, chatStore: ChatStore) {
+    super(CHAT_LABEL, db);
+    this._messageService = messageService;
+    this._chatStore = chatStore;
   }
-  async getAllChats(chatStore: ChatStore) {
+  async getAllChats() {
     const chats = await super.getAll();
-    chatStore.setChats(chats);
+    this._chatStore.setChats(chats);
   }
-  async createChat(chatStore: ChatStore, name: string) {
+  async createChat(name: string) {
     const newChat = { id: uuid(), name, createdAt: new Date() };
     await super.create(newChat);
-    chatStore.addChat(newChat);
+    this._chatStore.addChat(newChat);
     return newChat;
   }
   async deleteChat(
-    chatStore: ChatStore,
-    messageStore: MessageStore,
     id: string
   ) {
-    await messageService.deleteChatMessages(messageStore, id);
+    await this._messageService.deleteChatMessages(id);
     await super.delete(id);
-    chatStore.deleteChat(id);
+    this._chatStore.deleteChat(id);
   }
-  async updateChat(chatStore: ChatStore, data: ChatUpdate) {
-    const chat = chatStore.getChatById(data.id);
+  async updateChat(data: ChatUpdate) {
+    const chat = this._chatStore.getChatById(data.id);
     if (!chat) throw new Error("Chat not found");
     const newChat = { ...data, createdAt: chat.createdAt };
     await super.update(newChat);
-    chatStore.updateChat(newChat);
+    this._chatStore.updateChat(newChat);
   }
 }
 
-export default new ChatService();
+export default ChatService;

@@ -2,18 +2,19 @@ import { Message, MessageUpdate } from "@/types/message";
 import { v4 as uuid } from "uuid";
 import { DBService } from "./DBService";
 import { MessageStore } from "@/store/messageStore";
-import { MESSAGE_LABEL } from "./db";
+import { MESSAGE_LABEL } from "./createLocalDB";
 
 class MessageService extends DBService<Message> {
-  constructor() {
-    super(MESSAGE_LABEL);
+  private _messageStore: MessageStore
+  constructor(db: IDBDatabase, messageStore: MessageStore) {
+    super(MESSAGE_LABEL, db);
+    this._messageStore = messageStore;
   }
-  async getAllMessages(messageStore: MessageStore) {
+  async getAllMessages() {
     const messages = await super.getAll();
-    messageStore.setMessages(messages);
+    this._messageStore.setMessages(messages);
   }
   async createMessage(
-    messageStore: MessageStore,
     content: string,
     chatId: string
   ) {
@@ -26,28 +27,28 @@ class MessageService extends DBService<Message> {
       chatId,
     };
     await super.create(newMessage);
-    messageStore.addMessage(newMessage);
+    this._messageStore.addMessage(newMessage);
   }
-  async deleteMessage(messageStore: MessageStore, id: string) {
+  async deleteMessage(id: string) {
     await super.delete(id);
-    messageStore.deleteMessage(id);
+    this._messageStore.deleteMessage(id);
   }
-  async deleteChatMessages(messageStore: MessageStore, chatId: string) {
+  async deleteChatMessages(chatId: string) {
     const messages = await super.getAll();
     for (const message of messages) {
       if (message.chatId == chatId) {
         await super.delete(message.id);
-        messageStore.deleteMessage(message.id);
+        this._messageStore.deleteMessage(message.id);
       }
     }
   }
-  async updateMessage(messageStore: MessageStore, data: MessageUpdate) {
-    const message = messageStore.getMessageById(data.id);
+  async updateMessage(data: MessageUpdate) {
+    const message = this._messageStore.getMessageById(data.id);
     if (!message) throw new Error("Message not found");
     const newMessage = { ...data, createdAt: message.createdAt };
     await super.update(newMessage);
-    messageStore.updateMessage(newMessage);
+    this._messageStore.updateMessage(newMessage);
   }
 }
 
-export default new MessageService();
+export default MessageService;

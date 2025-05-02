@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
-import { createDB } from "../../data/db";
+import { createLocalDB } from "../../data/createLocalDB";
 
 function createReadyDB() {
-  return createDB().then((db) => {
+  return createLocalDB().then((db) => {
     const chatTransaction = db.transaction("chat", "readwrite");
     const messageTransaction = db.transaction("message", "readwrite");
     const chat = chatTransaction.objectStore("chat");
@@ -178,11 +178,11 @@ describe("Whole app", () => {
   });
 
   it("cmdk create chat", () => {
-    cy.get("body").type("{cmd}k");
+    cy.wait(1000);
+    cy.get("body").type('{ctrl}k');
     cy.get("[data-testid='CommandDialogList']").should("exist");
     cy.get("[data-testid='CommandDialogCreateChat']").click();
     cy.get("[data-testid='CommandDialogList']").should("not.exist");
-
     cy.get("[data-testid='CreateChatDialogContent']").should("exist");
   });
 });
