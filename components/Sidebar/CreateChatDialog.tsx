@@ -25,7 +25,7 @@ export default function CreateChatDialog({
 }: {
   variant: SizeVariant;
 }) {
-  const { chatService,messageService } = useServicesContext();
+  const { chatService } = useServicesContext();
   const chatStore = useChatStore();
   const chatDialogStore = useChatDialogStore();
 

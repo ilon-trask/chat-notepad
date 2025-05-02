@@ -13,7 +13,6 @@ import { useChatDialogStore } from "@/store/chatDialogStore";
 import { useChatStore } from "@/store/chatStore";
 import useCommandStore from "@/store/commandStore";
 import { useMessageInputStore } from "@/store/messageInputStore";
-import { useMessageStore } from "@/store/messageStore";
 import { useEffect } from "react";
 import { useServicesContext } from "./ServicesPrvider";
 
