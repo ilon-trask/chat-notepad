@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { TOAST_DURATION } from "@/helpers/confirmableDelete";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import CommandMenu from "@/components/CommandDialog";
-import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { ServiceProvider } from "@/components/ServicesPrvider";
 
 const geistSans = Geist({
@@ -41,7 +40,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ConvexClientProvider>
           <ServiceProvider>
             <ThemeProvider
               attribute="class"
@@ -54,7 +52,6 @@ export default function RootLayout({
               <Toaster position="top-right" duration={TOAST_DURATION} />
             </ThemeProvider>
           </ServiceProvider>
-        </ConvexClientProvider>
       </body>
     </html>
   );
