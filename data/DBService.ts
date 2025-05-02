@@ -1,9 +1,5 @@
 import DBResPromise from "@/helpers/DBResPromise";
-import { createLocalDB, Labels } from "./createLocalDB";
-import isOnline from "@/helpers/isOnline";
-import { convex } from "@/components/ConvexClientProvider";
-import { api } from "../convex/_generated/api";
-import { PLURALS } from "./createLocalDB";
+import { Labels } from "./createLocalDB";
 
 const DB_METHODS = ["add", "put", "getAll", "delete", "clear"] as const;
 
@@ -11,7 +7,7 @@ export class DBService<T> {
   private _label: Labels;
   private _db: IDBDatabase;
 
-  constructor(label: Labels,db: IDBDatabase) {
+  constructor(label: Labels, db: IDBDatabase) {
     this._label = label;
     this._db = db;
   }
@@ -38,32 +34,11 @@ export class DBService<T> {
     return newLocalDB;
   }
   protected async _getReadDbObject() {
-    // if (isOnline()) {
-    //   const DB = {
-    //     getAll: () => { },
-    //   }
-    //   return DB;
-    // }
     const transaction = this._db.transaction(this._label, "readonly");
     const DB = transaction.objectStore(this._label);
     return this._changeDBType(DB);
   }
   protected async _getWriteDbObject() {
-    // if (isOnline()) {
-      // const label = this._label;
-      // const a = api['chats'].create._args;
-      // type a = typeof a;
-      // const obj = {
-      //   id: 'some',
-      //   name
-      // } satisfies a;
-      // await convex.mutation(api.chats.create, {});
-    //   const DB = {
-    //     async getAll() { return await convex.query(api[PLURALS[label]].getAll, {}) },
-    //     async create(value: T) { return await convex.query(api[PLURALS[label]].create, { value }) },
-    //   }
-    //   return DB;
-    // }
     const transaction = this._db.transaction(this._label, "readwrite");
     const DB = transaction.objectStore(this._label);
     return this._changeDBType(DB);
