@@ -13,8 +13,8 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Plus } from "lucide-react";
-import { SizeVariant } from "@/types/sizeVariant";
-import { useServicesContext } from "../ServicesPrvider";
+import { SizeVariant } from "@/types/sizeVariant.types";
+import { useServicesContext } from "../ServicesProvider";
 
 type ChatFormData = {
   name: string;
@@ -38,6 +38,7 @@ export default function CreateChatDialog({
       chatService.updateChat({
         id: chatDialogStore.chatId,
         name: data.name,
+        editedAt: new Date(),
       });
     } else {
       const newChat = await chatService.createChat(data.name);

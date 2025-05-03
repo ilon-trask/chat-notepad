@@ -14,7 +14,7 @@ import { useChatStore } from "@/store/chatStore";
 import useCommandStore from "@/store/commandStore";
 import { useMessageInputStore } from "@/store/messageInputStore";
 import { useEffect } from "react";
-import { useServicesContext } from "./ServicesPrvider";
+import { useServicesContext } from "./ServicesProvider";
 
 export default function CommandMenu() {
   const commandStore = useCommandStore();

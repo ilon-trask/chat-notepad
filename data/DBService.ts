@@ -1,72 +1,44 @@
-import DBResPromise from "@/helpers/DBResPromise";
-import { Labels } from "./createLocalDB";
+// import { api } from "@/convex/_generated/api";
+// import { Labels } from "./createLocalDB";
+// import { localDBService } from "./localDBService";
+// import { ConvexReactClient } from "convex/react"
+// import { Message } from "@/types/message.types";
+// import { ChatDialogStore } from "@/store/chatDialogStore";
+// import isOnline from "@/helpers/isOnline";
 
-const DB_METHODS = ["add", "put", "getAll", "delete", "clear"] as const;
+// export class DBService<T> extends localDBService<T> {
+//     private _convexDB: ConvexReactClient;
+//     private _label: Labels;
 
-export class DBService<T> {
-  private _label: Labels;
-  private _db: IDBDatabase;
+//     constructor(label: Labels, db: IDBDatabase, convexDB: ConvexReactClient) {
+//         super(label, db);
+//         this._convexDB = convexDB;
+//         this._label = label;
+//     }
 
-  constructor(label: Labels, db: IDBDatabase) {
-    this._label = label;
-    this._db = db;
-  }
+//     async getAll() {
+//         if (isOnline()) {
+//             const data = await this._convexDB.query(api[this._label].getAll);
+//             return data as T[];
+//         }
+//         return super.getAll();
+//     }
+//     async create(data: T) {
+//         if (isOnline()) {
+//             const newData = await this._convexDB.mutation(api[this._label].create, data);
+//             return newData as T;
+//         }
+//         return super.create(data);
+//     }
 
-  protected _changeDBType(localDB: IDBObjectStore) {
-    type LocalDB = Omit<typeof localDB, typeof DB_METHODS[number]> & {
-      add: (value: T) => Promise<IDBValidKey>;
-      put: (value: T) => Promise<IDBValidKey>;
-      getAll: () => Promise<T[]>;
-      delete: (query: string) => Promise<undefined>
-      clear: () => Promise<undefined>
-    };
-    const { put, add, getAll, clear, delete: deleteDB, ...rest } = localDB;
-
-    const newLocalDB = {
-      ...rest,
-      put: async (...args) => await DBResPromise(put.apply(localDB, args)),
-      getAll: async (...args) => await DBResPromise(getAll.apply(localDB, args)),
-      add: async (...args) => await DBResPromise(add.apply(localDB, args)),
-      clear: async (...args) => await DBResPromise(clear.apply(localDB, args)),
-      delete: async (...args) => await DBResPromise(deleteDB.apply(localDB, args)),
-    } as LocalDB;
-
-    return newLocalDB;
-  }
-  protected async _getReadDbObject() {
-    const transaction = this._db.transaction(this._label, "readonly");
-    const DB = transaction.objectStore(this._label);
-    return this._changeDBType(DB);
-  }
-  protected async _getWriteDbObject() {
-    const transaction = this._db.transaction(this._label, "readwrite");
-    const DB = transaction.objectStore(this._label);
-    return this._changeDBType(DB);
-  }
-
-  async getAll() {
-    const DB = await this._getReadDbObject();
-    const res = await DB.getAll();
-    return res;
-  }
-
-  async create(data: T) {
-    const DB = await this._getWriteDbObject();
-    const req = await DB.add(data);
-  }
-
-  async delete(id: string) {
-    const DB = await this._getWriteDbObject();
-    const req = await DB.delete(id);
-  }
-
-  async deleteAll() {
-    const DB = await this._getWriteDbObject();
-    const req = await DB.clear();
-  }
-
-  async update(data: T) {
-    const DB = await this._getWriteDbObject();
-    const req = await DB.put(data);
-  }
-}
+//     async delete(id: string) {
+//         {
+//             if (isOnline()) {
+//                 const deleted = await this._convexDB.mutation(api[this._label].deleteEntry, id);
+//                 return deleted as boolean;
+//             }
+//             return super.delete(id);
+//         }
+//     }
+//     async update() { }
+// }

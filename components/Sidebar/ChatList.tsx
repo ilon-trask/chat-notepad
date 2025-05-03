@@ -2,13 +2,13 @@ import { useChatStore } from "@/store/chatStore";
 import { useEffect } from "react";
 import CreateChatDialog from "./CreateChatDialog";
 import ChatItem from "./ChatItem";
-import { SizeVariant } from "@/types/sizeVariant";
-import { useServicesContext } from "../ServicesPrvider";
+import { SizeVariant } from "@/types/sizeVariant.types";
+import { useServicesContext } from "../ServicesProvider";
 
 export default function ChatList({ variant }: { variant: SizeVariant }) {
   const { chatService } = useServicesContext();
   const chatStore = useChatStore();
-
+  
   useEffect(() => {
     chatService.getAllChats();
   }, []);

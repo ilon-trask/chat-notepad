@@ -12,6 +12,8 @@ import { useEffect, useState } from "react";
 import { useChatStore } from "@/store/chatStore";
 import useIsMobile from "@/hooks/useIsMobile";
 import useDynamicFavicon from "@/hooks/useDynamicFavicon";
+import syncServerClientData from "@/data/syncServerClientData";
+import { useServicesContext } from "@/components/ServicesProvider";
 
 export default function Home() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -19,6 +21,7 @@ export default function Home() {
   const [maxSize, setMaxSize] = useState(30);
   const isMobile = useIsMobile();
   const { chosenChatId } = useChatStore();
+  const { chatService, messageService, convexDB } = useServicesContext();
 
   useDynamicFavicon();
 
@@ -37,6 +40,23 @@ export default function Home() {
 
     return () => {
       window.removeEventListener("resize", calculateMinSize);
+    };
+  }, []);
+
+  useEffect(() => {
+    // const offlineFunc = () => {
+    // };
+
+    // window.addEventListener("offline", offlineFunc);
+
+    const onlineFunc = () => {
+      syncServerClientData(convexDB, messageService, chatService);
+    };
+
+    window.addEventListener("online", onlineFunc);
+    return () => {
+      // window.removeEventListener("offline", offlineFunc);
+      window.removeEventListener("online", onlineFunc);
     };
   }, []);
 

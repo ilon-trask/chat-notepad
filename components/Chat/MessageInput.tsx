@@ -8,7 +8,7 @@ import { useChatStore } from "@/store/chatStore";
 import { useMessageInputStore } from "@/store/messageInputStore";
 import { Muted } from "../Typography";
 import { toast } from "sonner";
-import { useServicesContext } from "../ServicesPrvider";
+import { useServicesContext } from "../ServicesProvider";
 
 type MessageInputForm = {
   message: string;

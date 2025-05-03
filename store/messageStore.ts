@@ -1,4 +1,4 @@
-import { Message } from "@/types/message";
+import { Message } from "@/types/message.types";
 import { create } from "zustand";
 
 export type MessageStore = {

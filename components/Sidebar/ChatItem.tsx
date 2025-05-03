@@ -9,11 +9,11 @@ import { useChatDialogStore } from "@/store/chatDialogStore";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 import { Edit, MoreVertical, Trash2 } from "lucide-react";
-import { SizeVariant } from "@/types/sizeVariant";
+import { SizeVariant } from "@/types/sizeVariant.types";
 import confirmableChatDelete from "@/helpers/comfirmableChatDelete";
 import { Muted, Small } from "../Typography";
 import useIsMobile from "@/hooks/useIsMobile";
-import { useServicesContext } from "../ServicesPrvider";
+import { useServicesContext } from "../ServicesProvider";
 
 export default function ChatItem({
   type = "button",

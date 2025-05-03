@@ -1,4 +1,4 @@
-import { Chat } from "@/types/chat";
+import { Chat } from "@/types/chat.types";
 import { create } from "zustand";
 
 export type ChatStore = {

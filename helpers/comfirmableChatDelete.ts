@@ -1,4 +1,4 @@
-import { Chat } from "@/types/chat";
+import { Chat } from "@/types/chat.types";
 import confirmableDelete from "./confirmableDelete";
 import { ChatStore } from "@/store/chatStore";
 import ChatService from "@/data/chatService";

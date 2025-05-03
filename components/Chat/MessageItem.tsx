@@ -10,9 +10,9 @@ import { Edit, Trash2 } from "lucide-react";
 import { Card } from "../ui/card";
 import confirmableDelete from "@/helpers/confirmableDelete";
 import { cn } from "@/lib/utils";
-import { Message } from "@/types/message";
+import { Message } from "@/types/message.types";
 import { Pre } from "../Typography";
-import { useServicesContext } from "../ServicesPrvider";
+import { useServicesContext } from "../ServicesProvider";
 
 export default function MessageItem({
   children,

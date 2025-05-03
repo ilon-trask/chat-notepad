@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useMessageStore } from "@/store/messageStore";
 import { useChatStore } from "@/store/chatStore";
-import { type Message } from "@/types/message";
+import { type Message } from "@/types/message.types";
 import { Badge } from "../ui/badge";
 import MessageItem from "./MessageItem";
-import { useServicesContext } from "../ServicesPrvider";
+import { useServicesContext } from "../ServicesProvider";
 
 export default function MessagesList() {
   const { messageService } = useServicesContext();
