@@ -1,17 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useMessageStore } from "@/store/messageStore";
 import { useChatStore } from "@/store/chatStore";
-import { type Message } from "@/types/message";
+import { type Message } from "@/types/message.types";
 import { Badge } from "../ui/badge";
-import messageService from "@/data/messageService";
 import MessageItem from "./MessageItem";
+import { useServicesContext } from "../ServicesProvider";
 
 export default function MessagesList() {
+  const { messageService } = useServicesContext();
   const messageStore = useMessageStore();
   const chatId = useChatStore().chosenChatId;
 
   useEffect(() => {
-    messageService.getAllMessages(messageStore);
+    messageService.getAllMessages();
   }, []);
 
   const [dateMap, setDateMap] = useState<Map<string, Message[]>>(new Map());

@@ -13,14 +13,14 @@ import { useChatDialogStore } from "@/store/chatDialogStore";
 import { useChatStore } from "@/store/chatStore";
 import useCommandStore from "@/store/commandStore";
 import { useMessageInputStore } from "@/store/messageInputStore";
-import { useMessageStore } from "@/store/messageStore";
 import { useEffect } from "react";
+import { useServicesContext } from "./ServicesProvider";
 
 export default function CommandMenu() {
   const commandStore = useCommandStore();
   const chatStore = useChatStore();
   const chatDialogStore = useChatDialogStore();
-  const messageStore = useMessageStore();
+  const { chatService } = useServicesContext();
   const messageInputStore = useMessageInputStore();
 
   useEffect(() => {
@@ -66,8 +66,8 @@ export default function CommandMenu() {
                 onSelect={() => {
                   confirmableChatDelete(
                     chatStore,
-                    messageStore,
-                    chatStore.chosenChatId
+                    chatStore.chosenChatId,
+                    chatService
                   );
                   commandStore.setIsOpen(false);
                 }}

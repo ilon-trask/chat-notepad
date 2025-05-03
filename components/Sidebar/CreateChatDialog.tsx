@@ -1,4 +1,3 @@
-import chatService from "@/data/chatService";
 import { useChatDialogStore } from "@/store/chatDialogStore";
 import { useChatStore } from "@/store/chatStore";
 import { useEffect } from "react";
@@ -14,7 +13,8 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Plus } from "lucide-react";
-import { SizeVariant } from "@/types/sizeVariant";
+import { SizeVariant } from "@/types/sizeVariant.types";
+import { useServicesContext } from "../ServicesProvider";
 
 type ChatFormData = {
   name: string;
@@ -25,6 +25,7 @@ export default function CreateChatDialog({
 }: {
   variant: SizeVariant;
 }) {
+  const { chatService } = useServicesContext();
   const chatStore = useChatStore();
   const chatDialogStore = useChatDialogStore();
 
@@ -34,12 +35,13 @@ export default function CreateChatDialog({
 
   const onSubmit = async (data: ChatFormData) => {
     if (chatDialogStore.isUpdate) {
-      chatService.updateChat(chatStore, {
+      chatService.updateChat({
         id: chatDialogStore.chatId,
         name: data.name,
+        editedAt: new Date(),
       });
     } else {
-      const newChat = await chatService.createChat(chatStore, data.name);
+      const newChat = await chatService.createChat(data.name);
       chatStore.setChosenChatId(newChat.id);
     }
     chatDialogStore.setIsOpen(false);

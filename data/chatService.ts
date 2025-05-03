@@ -1,41 +1,81 @@
-import { Chat, ChatUpdate } from "@/types/chat";
+import { Chat, ChatUpdate } from "@/types/chat.types";
 import { v4 as uuid } from "uuid";
-import messageService from "./messageService";
+import MessageService from "./messageService";
 import { ChatStore } from "@/store/chatStore";
-import { DBService } from "./DBService";
-import { MessageStore } from "@/store/messageStore";
-import { CHAT_LABEL } from "./db";
+import { localDBService } from "./localDBService";
+import { CHAT_LABEL } from "./createLocalDB";
+import isOnline from "@/helpers/isOnline";
+import { ConvexReactClient } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
-class ChatService extends DBService<Chat> {
-  constructor() {
-    super(CHAT_LABEL);
+class ChatService extends localDBService<Chat> {
+  private _messageService: MessageService;
+  private _chatStore: ChatStore;
+  private _convexDB: ConvexReactClient;
+
+  constructor(db: IDBDatabase, messageService: MessageService, chatStore: ChatStore, convexDB: ConvexReactClient) {
+    super(CHAT_LABEL, db);
+    this._messageService = messageService;
+    this._chatStore = chatStore;
+    this._convexDB = convexDB;
   }
-  async getAllChats(chatStore: ChatStore) {
+
+  async getAllChats() {
     const chats = await super.getAll();
-    chatStore.setChats(chats);
+    this._chatStore.setChats(chats);
+    return chats;
   }
-  async createChat(chatStore: ChatStore, name: string) {
-    const newChat = { id: uuid(), name, createdAt: new Date() };
-    await super.create(newChat);
-    chatStore.addChat(newChat);
-    return newChat;
+
+  async createOfflineChat(data: Chat) {
+    await super.create(data);
+    this._chatStore.addChat(data);
+    return data;
   }
+
+  async createChat(name: string) {
+    const newChat = { id: uuid(), name, createdAt: new Date(), editedAt: new Date() };
+    if (isOnline()) {
+      this._convexDB.mutation(api.chats.create, { id: newChat.id, name: newChat.name }).then(async (el) => {
+        const newChat = { ...el, createdAt: new Date(el.createdAt), editedAt: new Date(el.editedAt) };
+        await super.update(newChat);
+        this._chatStore.updateChat(newChat);
+      });
+    }
+    return this.createOfflineChat(newChat);
+  }
+
   async deleteChat(
-    chatStore: ChatStore,
-    messageStore: MessageStore,
     id: string
   ) {
-    await messageService.deleteChatMessages(messageStore, id);
+    if (isOnline()) {
+      const chat = (await super.getAll()).find((el) => el.id == id);
+      if (!chat || !chat._id) throw new Error("Chat not found in convex");
+      await this._convexDB.mutation(api.chats.deleteEntry, {
+        _id: chat._id
+      });
+    }
+    await this._messageService.deleteChatMessages(id);
     await super.delete(id);
-    chatStore.deleteChat(id);
+    this._chatStore.deleteChat(id);
   }
-  async updateChat(chatStore: ChatStore, data: ChatUpdate) {
-    const chat = chatStore.getChatById(data.id);
+
+  async updateOfflineChat(data: Chat) {
+    await super.update(data);
+    this._chatStore.updateChat(data);
+  }
+
+  async updateChat(data: ChatUpdate) {
+    const chat = (await super.getAll()).find((el) => el.id == data.id);
     if (!chat) throw new Error("Chat not found");
-    const newChat = { ...data, createdAt: chat.createdAt };
-    await super.update(newChat);
-    chatStore.updateChat(newChat);
+    const newChat = { ...chat, name: data.name };
+    if (isOnline()) {
+      if (!newChat._id) throw new Error("Chat not found in convex");
+      await this._convexDB.mutation(api.chats.update, {
+        _id: newChat._id, name: newChat.name
+      });
+    }
+    await this.updateOfflineChat(newChat);
   }
 }
 
-export default new ChatService();
+export default ChatService;

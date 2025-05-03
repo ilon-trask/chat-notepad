@@ -4,19 +4,18 @@ import React, { KeyboardEvent, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { useForm } from "react-hook-form";
-import { useMessageStore } from "@/store/messageStore";
 import { useChatStore } from "@/store/chatStore";
 import { useMessageInputStore } from "@/store/messageInputStore";
-import messageService from "@/data/messageService";
 import { Muted } from "../Typography";
 import { toast } from "sonner";
+import { useServicesContext } from "../ServicesProvider";
 
 type MessageInputForm = {
   message: string;
 };
 
 export default function MessageInput() {
-  const messageStore = useMessageStore();
+  const { messageService } = useServicesContext();
   const chatId = useChatStore((state) => state.chosenChatId);
   const messageInputStore = useMessageInputStore();
 
@@ -42,7 +41,7 @@ export default function MessageInput() {
       return;
     }
     if (messageInputStore.isUpdate) {
-      messageService.updateMessage(messageStore, {
+      messageService.updateMessage({
         chatId,
         content: data.message,
         editedAt: new Date(),
@@ -50,7 +49,7 @@ export default function MessageInput() {
       });
       messageInputStore.cancelEditing();
     } else {
-      messageService.createMessage(messageStore, data.message, chatId);
+      messageService.createMessage(data.message, chatId);
     }
     reset();
   };

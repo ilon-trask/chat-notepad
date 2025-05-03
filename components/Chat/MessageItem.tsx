@@ -10,9 +10,9 @@ import { Edit, Trash2 } from "lucide-react";
 import { Card } from "../ui/card";
 import confirmableDelete from "@/helpers/confirmableDelete";
 import { cn } from "@/lib/utils";
-import { Message } from "@/types/message";
-import messageService from "@/data/messageService";
-import { P } from "../Typography";
+import { Message } from "@/types/message.types";
+import { Pre } from "../Typography";
+import { useServicesContext } from "../ServicesProvider";
 
 export default function MessageItem({
   children,
@@ -24,6 +24,7 @@ export default function MessageItem({
   id: string;
   createdAt: Date;
 }) {
+  const { messageService } = useServicesContext();
   const messageStore = useMessageStore();
   const messageInputStore = useMessageInputStore();
 
@@ -45,7 +46,7 @@ export default function MessageItem({
           {...props}
         >
           <div className="flex flex-col">
-            <P>{children}</P>
+            <Pre>{children}</Pre>
             <div className="text-xs text-gray-500 text-right text-[10px] mt-1 self-end">
               {new Date(createdAt).toLocaleTimeString([], {
                 hour: "2-digit",
@@ -66,7 +67,7 @@ export default function MessageItem({
           onClick={() => {
             confirmableDelete<Message>({
               getEntity: () => messageStore.getMessageById(id),
-              onDelete: () => messageService.deleteMessage(messageStore, id),
+              onDelete: () => messageService.deleteMessage(id),
               onStoreDelete: () => messageStore.deleteMessage(id),
               onReverseDelete: (message: Message) =>
                 messageStore.addMessage(message),

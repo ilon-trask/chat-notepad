@@ -1,17 +1,16 @@
-import { Chat } from "@/types/chat";
+import { Chat } from "@/types/chat.types";
 import confirmableDelete from "./confirmableDelete";
 import { ChatStore } from "@/store/chatStore";
-import chatService from "@/data/chatService";
-import { MessageStore } from "@/store/messageStore";
+import ChatService from "@/data/chatService";
 
 export default function confirmableChatDelete(
   chatStore: ChatStore,
-  messageStore: MessageStore,
-  id: string
+  id: string,
+  chatService: ChatService
 ) {
   confirmableDelete<Chat>({
     getEntity: () => chatStore.getChatById(id),
-    onDelete: () => chatService.deleteChat(chatStore, messageStore, id),
+    onDelete: () => chatService.deleteChat(id),
     onStoreDelete: () => chatStore.deleteChat(id),
     onReverseDelete: (chat: Chat) => chatStore.addChat(chat),
     name: "Chat",
