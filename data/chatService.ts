@@ -44,9 +44,7 @@ class ChatService extends localDBService<Chat> {
     return this.createOfflineChat(newChat);
   }
 
-  async deleteChat(
-    id: string
-  ) {
+  async deleteChat(id: string) {
     if (isOnline()) {
       const chat = (await super.getAll()).find((el) => el.id == id);
       if (!chat || !chat._id) throw new Error("Chat not found in convex");

@@ -8,16 +8,14 @@ export default defineSchema({
         createdAt: v.number(),
         editedAt: v.number(),
         chatId: v.string(),
-    }).index("by_chat", ["chatId"]),
+    }).index("by_chat", ["chatId"])
+        .index("by_my_id", ["id"]),
     chats: defineTable({
         id: v.string(),
         name: v.string(),
         createdAt: v.number(),
         editedAt: v.number(),
-        // users: v.array(v.id("users")),
-    }),
-    //   users: defineTable({
-    //     name: v.string(),
-    //     tokenIdentifier: v.string(),
-    //   }).index("by_token", ["tokenIdentifier"]),
+        userId: v.string(),
+    }).index("by_user", ["userId"])
+        .index("by_my_id", ["id"]),
 });

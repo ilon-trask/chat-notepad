@@ -6,6 +6,7 @@ import { useMessageStore } from "@/store/messageStore";
 import { useChatStore } from "@/store/chatStore";
 import { ConvexReactClient } from "convex/react";
 import syncServerClientData from "./syncServerClientData";
+import { convex } from "@/components/ConvexClientProvider";
 
 type Return = {
     chatService: ChatService | null
@@ -24,13 +25,12 @@ export default function useServices(): Return {
     useEffect(() => {
         (async () => {
             const db = await createLocalDB();
-            const convexDB = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-            const messageService = new MessageService(db, messageStore, convexDB)
-            const chatService = new ChatService(db, messageService, chatStore, convexDB);
+            const messageService = new MessageService(db, messageStore, convex)
+            const chatService = new ChatService(db, messageService, chatStore, convex);
             setMessageService(messageService);
             setChatService(chatService);
-            setConvexDB(convexDB);
-            syncServerClientData(convexDB, messageService, chatService);
+            setConvexDB(convex);
+            syncServerClientData(convex, messageService, chatService);
         })()
     }, []);
 

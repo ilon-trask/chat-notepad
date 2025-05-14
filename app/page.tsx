@@ -15,16 +15,16 @@ import useDynamicFavicon from "@/hooks/useDynamicFavicon";
 import syncServerClientData from "@/data/syncServerClientData";
 import { useServicesContext } from "@/components/ServicesProvider";
 
-export default function Home() {
+export default function Page() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [minSize, setMinSize] = useState(15);
   const [maxSize, setMaxSize] = useState(30);
   const isMobile = useIsMobile();
   const { chosenChatId } = useChatStore();
   const { chatService, messageService, convexDB } = useServicesContext();
-
+  
   useDynamicFavicon();
-
+  
   useEffect(() => {
     const calculateMinSize = () => {
       const windowWidth = window.innerWidth;
@@ -60,6 +60,8 @@ export default function Home() {
     };
   }, []);
 
+
+
   if (isMobile) {
     if (chosenChatId) {
       return (
@@ -82,7 +84,7 @@ export default function Home() {
     <ResizablePanelGroup
       id="chat-layout"
       direction="horizontal"
-      className="h-screen"
+      className="max-h-screen flex flex-col"
     >
       {/* Sidebar */}
       <ResizablePanel
@@ -93,6 +95,7 @@ export default function Home() {
         collapsedSize={maxSize}
         onCollapse={() => setIsCollapsed(true)}
         onExpand={() => setIsCollapsed(false)}
+        className="flex flex-col"
       >
         {!isCollapsed ? (
           <Sidebar variant="regular" />
@@ -102,7 +105,7 @@ export default function Home() {
       </ResizablePanel>
       <ResizableHandle />
       {/* Main Content */}
-      <ResizablePanel id="chat" className="flex flex-col h-screen">
+      <ResizablePanel id="chat" className="flex flex-col">
         <ChatHeader />
         <MessagesList />
         {chosenChatId && <MessageInput />}
