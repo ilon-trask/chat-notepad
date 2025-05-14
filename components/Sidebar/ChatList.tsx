@@ -16,7 +16,7 @@ export default function ChatList({ variant }: { variant: SizeVariant }) {
   return (
     <div
       data-testid="ChatList"
-      className="overflow-y-auto h-[calc(100vh-73px)] no-scrollbar"
+      className="overflow-y-auto no-scrollbar"
     >
       <CreateChatDialog variant={variant} />
       {chatStore.getChats().map(({ id, ...el }) => (

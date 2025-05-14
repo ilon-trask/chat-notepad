@@ -3,7 +3,9 @@ import { v } from "convex/values";
 
 export const getAll = query({
     handler: async (ctx) => {
-        const chats = await ctx.db.query("chats").collect();
+        const user = await ctx.auth.getUserIdentity();
+        if (!user) throw new Error("User not found");
+        const chats = await ctx.db.query("chats").withIndex("by_user", (q) => q.eq("userId", user.subject)).collect();
         return chats;
     },
 });
@@ -11,11 +13,14 @@ export const getAll = query({
 export const create = mutation({
     args: { id: v.string(), name: v.string(), createdAt: v.optional(v.number()), editedAt: v.optional(v.number()) },
     handler: async (ctx, args) => {
+        const user = await ctx.auth.getUserIdentity();
+        if (!user) throw new Error("User not found");
         const chatId = await ctx.db.insert("chats", {
             id: args.id,
             name: args.name,
             createdAt: args.createdAt || Date.now().valueOf(),
             editedAt: args.editedAt || Date.now().valueOf(),
+            userId: user.subject,
         });
         const chat = await ctx.db.get(chatId);
         if (!chat) throw new Error("Chat not created");
@@ -26,8 +31,11 @@ export const create = mutation({
 export const deleteEntry = mutation({
     args: { _id: v.id('chats') },
     handler: async (ctx, args) => {
+        const user = await ctx.auth.getUserIdentity();
+        if (!user) throw new Error("User not found");
         const chat = await ctx.db.get(args._id);
         if (!chat) throw new Error("Chat not found");
+        if (chat.userId !== user.subject) throw new Error("You are not the owner of this chat");
         const deleted = await ctx.db.delete(args._id);
         const messages = await ctx.db.query("messages").withIndex("by_chat", q => q.eq("chatId", chat.id))
             .collect();
@@ -41,6 +49,11 @@ export const deleteEntry = mutation({
 export const update = mutation({
     args: { _id: v.id('chats'), name: v.string(), editedAt: v.optional(v.number()) },
     handler: async (ctx, args) => {
+        const user = await ctx.auth.getUserIdentity();
+        if (!user) throw new Error("User not found");
+        const chat = await ctx.db.get(args._id);
+        if (!chat) throw new Error("Chat not found");
+        if (chat.userId !== user.subject) throw new Error("You are not the owner of this chat");
         await ctx.db.patch(args._id,
             {
                 name: args.name,
