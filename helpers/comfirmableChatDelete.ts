@@ -11,7 +11,10 @@ export default function confirmableChatDelete(
   confirmableDelete<Chat>({
     getEntity: () => chatStore.getChatById(id),
     onDelete: () => chatService.deleteChat(id),
-    onStoreDelete: () => chatStore.deleteChat(id),
+    onStoreDelete: () => {
+      chatStore.deleteChat(id);
+      chatStore.setChosenChatId("")
+    },
     onReverseDelete: (chat: Chat) => chatStore.addChat(chat),
     name: "Chat",
   });
