@@ -8,59 +8,21 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import ChatHeader from "@/components/Chat/ChatHeader";
 import MessagesList from "@/components/Chat/MessagesList";
 import MessageInput from "@/components/Chat/MessageInput";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useChatStore } from "@/store/chatStore";
 import useIsMobile from "@/hooks/useIsMobile";
 import useDynamicFavicon from "@/hooks/useDynamicFavicon";
-import syncServerClientData from "@/data/syncServerClientData";
-import { useServicesContext } from "@/components/ServicesProvider";
+import useMaxMinPanelWidth from "@/hooks/useMaxMinPanelWidth";
+import useSyncOnConnection from "@/hooks/useSyncOnConnection";
 
 export default function Page() {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [minSize, setMinSize] = useState(15);
-  const [maxSize, setMaxSize] = useState(30);
+  const { maxSize, minSize } = useMaxMinPanelWidth();
   const isMobile = useIsMobile();
   const { chosenChatId } = useChatStore();
-  const { chatService, messageService, convexDB } = useServicesContext();
-  
+
   useDynamicFavicon();
-  
-  useEffect(() => {
-    const calculateMinSize = () => {
-      const windowWidth = window.innerWidth;
-      const newMinSize = Math.ceil((250 / windowWidth) * 100);
-      const newMaxSize = Math.ceil((80 / windowWidth) * 100);
-      setMinSize(newMinSize);
-      setMaxSize(newMaxSize);
-    };
-
-    calculateMinSize();
-
-    window.addEventListener("resize", calculateMinSize);
-
-    return () => {
-      window.removeEventListener("resize", calculateMinSize);
-    };
-  }, []);
-
-  useEffect(() => {
-    // const offlineFunc = () => {
-    // };
-
-    // window.addEventListener("offline", offlineFunc);
-
-    const onlineFunc = () => {
-      syncServerClientData(convexDB, messageService, chatService);
-    };
-
-    window.addEventListener("online", onlineFunc);
-    return () => {
-      // window.removeEventListener("offline", offlineFunc);
-      window.removeEventListener("online", onlineFunc);
-    };
-  }, []);
-
-
+  useSyncOnConnection();
 
   if (isMobile) {
     if (chosenChatId) {
