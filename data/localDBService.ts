@@ -1,7 +1,6 @@
 import DBResPromise from "@/helpers/DBResPromise";
 import { Labels } from "./createLocalDB";
 import { DataService } from "@/types/dataService.types";
-import { tree } from "next/dist/build/templates/app-page";
 
 const DB_METHODS = ["add", "put", "getAll", "delete", "clear"] as const;
 

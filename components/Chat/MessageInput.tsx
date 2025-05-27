@@ -92,6 +92,17 @@ export default function MessageInput() {
         </div>
       )}
 
+      {messageInputStore.fileUpload.length > 0 && (
+        <div
+          data-testid="FileUploadingIndicator"
+          className="px-4 py-2 bg-muted/50 flex items-center justify-between border-b"
+        >
+          {messageInputStore.fileUpload.map((el) => (
+            <>{el.id}</>
+          ))}
+        </div>
+      )}
+
       {/* Input area */}
       <div className="p-4">
         <div className="flex items-center gap-2">
