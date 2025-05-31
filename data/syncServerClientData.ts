@@ -33,7 +33,7 @@ export default async function syncServerClientData(
                     const serverChat = serverChats.find((el) => el.id === chatId);
                     const clientChat = clientChats.find((el) => el.id === chatId);
                     if (!serverChat || !clientChat) throw new Error("Chat not found");
-                    if (serverChat.editedAt > clientChat.editedAt.valueOf()) {
+                    if (serverChat.editedAt.valueOf() > clientChat.editedAt.valueOf()) {
                         const newServerChat = await chatService.updateOnlineChat({
                             _id: clientChat._id!,
                             name: clientChat.name,
@@ -74,7 +74,7 @@ export default async function syncServerClientData(
                     const serverMessage = serverMessages.find((el) => el.id === messageId);
                     const clientMessage = clientMessages.find((el) => el.id === messageId);
                     if (!serverMessage || !clientMessage) throw new Error("Message not found");
-                    if (serverMessage.editedAt > clientMessage.editedAt.valueOf()) {
+                    if (serverMessage.editedAt.valueOf() > clientMessage.editedAt.valueOf()) {
                         const newServerMessage = await messageService.updateOnlineMessage(
                             {
                                 _id: clientMessage._id!,
@@ -82,8 +82,7 @@ export default async function syncServerClientData(
                                 editedAt: serverMessage.editedAt.valueOf()
                             });
                         await messageService.updateOfflineMessage({ ...newServerMessage, createdAt: new Date(newServerMessage.createdAt), editedAt: new Date(newServerMessage.editedAt) });
-                    }
-                    else {
+                    } else {
                         await messageService.updateOfflineMessage(
                             {
                                 ...serverMessage,
