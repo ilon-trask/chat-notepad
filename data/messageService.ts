@@ -56,6 +56,8 @@ class MessageService {
       editedAt: new Date(),
       chatId,
     };
+    const res = await this.createOfflineMessage(newMessage)
+
     if (this._isOnline()) {
       await this.createOnlineMessage({
         id: newMessage.id,
@@ -68,8 +70,7 @@ class MessageService {
           this._messageStore.updateMessage(newMessage);
         })
     }
-
-    await this.createOfflineMessage(newMessage)
+    return res;
   }
 
   async deleteMessage(id: string) {

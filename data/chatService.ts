@@ -52,6 +52,7 @@ class ChatService {
 
   async createChat(name: string) {
     const newChat = { id: uuid(), name, createdAt: new Date(), editedAt: new Date() };
+    const res = await this.createOfflineChat(newChat);
     if (this._isOnline()) {
       this.createOnlineChat({ id: newChat.id, name: newChat.name }).then(async (el) => {
         const newChat = { ...el, createdAt: new Date(el.createdAt), editedAt: new Date(el.editedAt) };
@@ -59,7 +60,7 @@ class ChatService {
         this._chatStore.updateChat(newChat);
       });
     }
-    return this.createOfflineChat(newChat);
+    return res;
   }
 
   async deleteChat(id: string) {
