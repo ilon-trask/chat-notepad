@@ -1,12 +1,10 @@
-import { Id } from "@/convex/_generated/dataModel";
+import { Doc, Id } from "@/convex/_generated/dataModel";
 
-export type OfflineMessage = {
-  id: string;
-  content: string;
-  createdAt: Date;
-  editedAt: Date;
-  chatId: string;
-};
+export type OfflineMessage =
+  Omit<Doc<'messages'>, '_id' | '_creationTime' | 'createdAt' | 'editedAt'> & {
+    createdAt: Date;
+    editedAt: Date;
+  };
 
 export type Message = OfflineMessage & { _id?: Id<"messages">; _creationTime?: number; };
 

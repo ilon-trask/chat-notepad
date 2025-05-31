@@ -1,20 +1,17 @@
 import DBResPromise from "@/helpers/DBResPromise";
-import { Labels } from "./createLocalDB";
+import { Labels } from "@/constants/labels";
 import { DataService } from "@/types/dataService.types";
 
 const DB_METHODS = ["add", "put", "getAll", "delete", "clear"] as const;
 
-
-export class localDBService<T> implements DataService<T> {
-  private _label: Labels;
+export class LocalDBService implements DataService {
   private _db: IDBDatabase;
 
-  constructor(label: Labels, db: IDBDatabase) {
-    this._label = label;
+  constructor(db: IDBDatabase) {
     this._db = db;
   }
 
-  protected _changeDBType(localDB: IDBObjectStore) {
+  protected _changeDBType<T>(localDB: IDBObjectStore) {
     type LocalDB = Omit<typeof localDB, typeof DB_METHODS[number]> & {
       add: (value: T) => Promise<IDBValidKey>;
       put: (value: T) => Promise<IDBValidKey>;
@@ -35,37 +32,37 @@ export class localDBService<T> implements DataService<T> {
 
     return newLocalDB;
   }
-  protected async _getReadDbObject() {
-    const transaction = this._db.transaction(this._label, "readonly");
-    const DB = transaction.objectStore(this._label);
-    return this._changeDBType(DB);
+  protected async _getReadDbObject<T>(label: Labels) {
+    const transaction = this._db.transaction(label, "readonly");
+    const DB = transaction.objectStore(label);
+    return this._changeDBType<T>(DB);
   }
-  protected async _getWriteDbObject() {
-    const transaction = this._db.transaction(this._label, "readwrite");
-    const DB = transaction.objectStore(this._label);
-    return this._changeDBType(DB);
+  protected async _getWriteDbObject<T>(label: Labels) {
+    const transaction = this._db.transaction(label, "readwrite");
+    const DB = transaction.objectStore(label);
+    return this._changeDBType<T>(DB);
   }
 
-  async getAll() {
-    const DB = await this._getReadDbObject();
+  async getAll<T>(label: Labels) {
+    const DB = await this._getReadDbObject<T>(label);
     const res = await DB.getAll();
     return res;
   }
 
-  async create(data: T) {
-    const DB = await this._getWriteDbObject();
+  async create<T>(label: Labels, data: T) {
+    const DB = await this._getWriteDbObject<T>(label);
     const req = await DB.add(data);
     return data;
   }
 
-  async delete(id: string) {
-    const DB = await this._getWriteDbObject();
+  async delete(label: Labels, id: string) {
+    const DB = await this._getWriteDbObject(label);
     const req = await DB.delete(id);
     return true;
   }
 
-  async update(data: T) {
-    const DB = await this._getWriteDbObject();
+  async update<T>(label: Labels, data: T) {
+    const DB = await this._getWriteDbObject<T>(label);
     const req = await DB.put(data);
     return data;
   }

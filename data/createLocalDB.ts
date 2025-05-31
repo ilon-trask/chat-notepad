@@ -1,10 +1,4 @@
-export const CHAT_LABEL = "chat" as const;
-export const MESSAGE_LABEL = "message" as const;
-
-const LABELS = [CHAT_LABEL, MESSAGE_LABEL] as const;
-export const PLURALS = { 'chat': "chats", 'message': "messages" } as const;
-
-export type Labels = typeof LABELS[number];
+import { LABELS } from "@/constants/labels";
 
 export async function createLocalDB(): Promise<IDBDatabase> {
   const db: IDBDatabase | DOMException = await new Promise(

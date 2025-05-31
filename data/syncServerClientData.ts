@@ -1,15 +1,12 @@
-import { api } from "@/convex/_generated/api";
-import { ConvexReactClient } from "convex/react";
 import MessageService from "./messageService";
 import ChatService from "./chatService";
 
 export default async function syncServerClientData(
-    convexDB: ConvexReactClient,
     messageService: MessageService,
     chatService: ChatService
 ) {
-    const serverChats = await convexDB.query(api.chats.getAll);
-    const serverMessages = await convexDB.query(api.messages.getAll);
+    const serverChats = await chatService.getAllOnlineChats();
+    const serverMessages = await messageService.getAllOnlineMessages();
     const serverChatsIds = serverChats.map((el) => el.id);
     const serverMessagesIds = serverMessages.map((el) => el.id);
     const clientChats = await chatService.getAllChats();
@@ -28,8 +25,8 @@ export default async function syncServerClientData(
             if (!serverChatsIds.includes(chatId)) {
                 const newChat = clientChats.find((el) => el.id === chatId);
                 if (!newChat) throw new Error("Chat not found");
-                const newServerChat = await convexDB.mutation(api.chats.create, { id: newChat.id, name: newChat.name, createdAt: newChat.createdAt.valueOf() });
-                await chatService.update({ ...newServerChat, createdAt: new Date(newServerChat.createdAt), editedAt: new Date(newServerChat.editedAt) });
+                const newServerChat = await chatService.createOnlineChat({ id: newChat.id, name: newChat.name, createdAt: newChat.createdAt.valueOf() });
+                await chatService.updateOfflineChat({ ...newServerChat, createdAt: new Date(newServerChat.createdAt), editedAt: new Date(newServerChat.editedAt) });
             } else {
                 const isEqualContent = JSON.stringify(clientChats.find((el) => el.id === chatId)) == JSON.stringify(serverChats.find((el) => el.id === chatId));
                 if (!isEqualContent) {
@@ -37,12 +34,12 @@ export default async function syncServerClientData(
                     const clientChat = clientChats.find((el) => el.id === chatId);
                     if (!serverChat || !clientChat) throw new Error("Chat not found");
                     if (serverChat.editedAt > clientChat.editedAt.valueOf()) {
-                        const newServerChat = await convexDB.mutation(api.chats.update, {
+                        const newServerChat = await chatService.updateOnlineChat({
                             _id: clientChat._id!,
                             name: clientChat.name,
                             editedAt: serverChat.editedAt.valueOf()
                         });
-                        await chatService.update({ ...newServerChat, createdAt: new Date(newServerChat.createdAt), editedAt: new Date(newServerChat.editedAt) });
+                        await chatService.updateOfflineChat({ ...newServerChat, createdAt: new Date(newServerChat.createdAt), editedAt: new Date(newServerChat.editedAt) });
                     }
                     else {
                         await chatService.updateOfflineChat({
@@ -63,14 +60,14 @@ export default async function syncServerClientData(
             if (!serverMessagesIds.includes(messageId)) {
                 const newMessage = clientMessages.find((el) => el.id === messageId);
                 if (!newMessage) throw new Error("Message not found");
-                const newServerMessage = await convexDB.mutation(api.messages.create, {
+                const newServerMessage = await messageService.createOnlineMessage({
                     id: newMessage.id,
                     content: newMessage.content,
                     chatId: newMessage.chatId,
                     createdAt: newMessage.createdAt.valueOf(),
                     editedAt: newMessage.editedAt.valueOf()
                 });
-                await messageService.update({ ...newServerMessage, createdAt: new Date(newServerMessage.createdAt), editedAt: new Date(newServerMessage.editedAt) });
+                await messageService.updateOfflineMessage({ ...newServerMessage, createdAt: new Date(newServerMessage.createdAt), editedAt: new Date(newServerMessage.editedAt) });
             } else {
                 const isEqualContent = JSON.stringify(clientMessages.find((el) => el.id === messageId)) == JSON.stringify(serverMessages.find((el) => el.id === messageId));
                 if (!isEqualContent) {
@@ -78,13 +75,13 @@ export default async function syncServerClientData(
                     const clientMessage = clientMessages.find((el) => el.id === messageId);
                     if (!serverMessage || !clientMessage) throw new Error("Message not found");
                     if (serverMessage.editedAt > clientMessage.editedAt.valueOf()) {
-                        const newServerMessage = await convexDB.mutation(api.messages.update,
+                        const newServerMessage = await messageService.updateOnlineMessage(
                             {
                                 _id: clientMessage._id!,
                                 content: clientMessage.content,
                                 editedAt: serverMessage.editedAt.valueOf()
                             });
-                        await messageService.update({ ...newServerMessage, createdAt: new Date(newServerMessage.createdAt), editedAt: new Date(newServerMessage.editedAt) });
+                        await messageService.updateOfflineMessage({ ...newServerMessage, createdAt: new Date(newServerMessage.createdAt), editedAt: new Date(newServerMessage.editedAt) });
                     }
                     else {
                         await messageService.updateOfflineMessage(
