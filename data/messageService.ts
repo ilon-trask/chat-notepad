@@ -3,7 +3,7 @@ import { v4 as uuid } from "uuid";
 import { LocalDBService } from "./localDBService";
 import { MessageStore } from "@/store/messageStore";
 import { api } from "@/convex/_generated/api";
-import { DELETE_LABEL, MESSAGE_LABEL } from "@/constants/labels";
+import { MESSAGE_LABEL } from "@/constants/labels";
 import { RemoteDBService } from "./remoteDBService";
 import DeleteService from "./deleteService";
 

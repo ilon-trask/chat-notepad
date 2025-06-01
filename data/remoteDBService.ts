@@ -49,7 +49,7 @@ export class RemoteDBService implements DataService {
         return true;
     }
     async update<T extends Labels>(label: Labels, data: Methods[T]['update']) {
-        if (!data._id) throw new Error("Chat not found in convex");
+        if (!data._id) throw new Error("Chat not found in remoteDB");
         const res = await this._convexDB.mutation(api[PLURALS[label]].update, data);
         return {
             ...res,

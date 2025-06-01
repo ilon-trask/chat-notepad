@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { RefObject, useRef } from "react";
 import { cn } from "@/lib/utils";
 import useIsDragging from "@/hooks/useIsDragging";
 
@@ -10,20 +10,20 @@ interface DragDropZoneProps {
 
 function DragDropZone({ children, onFilesDrop, className }: DragDropZoneProps) {
   const dropZoneRef = useRef<HTMLDivElement>(null);
-  const isDragging = useIsDragging(dropZoneRef, onFilesDrop);
+  const isDragging = useIsDragging(dropZoneRef as RefObject<HTMLDivElement>, onFilesDrop);
 
-  const handleBrowseClick = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.multiple = true;
-    input.onchange = (e) => {
-      const files = (e.target as HTMLInputElement).files;
-      if (files && onFilesDrop) {
-        onFilesDrop(files);
-      }
-    };
-    input.click();
-  };
+  // const handleBrowseClick = () => {
+  //   const input = document.createElement("input");
+  //   input.type = "file";
+  //   input.multiple = true;
+  //   input.onchange = (e) => {
+  //     const files = (e.target as HTMLInputElement).files;
+  //     if (files && onFilesDrop) {
+  //       onFilesDrop(files);
+  //     }
+  //   };
+  //   input.click();
+  // };
 
   const renderDropZoneContent = () => {
     if (isDragging) {

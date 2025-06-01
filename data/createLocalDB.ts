@@ -1,4 +1,4 @@
-import { ALL_LABELS } from "@/constants/labels";
+import { ALL_LABELS } from "../constants/labels";
 
 export async function createLocalDB(): Promise<IDBDatabase> {
   const db: IDBDatabase | DOMException = await new Promise(
