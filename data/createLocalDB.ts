@@ -1,4 +1,4 @@
-import { LABELS } from "@/constants/labels";
+import { ALL_LABELS } from "@/constants/labels";
 
 export async function createLocalDB(): Promise<IDBDatabase> {
   const db: IDBDatabase | DOMException = await new Promise(
@@ -7,7 +7,7 @@ export async function createLocalDB(): Promise<IDBDatabase> {
       request.onupgradeneeded = (event) => {
         //@ts-ignore
         const db = event.target?.result;
-        LABELS.forEach((label) => {
+        ALL_LABELS.forEach((label) => {
           if (!db.objectStoreNames.contains(label)) {
             db.createObjectStore(label, { keyPath: "id" });
           }

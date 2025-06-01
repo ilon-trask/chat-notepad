@@ -1,10 +1,25 @@
 import MessageService from "./messageService";
 import ChatService from "./chatService";
+import DeleteService from "./deleteService";
+import { CHAT_LABEL, MESSAGE_LABEL } from "@/constants/labels";
 
 export default async function syncServerClientData(
     messageService: MessageService,
-    chatService: ChatService
+    chatService: ChatService,
+    deleteService: DeleteService
 ) {
+    const deletes = await deleteService.getAllDelete();
+
+    for (const deleteItem of deletes) {
+        if (deleteItem.type === CHAT_LABEL) {
+            await chatService.deleteOnlineChat(deleteItem.entity_id);
+            deleteService.deleteDelete(deleteItem.id);
+        } else if (deleteItem.type === MESSAGE_LABEL) {
+            await messageService.deleteOnlineMessage(deleteItem.entity_id);
+            deleteService.deleteDelete(deleteItem.id);
+        }
+    }
+
     const serverChats = await chatService.getAllOnlineChats();
     const serverMessages = await messageService.getAllOnlineMessages();
     const serverChatsIds = serverChats.map((el) => el.id);
@@ -51,6 +66,7 @@ export default async function syncServerClientData(
                 }
             }
     }
+
     for (const messageId of messageIdSet) {
         if (!clientMessagesIds.includes(messageId)) {
             const newMessage = serverMessages.find((el) => el.id === messageId);

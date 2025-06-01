@@ -51,7 +51,7 @@ export const deleteEntry = mutation({
         const user = await ctx.auth.getUserIdentity();
         if (!user) throw new Error("User not found");
         const chat = await ctx.db.get(args._id);
-        if (!chat) throw new Error("Chat not found");
+        if (!chat) return;
         if (chat.userId !== user.subject) throw new Error("You are not the owner of this chat");
         const deleted = await ctx.db.delete(args._id);
         const messages = await ctx.db.query(PLURALS[MESSAGE_LABEL]).withIndex("by_chat", q => q.eq("chatId", chat.id))

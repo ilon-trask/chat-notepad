@@ -3,29 +3,33 @@ import { v4 as uuid } from "uuid";
 import { LocalDBService } from "./localDBService";
 import { MessageStore } from "@/store/messageStore";
 import { api } from "@/convex/_generated/api";
-import { MESSAGE_LABEL } from "@/constants/labels";
+import { DELETE_LABEL, MESSAGE_LABEL } from "@/constants/labels";
 import { RemoteDBService } from "./remoteDBService";
+import DeleteService from "./deleteService";
 
 class MessageService {
   private _messageStore: MessageStore
   private _remoteDBService: RemoteDBService;
   private _isOnline: () => boolean;
   private _localDBservice: LocalDBService;
+  private _deleteService: DeleteService;
 
   constructor(
     messageStore: MessageStore,
     isOnline: () => boolean,
     localDBService: LocalDBService,
-    remoteDBService: RemoteDBService
+    remoteDBService: RemoteDBService,
+    deleteService: DeleteService
   ) {
     this._messageStore = messageStore;
     this._isOnline = isOnline;
     this._localDBservice = localDBService;
     this._remoteDBService = remoteDBService;
+    this._deleteService = deleteService;
   }
 
   async getAllMessages() {
-    const messages = await this._localDBservice.getAll<Message>(MESSAGE_LABEL);
+    const messages = await this._localDBservice.getAll<typeof MESSAGE_LABEL>(MESSAGE_LABEL);
     this._messageStore.setMessages(messages);
     return messages;
   }
@@ -36,7 +40,7 @@ class MessageService {
   }
 
   async createOfflineMessage(data: Message) {
-    await this._localDBservice.create<Message>(MESSAGE_LABEL, data);
+    await this._localDBservice.create<typeof MESSAGE_LABEL>(MESSAGE_LABEL, data);
     this._messageStore.addMessage(data);
   }
 
@@ -73,18 +77,24 @@ class MessageService {
     return res;
   }
 
+  async deleteOnlineMessage(_id: string) {
+    await this._remoteDBService.delete(MESSAGE_LABEL, _id);
+  }
+
   async deleteMessage(id: string) {
+    const message = (await this._localDBservice.getAll<typeof MESSAGE_LABEL>(MESSAGE_LABEL)).find((el) => el.id == id);
     if (this._isOnline()) {
-      const message = (await this._localDBservice.getAll<Message>(MESSAGE_LABEL)).find((el) => el.id == id);
       if (!message || !message._id) throw new Error("Message not found in remoteDB");
-      await this._remoteDBService.delete(MESSAGE_LABEL, message._id);
+      this.deleteOnlineMessage(message._id);
+    } else {
+      if (message?._id) await this._deleteService.createDelete({ id: uuid(), entity_id: message._id, entityId: id, type: MESSAGE_LABEL });
     }
     await this._localDBservice.delete(MESSAGE_LABEL, id);
     this._messageStore.deleteMessage(id);
   }
 
   async deleteChatMessages(chatId: string) {
-    const messages = await this._localDBservice.getAll<Message>(MESSAGE_LABEL);
+    const messages = await this._localDBservice.getAll<typeof MESSAGE_LABEL>(MESSAGE_LABEL);
     for (const message of messages) {
       if (message.chatId == chatId) {
         await this._localDBservice.delete(MESSAGE_LABEL, message.id);
@@ -103,7 +113,7 @@ class MessageService {
   }
 
   async updateMessage(data: MessageUpdate) {
-    const message = (await this._localDBservice.getAll<Message>(MESSAGE_LABEL)).find((el) => el.id == data.id);
+    const message = (await this._localDBservice.getAll<typeof MESSAGE_LABEL>(MESSAGE_LABEL)).find((el) => el.id == data.id);
     if (!message) throw new Error("Message not found");
     const newMessage = { ...message, content: data.content };
     if (this._isOnline()) {

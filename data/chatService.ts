@@ -6,7 +6,7 @@ import { LocalDBService } from "./localDBService";
 import { api } from "@/convex/_generated/api";
 import { CHAT_LABEL } from "@/constants/labels";
 import { RemoteDBService } from "./remoteDBService";
-
+import DeleteService from "./deleteService";
 
 class ChatService {
   private _messageService: MessageService;
@@ -14,23 +14,26 @@ class ChatService {
   private _localDBService: LocalDBService;
   private _remoteDBService: RemoteDBService;
   private _isOnline: () => boolean;
+  private _deleteService: DeleteService;
 
   constructor(
     messageService: MessageService,
     chatStore: ChatStore,
     isOnline: () => boolean,
     localDBService: LocalDBService,
-    _remoteDBService: RemoteDBService,
+    remoteDBService: RemoteDBService,
+    deleteService: DeleteService,
   ) {
     this._localDBService = localDBService;
     this._messageService = messageService;
     this._chatStore = chatStore;
     this._isOnline = isOnline;
-    this._remoteDBService = _remoteDBService;
+    this._remoteDBService = remoteDBService;
+    this._deleteService = deleteService;
   }
 
   async getAllChats() {
-    const chats = await this._localDBService.getAll<Chat>(CHAT_LABEL);
+    const chats = await this._localDBService.getAll<typeof CHAT_LABEL>(CHAT_LABEL);
     this._chatStore.setChats(chats);
     return chats;
   }
@@ -63,11 +66,17 @@ class ChatService {
     return res;
   }
 
+  async deleteOnlineChat(_id: string) {
+    await this._remoteDBService.delete(CHAT_LABEL, _id);
+  }
+
   async deleteChat(id: string) {
+    const chat = (await this._localDBService.getAll<typeof CHAT_LABEL>(CHAT_LABEL)).find((el) => el.id == id);
     if (this._isOnline()) {
-      const chat = (await this._localDBService.getAll<Chat>(CHAT_LABEL)).find((el) => el.id == id);
       if (!chat || !chat._id) throw new Error("Chat not found in remoteDB");
-      await this._remoteDBService.delete(CHAT_LABEL, chat._id);
+      this.deleteOnlineChat(chat._id);
+    } else {
+      if (chat?._id) await this._deleteService.createDelete({ id: uuid(), entity_id: chat._id, entityId: id, type: CHAT_LABEL });
     }
     await this._messageService.deleteChatMessages(id);
     await this._localDBService.delete(CHAT_LABEL, id);
@@ -75,7 +84,7 @@ class ChatService {
   }
 
   async updateOfflineChat(data: Chat) {
-    await this._localDBService.update<Chat>(CHAT_LABEL, data);
+    await this._localDBService.update<typeof CHAT_LABEL>(CHAT_LABEL, data);
     this._chatStore.updateChat(data);
   }
 
@@ -84,7 +93,7 @@ class ChatService {
   }
 
   async updateChat(data: ChatUpdate) {
-    const chat = (await this._localDBService.getAll<Chat>(CHAT_LABEL)).find((el) => el.id == data.id);
+    const chat = (await this._localDBService.getAll<typeof CHAT_LABEL>(CHAT_LABEL)).find((el) => el.id == data.id);
     if (!chat) throw new Error("Chat not found");
     const newChat = { ...chat, name: data.name };
     if (this._isOnline()) {

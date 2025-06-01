@@ -80,7 +80,7 @@ export const update = mutation({
         const user = await ctx.auth.getUserIdentity();
         if (!user) throw new Error("User not found");
         const message = await ctx.db.get(args._id);
-        if (!message) throw new Error("Message not found");
+        if (!message) return;
         const chat = await ctx.db
             .query(PLURALS[CHAT_LABEL])
             .withIndex("by_my_id", (q) => q.eq("id", message.chatId))

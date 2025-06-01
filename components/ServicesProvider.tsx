@@ -4,11 +4,13 @@ import React, { createContext, useContext, ReactNode } from "react";
 import useServices from "@/data/useServcies";
 import ChatService from "@/data/chatService";
 import MessageService from "@/data/messageService";
-import { ConvexReactClient, useConvexAuth } from "convex/react";
+import { useConvexAuth } from "convex/react";
+import DeleteService from "@/data/deleteService";
 
 interface ServicesContextType {
   chatService: ChatService;
   messageService: MessageService;
+  deleteService: DeleteService;
 }
 
 const ServiceContext = createContext<ServicesContextType | null>(null);
@@ -18,10 +20,10 @@ interface ServiceProviderProps {
 }
 
 export const ServiceProvider = ({ children }: ServiceProviderProps) => {
-  const { chatService, messageService } = useServices();
+  const { chatService, messageService, deleteService } = useServices();
   const { isLoading } = useConvexAuth();
 
-  if (!chatService || !messageService || isLoading)
+  if (!chatService || !messageService || !deleteService || isLoading)
     return <div>Loading services...</div>;
 
   return (
@@ -29,6 +31,7 @@ export const ServiceProvider = ({ children }: ServiceProviderProps) => {
       value={{
         chatService,
         messageService,
+        deleteService,
       }}
     >
       {children}

@@ -3,7 +3,7 @@ import syncServerClientData from '@/data/syncServerClientData';
 import { useEffect } from 'react'
 
 export default function useSyncOnConnection() {
-  const { chatService, messageService } = useServicesContext();
+  const { chatService, messageService, deleteService } = useServicesContext();
 
   useEffect(() => {
     // const offlineFunc = () => {
@@ -12,7 +12,7 @@ export default function useSyncOnConnection() {
     // window.addEventListener("offline", offlineFunc);
 
     const onlineFunc = () => {
-      syncServerClientData(messageService, chatService);
+      syncServerClientData(messageService, chatService, deleteService);
     };
 
     window.addEventListener("online", onlineFunc);
