@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   description: "Take notes in chat",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -37,7 +37,8 @@ export default function RootLayout({
       return redirectToSignIn();
     }
   }
-
+  const rest = await auth();
+  const token = await rest.getToken({ template: "convex" });
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
@@ -52,7 +53,11 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen`}
         >
-          <ConvexClientProvider>
+          <ConvexClientProvider
+            orgId={rest.orgId as string}
+            orgRole={rest.orgRole as string}
+            token={token as string}
+          >
             {redirectGuestToSignIn()}
             <ServiceProvider>
               <ThemeProvider

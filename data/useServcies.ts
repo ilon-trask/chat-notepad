@@ -12,38 +12,49 @@ import { RemoteDBService } from "./remoteDBService";
 import DeleteService from "./deleteService";
 
 type Return = {
-    chatService: ChatService | null
-    messageService: MessageService | null
-    deleteService: DeleteService | null
-}
+  chatService: ChatService | null;
+  messageService: MessageService | null;
+  deleteService: DeleteService | null;
+};
+
+const remoteDBService = new RemoteDBService(convex);
 
 export default function useServices(): Return {
-    const [chatService, setChatService] = useState<ChatService | null>(null);
-    const [messageService, setMessageService] = useState<MessageService | null>(null);
-    const [deleteService, setDeleteService] = useState<DeleteService | null>(null);
+  const [services, setServices] = useState<Return>({
+    chatService: null,
+    messageService: null,
+    deleteService: null,
+  });
 
-    const messageStore = useMessageStore();
-    const chatStore = useChatStore();
+  const messageStore = useMessageStore();
+  const chatStore = useChatStore();
 
-    useEffect(() => {
-        (async () => {
-            const localDB = await createLocalDB();
-            const localDBService = new LocalDBService(localDB);
-            const remoteDBService = new RemoteDBService(convex);
-            const deleteService = new DeleteService(localDBService);
-            const messageService = new MessageService(messageStore, isOnline, localDBService, remoteDBService, deleteService);
-            const chatService = new ChatService(messageService, chatStore, isOnline, localDBService, remoteDBService, deleteService);
-
-            setMessageService(messageService);
-            setChatService(chatService);
-            setDeleteService(deleteService);
-            syncServerClientData(messageService, chatService, deleteService);
-        })()
-    }, []);
-
-    return {
-        chatService,
-        messageService,
+  useEffect(() => {
+      const localDB = createLocalDB();
+      const localDBService = new LocalDBService(localDB);
+      const deleteService = new DeleteService(localDBService);
+      const messageService = new MessageService(
+        messageStore,
+        isOnline,
+        localDBService,
+        remoteDBService,
         deleteService
-    };
+      );
+      const chatService = new ChatService(
+        messageService,
+        chatStore,
+        isOnline,
+        localDBService,
+        remoteDBService,
+        deleteService
+      );
+      setServices({
+        chatService,
+        deleteService,
+        messageService,
+      });
+      syncServerClientData(messageService, chatService, deleteService);
+  }, []);
+
+  return services;
 }

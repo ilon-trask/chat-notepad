@@ -23,6 +23,8 @@ export const ServiceProvider = ({ children }: ServiceProviderProps) => {
   const { chatService, messageService, deleteService } = useServices();
   const { isLoading } = useConvexAuth();
 
+console.log('isLoading', isLoading);
+
   if (!chatService || !messageService || !deleteService || isLoading)
     return <div>Loading services...</div>;
 
