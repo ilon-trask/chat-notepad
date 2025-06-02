@@ -5,8 +5,6 @@ import { api } from "@/convex/_generated/api";
 import { auth } from "@clerk/nextjs/server";
 
 export default async function Page() {
-  const a = await auth();
-  a.orgId
   const token = await (await auth()).getToken({ template: "convex" });
   const chatsPromise = fetchQuery(
     api.chats.getAll,
