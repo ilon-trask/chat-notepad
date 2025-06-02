@@ -38,7 +38,6 @@ export default function CreateChatDialog({
       chatService.updateChat({
         id: chatDialogStore.chatId,
         name: data.name,
-        editedAt: new Date(),
       });
     } else {
       const newChat = await chatService.createChat(data.name);
