@@ -1,25 +1,42 @@
 import DBResPromise from "@/helpers/DBResPromise";
-import { Labels } from "./createLocalDB";
+import { CHAT_LABEL, DELETE_LABEL, MESSAGE_LABEL, AllLabels } from "@/constants/labels";
 import { DataService } from "@/types/dataService.types";
-import { tree } from "next/dist/build/templates/app-page";
+import { Message } from "@/types/message.types";
+import { Chat } from "@/types/chat.types";
+import { Delete } from "@/types/delete.types";
 
 const DB_METHODS = ["add", "put", "getAll", "delete", "clear"] as const;
 
+type Methods = {
+  [MESSAGE_LABEL]: {
+    return: Message,
+    create: Message,
+    update: Message,
+  },
+  [CHAT_LABEL]: {
+    return: Chat,
+    create: Chat,
+    update: Chat,
+  },
+  [DELETE_LABEL]: {
+    return: Delete,
+    create: Delete,
+    update: Delete,
+  }
+}
 
-export class localDBService<T> implements DataService<T> {
-  private _label: Labels;
+export class LocalDBService implements DataService {
   private _db: IDBDatabase;
 
-  constructor(label: Labels, db: IDBDatabase) {
-    this._label = label;
+  constructor(db: IDBDatabase) {
     this._db = db;
   }
 
-  protected _changeDBType(localDB: IDBObjectStore) {
+  protected _changeDBType<T extends AllLabels>(localDB: IDBObjectStore) {
     type LocalDB = Omit<typeof localDB, typeof DB_METHODS[number]> & {
-      add: (value: T) => Promise<IDBValidKey>;
-      put: (value: T) => Promise<IDBValidKey>;
-      getAll: () => Promise<T[]>;
+      add: (value: Methods[T]['create']) => Promise<IDBValidKey>;
+      put: (value: Methods[T]['update']) => Promise<IDBValidKey>;
+      getAll: () => Promise<Methods[T]['return'][]>;
       delete: (query: string) => Promise<undefined>
       clear: () => Promise<undefined>
     };
@@ -36,37 +53,37 @@ export class localDBService<T> implements DataService<T> {
 
     return newLocalDB;
   }
-  protected async _getReadDbObject() {
-    const transaction = this._db.transaction(this._label, "readonly");
-    const DB = transaction.objectStore(this._label);
-    return this._changeDBType(DB);
+  protected async _getReadDbObject<T extends AllLabels>(label: AllLabels) {
+    const transaction = this._db.transaction(label, "readonly");
+    const DB = transaction.objectStore(label);
+    return this._changeDBType<T>(DB);
   }
-  protected async _getWriteDbObject() {
-    const transaction = this._db.transaction(this._label, "readwrite");
-    const DB = transaction.objectStore(this._label);
-    return this._changeDBType(DB);
+  protected async _getWriteDbObject<T extends AllLabels>(label: AllLabels) {
+    const transaction = this._db.transaction(label, "readwrite");
+    const DB = transaction.objectStore(label);
+    return this._changeDBType<T>(DB);
   }
 
-  async getAll() {
-    const DB = await this._getReadDbObject();
+  async getAll<T extends AllLabels>(label: AllLabels) {
+    const DB = await this._getReadDbObject<T>(label);
     const res = await DB.getAll();
-    return res;
+    return res as Methods[T]['return'][];
   }
 
-  async create(data: T) {
-    const DB = await this._getWriteDbObject();
+  async create<T extends AllLabels>(label: AllLabels, data: Methods[T]['create']) {
+    const DB = await this._getWriteDbObject<T>(label);
     const req = await DB.add(data);
     return data;
   }
 
-  async delete(id: string) {
-    const DB = await this._getWriteDbObject();
+  async delete(label: AllLabels, id: string) {
+    const DB = await this._getWriteDbObject(label);
     const req = await DB.delete(id);
     return true;
   }
 
-  async update(data: T) {
-    const DB = await this._getWriteDbObject();
+  async update<T extends AllLabels>(label: AllLabels, data: Methods[T]['update']) {
+    const DB = await this._getWriteDbObject<T>(label);
     const req = await DB.put(data);
     return data;
   }

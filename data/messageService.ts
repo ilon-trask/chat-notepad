@@ -1,36 +1,89 @@
 import { Message, MessageUpdate } from "@/types/message.types";
 import { v4 as uuid } from "uuid";
-import { localDBService } from "./localDBService";
+import { LocalDBService } from "./localDBService";
 import { MessageStore } from "@/store/messageStore";
-import { MESSAGE_LABEL } from "./createLocalDB";
-import { ConvexReactClient } from "convex/react";
-import isOnline from "@/helpers/isOnline";
 import { api } from "@/convex/_generated/api";
+import { MESSAGE_LABEL } from "@/constants/labels";
+import { RemoteDBService } from "./remoteDBService";
+import DeleteService from "./deleteService";
 
-class MessageService extends localDBService<Message> {
-  private _messageStore: MessageStore
-  private _convexDB: ConvexReactClient;
+export class MessageLocalDBService {
+  private _localDBService: LocalDBService;
 
-  constructor(db: IDBDatabase, messageStore: MessageStore, convexDB: ConvexReactClient) {
-    super(MESSAGE_LABEL, db);
-    this._messageStore = messageStore;
-    this._convexDB = convexDB;
+  constructor(localDBService: LocalDBService) {
+    this._localDBService = localDBService;
   }
 
   async getAllMessages() {
-    const messages = await super.getAll();
+    const messages = await this._localDBService.getAll<typeof MESSAGE_LABEL>(MESSAGE_LABEL);
+    return messages;
+  }
+
+  async createMessage(data: Message) {
+    return await this._localDBService.create<typeof MESSAGE_LABEL>(MESSAGE_LABEL, data);
+  }
+
+  async updateMessage(data: Message) {
+    return await this._localDBService.update(MESSAGE_LABEL, data);
+  }
+
+  async deleteMessage(id: string) {
+    return await this._localDBService.delete(MESSAGE_LABEL, id);
+  }
+}
+
+export class MessageRemoteDBService {
+  private _remoteDBService: RemoteDBService;
+
+  constructor(remoteDBService: RemoteDBService) {
+    this._remoteDBService = remoteDBService;
+  }
+
+  async getAllMessages() {
+    return await this._remoteDBService.getAll<typeof MESSAGE_LABEL>(MESSAGE_LABEL);
+  }
+
+  async createMessage(data: typeof api.messages.create._args) {
+    return await this._remoteDBService.create<typeof MESSAGE_LABEL>(MESSAGE_LABEL, data);
+  }
+
+  async updateMessage(data: typeof api.messages.update._args) {
+    return await this._remoteDBService.update<typeof MESSAGE_LABEL>(MESSAGE_LABEL, data);
+  }
+
+  async deleteMessage(_id: string) {
+    return await this._remoteDBService.delete(MESSAGE_LABEL, _id);
+  }
+}
+
+class MessageService {
+  private _messageStore: MessageStore;
+  private _isOnline: () => boolean;
+  private _deleteService: DeleteService;
+  localDBService: MessageLocalDBService;
+  remoteDBService: MessageRemoteDBService;
+
+  constructor(
+    messageStore: MessageStore,
+    isOnline: () => boolean,
+    localDBService: LocalDBService,
+    remoteDBService: RemoteDBService,
+    deleteService: DeleteService
+  ) {
+    this._messageStore = messageStore;
+    this._isOnline = isOnline;
+    this._deleteService = deleteService;
+    this.localDBService = new MessageLocalDBService(localDBService);
+    this.remoteDBService = new MessageRemoteDBService(remoteDBService);
+  }
+
+  async getAllMessages() {
+    const messages = await this.localDBService.getAllMessages();
     this._messageStore.setMessages(messages);
     return messages;
   }
 
-  async createOfflineMessage(data: Message) {
-    await super.create(data);
-    this._messageStore.addMessage(data);
-  }
-  async createMessage(
-    content: string,
-    chatId: string
-  ) {
+  async createMessage(content: string, chatId: string) {
     if (!chatId) throw new Error("Chat ID is required");
     const newMessage = {
       id: uuid(),
@@ -39,63 +92,69 @@ class MessageService extends localDBService<Message> {
       editedAt: new Date(),
       chatId,
     };
-    if (isOnline()) {
-      this._convexDB.mutation(api.messages.create,
-        {
-          id: newMessage.id,
-          content: newMessage.content,
-          chatId: newMessage.chatId
-        })
-        .then(async (el) => {
-          const newMessage = { ...el, createdAt: new Date(el.createdAt), editedAt: new Date(el.editedAt) };
-          await super.update(newMessage);
-          this._messageStore.updateMessage(newMessage);
-        })
-    }
+    
+    await this.localDBService.createMessage(newMessage);
+    this._messageStore.addMessage(newMessage);
 
-    await this.createOfflineMessage(newMessage)
+    if (this._isOnline()) {
+      await this.remoteDBService.createMessage({
+        id: newMessage.id,
+        content: newMessage.content,
+        chatId: newMessage.chatId
+      })
+        .then(async (el) => {
+          const updatedMessage = { ...el, createdAt: new Date(el.createdAt), editedAt: new Date(el.editedAt) };
+          await this.localDBService.updateMessage(updatedMessage);
+          this._messageStore.updateMessage(updatedMessage);
+        });
+    }
+    return newMessage;
   }
 
   async deleteMessage(id: string) {
-    if (isOnline()) {
-      const message = (await super.getAll()).find((el) => el.id == id);
-      if (!message || !message._id) throw new Error("Message not found in convex");
-      await this._convexDB.mutation(api.messages.deleteEntry, {
-        _id: message._id
-      });
+    const message = (await this.localDBService.getAllMessages()).find((el) => el.id == id);
+    if (this._isOnline()) {
+      if (!message || !message._id) throw new Error("Message not found in remoteDB");
+      this.remoteDBService.deleteMessage(message._id);
+    } else {
+      if (message?._id) {
+        await this._deleteService.createDelete({
+          id: uuid(),
+          entity_id: message._id,
+          entityId: id,
+          type: MESSAGE_LABEL
+        });
+      }
     }
-    await super.delete(id);
+    await this.localDBService.deleteMessage(id);
     this._messageStore.deleteMessage(id);
   }
 
   async deleteChatMessages(chatId: string) {
-    const messages = await super.getAll();
+    const messages = await this.localDBService.getAllMessages();
     for (const message of messages) {
       if (message.chatId == chatId) {
-        await super.delete(message.id);
+        await this.localDBService.deleteMessage(message.id);
         this._messageStore.deleteMessage(message.id);
       }
     }
   }
 
-  async updateOfflineMessage(data: Message) {
-    await super.update(data);
-    this._messageStore.updateMessage(data);
-  }
-
   async updateMessage(data: MessageUpdate) {
-    const message = (await super.getAll()).find((el) => el.id == data.id);
+    const message = (await this.localDBService.getAllMessages()).find((el) => el.id == data.id);
     if (!message) throw new Error("Message not found");
     const newMessage = { ...message, content: data.content };
-    if (isOnline()) {
-      if (!message._id) throw new Error("Message not found in convex");
-      await this._convexDB.mutation(api.messages.update, {
+    
+    if (this._isOnline()) {
+      if (!message._id) throw new Error("Message not found in remoteDB");
+      await this.remoteDBService.updateMessage({
         _id: message._id,
         content: data.content
       });
     }
 
-    await this.updateOfflineMessage(newMessage);
+    await this.localDBService.updateMessage(newMessage);
+    this._messageStore.updateMessage(newMessage);
   }
 }
 

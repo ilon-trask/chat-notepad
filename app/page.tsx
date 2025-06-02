@@ -14,6 +14,7 @@ import useIsMobile from "@/hooks/useIsMobile";
 import useDynamicFavicon from "@/hooks/useDynamicFavicon";
 import useMaxMinPanelWidth from "@/hooks/useMaxMinPanelWidth";
 import useSyncOnConnection from "@/hooks/useSyncOnConnection";
+import Chat from "@/components/Chat/Chat";
 
 export default function Page() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -68,9 +69,7 @@ export default function Page() {
       <ResizableHandle />
       {/* Main Content */}
       <ResizablePanel id="chat" className="flex flex-col">
-        <ChatHeader />
-        <MessagesList />
-        {chosenChatId && <MessageInput />}
+        <Chat />
       </ResizablePanel>
     </ResizablePanelGroup>
   );

@@ -1,10 +1,4 @@
-export const CHAT_LABEL = "chat" as const;
-export const MESSAGE_LABEL = "message" as const;
-
-const LABELS = [CHAT_LABEL, MESSAGE_LABEL] as const;
-export const PLURALS = { 'chat': "chats", 'message': "messages" } as const;
-
-export type Labels = typeof LABELS[number];
+import { ALL_LABELS } from "../constants/labels";
 
 export async function createLocalDB(): Promise<IDBDatabase> {
   const db: IDBDatabase | DOMException = await new Promise(
@@ -13,7 +7,7 @@ export async function createLocalDB(): Promise<IDBDatabase> {
       request.onupgradeneeded = (event) => {
         //@ts-ignore
         const db = event.target?.result;
-        LABELS.forEach((label) => {
+        ALL_LABELS.forEach((label) => {
           if (!db.objectStoreNames.contains(label)) {
             db.createObjectStore(label, { keyPath: "id" });
           }

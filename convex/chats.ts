@@ -1,21 +1,38 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
+import { PLURALS, MESSAGE_LABEL, CHAT_LABEL } from "../constants/labels";
+
+
 export const getAll = query({
     handler: async (ctx) => {
         const user = await ctx.auth.getUserIdentity();
         if (!user) throw new Error("User not found");
-        const chats = await ctx.db.query("chats").withIndex("by_user", (q) => q.eq("userId", user.subject)).collect();
+        const chats = await ctx.db.query(PLURALS[CHAT_LABEL]).withIndex("by_user", (q) => q.eq("userId", user.subject)).collect();
         return chats;
     },
 });
+
+export const getById = query({
+    args: { id: v.string() },
+    handler: async (ctx, args) => {
+        const user = await ctx.auth.getUserIdentity();
+        if (!user) throw new Error("User not found");
+        const chat = await ctx.db.query(PLURALS[CHAT_LABEL])
+            .withIndex("by_my_id", (q) => q.eq("id", args.id))
+            .unique()
+        if (!chat) throw new Error("Chat not found");
+        if (chat.userId !== user.subject) throw new Error("You are not the owner of this chat");
+        return chat;
+    }
+})
 
 export const create = mutation({
     args: { id: v.string(), name: v.string(), createdAt: v.optional(v.number()), editedAt: v.optional(v.number()) },
     handler: async (ctx, args) => {
         const user = await ctx.auth.getUserIdentity();
         if (!user) throw new Error("User not found");
-        const chatId = await ctx.db.insert("chats", {
+        const chatId = await ctx.db.insert(PLURALS[CHAT_LABEL], {
             id: args.id,
             name: args.name,
             createdAt: args.createdAt || Date.now().valueOf(),
@@ -34,10 +51,10 @@ export const deleteEntry = mutation({
         const user = await ctx.auth.getUserIdentity();
         if (!user) throw new Error("User not found");
         const chat = await ctx.db.get(args._id);
-        if (!chat) throw new Error("Chat not found");
+        if (!chat) return;
         if (chat.userId !== user.subject) throw new Error("You are not the owner of this chat");
         const deleted = await ctx.db.delete(args._id);
-        const messages = await ctx.db.query("messages").withIndex("by_chat", q => q.eq("chatId", chat.id))
+        const messages = await ctx.db.query(PLURALS[MESSAGE_LABEL]).withIndex("by_chat", q => q.eq("chatId", chat.id))
             .collect();
         for (const message of messages) {
             await ctx.db.delete(message._id);
