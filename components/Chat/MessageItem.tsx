@@ -40,13 +40,13 @@ export default function MessageItem({
       <ContextMenuTrigger asChild>
         <Card
           className={cn(
-            "p-3 rounded-lg max-w-[70%] self-start gap-2 select-none",
+            "p-3 rounded-lg max-w-[70%] self-start gap-2",
             className
           )}
           {...props}
         >
           <div className="flex flex-col">
-            <Pre>{children}</Pre>
+            <Pre className="break-words">{children}</Pre>
             <div className="text-xs text-gray-500 text-right text-[10px] mt-1 self-end">
               {new Date(createdAt).toLocaleTimeString([], {
                 hour: "2-digit",
