@@ -2,10 +2,10 @@ import PageContent from "@/components/PageContent";
 
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
-import { auth } from "@clerk/nextjs/server";
+import myAuth from "@/lib/myAuth";
 
 export default async function Page() {
-  const token = await (await auth()).getToken({ template: "convex" });
+  const token = await (await myAuth()).getToken({ template: "convex" });
   const chatsPromise = fetchQuery(
     api.chats.getAll,
     {},

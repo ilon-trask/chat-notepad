@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { createLocalDB } from "../../data/createLocalDB";
+import { setupClerkTestingToken } from "@clerk/testing/cypress";
 
 function createReadyDB() {
   return createLocalDB().then((db) => {
@@ -10,15 +11,35 @@ function createReadyDB() {
     return { chat, message };
   });
 }
+const ACC_LOGIN = "test";
+const ACC_PASSOWRD = "pllzlpjl";
+
+function login() {
+  cy.get("#identifier-field").type(ACC_LOGIN);
+  cy.get('[data-localization-key="formButtonPrimary"]').click();
+  cy.get("#password-field").type(ACC_PASSOWRD);
+  cy.get('[data-localization-key="formButtonPrimary"]').click();
+}
 
 describe("Whole app", () => {
   beforeEach(function () {
+    // cy.origin("http://localhost:3000", () => {
+    //   cy.on("uncaught:exception", (e) => {
+    //     if (e.message.includes("Things went bad")) {
+    //       // we expected this error, so let's ignore it
+    //       // and let the test continue
+    //       return false;
+    //     }
+    //   });
+    // });
     cy.visit("http://localhost:3000/");
-
+    setupClerkTestingToken();
+    cy.wait(5000);
     createReadyDB().then(({ chat, message }) => {
       chat.clear();
       message.clear();
     });
+    cy.visit("http://localhost:3000/");
   });
 
   it("shouldn't show input when there is no selected chat", () => {
@@ -179,7 +200,7 @@ describe("Whole app", () => {
 
   it("cmdk create chat", () => {
     cy.wait(1000);
-    cy.get("body").type('{ctrl}k');
+    cy.get("body").type("{ctrl}k");
     cy.get("[data-testid='CommandDialogList']").should("exist");
     cy.get("[data-testid='CommandDialogCreateChat']").click();
     cy.get("[data-testid='CommandDialogList']").should("not.exist");

@@ -8,7 +8,7 @@ import CommandMenu from "@/components/CommandDialog";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { ServiceProvider } from "@/components/ServicesProvider";
 import { ClerkProvider } from "@clerk/nextjs";
-import { auth } from "@clerk/nextjs/server";
+import myAuth from "@/lib/myAuth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,14 +31,16 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   async function redirectGuestToSignIn() {
-    const { redirectToSignIn, userId } = await auth();
+    const { redirectToSignIn, userId } = await myAuth();
 
     if (!userId) {
       return redirectToSignIn();
     }
   }
-  const rest = await auth();
+
+  const rest = await myAuth();
   const token = await rest.getToken({ template: "convex" });
+
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
