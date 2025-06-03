@@ -4,7 +4,6 @@ import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ReactNode } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { TODO } from "@/types/types";
 
 export const convex = new ConvexReactClient(
   process.env.NEXT_PUBLIC_CONVEX_URL!
@@ -21,6 +20,7 @@ export function ConvexClientProvider({
   orgId: string;
   orgRole: string;
 }) {
+  //provides user's auth state to Convex from server-side
   const a: () => ReturnType<typeof useAuth> = () =>
     ({
       isLoaded: true,
@@ -30,7 +30,8 @@ export function ConvexClientProvider({
       getToken: async () => {
         return token ?? null;
       },
-    }) as TODO;
+    }) as ReturnType<typeof useAuth>;
+
   return (
     <ConvexProviderWithClerk client={convex} useAuth={a}>
       {children}

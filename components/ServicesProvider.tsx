@@ -4,7 +4,6 @@ import React, { createContext, useContext, ReactNode } from "react";
 import useServices from "@/data/useServcies";
 import ChatService from "@/data/chatService";
 import MessageService from "@/data/messageService";
-import { useConvexAuth } from "convex/react";
 import DeleteService from "@/data/deleteService";
 
 interface ServicesContextType {
@@ -21,11 +20,8 @@ interface ServiceProviderProps {
 
 export const ServiceProvider = ({ children }: ServiceProviderProps) => {
   const { chatService, messageService, deleteService } = useServices();
-  const { isLoading } = useConvexAuth();
 
-console.log('isLoading', isLoading);
-
-  if (!chatService || !messageService || !deleteService || isLoading)
+  if (!chatService || !messageService || !deleteService)
     return <div>Loading services...</div>;
 
   return (
