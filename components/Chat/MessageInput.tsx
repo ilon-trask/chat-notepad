@@ -1,5 +1,5 @@
 "use client";
-import { Send, X } from "lucide-react";
+import { Loader2, Paperclip, Send, X } from "lucide-react";
 import React, { KeyboardEvent, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
@@ -9,6 +9,8 @@ import { useMessageInputStore } from "@/store/messageInputStore";
 import { Muted } from "../Typography";
 import { toast } from "sonner";
 import { useServicesContext } from "../ServicesProvider";
+import fileUploadHandler from "@/data/fileUploadHandler";
+import FileBubble from "./FileBubble";
 
 type MessageInputForm = {
   message: string;
@@ -95,15 +97,14 @@ export default function MessageInput() {
       {messageInputStore.fileUpload.length > 0 && (
         <div
           data-testid="FileUploadingIndicator"
-          className="px-4 py-2 bg-muted/50 flex items-center justify-between border-b"
+          className="px-4 py-2 bg-muted/50 flex items-center gap-4 flex-wrap border-b"
         >
           {messageInputStore.fileUpload.map((el) => (
-            <>{el.id}</>
+            <FileBubble key={el.name} file={el} />
           ))}
         </div>
       )}
 
-      {/* Input area */}
       <div className="p-4">
         <div className="flex items-center gap-2">
           <form
@@ -123,6 +124,26 @@ export default function MessageInput() {
               onKeyDown={handleKeyDown}
               {...register("message")}
             />
+            <Button
+              data-testid="MessageInputAttachButton"
+              type="button"
+              size="icon"
+              className="rounded-full"
+              variant="ghost"
+              onClick={() => document.getElementById("file-upload")?.click()}
+            >
+              <Paperclip className="h-4 w-4" />
+              <input
+                id="file-upload"
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  const files = e.target.files;
+                  fileUploadHandler(files, messageInputStore);
+                }}
+              />
+            </Button>
             <Button
               data-testid="MessageInputSendButton"
               type="submit"

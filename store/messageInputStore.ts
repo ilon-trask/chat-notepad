@@ -1,4 +1,3 @@
-import { FileType } from "@/types/file.types";
 import { create } from "zustand";
 
 export type MessageInputStore = {
@@ -12,8 +11,8 @@ export type MessageInputStore = {
   setMessageId: (messageId: string) => void;
   startEditing: (messageId: string, messageText: string) => void;
   cancelEditing: () => void;
-  fileUpload: FileType[];
-  setFileUpload: (file: FileType[]) => void;
+  fileUpload: File[];
+  setFileUpload: (file: File[]) => void;
 };
 
 export const useMessageInputStore = create<MessageInputStore>((set) => ({
@@ -38,5 +37,5 @@ export const useMessageInputStore = create<MessageInputStore>((set) => ({
       isUpdate: false,
     }),
   fileUpload: [],
-  setFileUpload: (file: FileType[]) => set({ fileUpload: file }),
+  setFileUpload: (file: File[]) => set({ fileUpload: file }),
 }));

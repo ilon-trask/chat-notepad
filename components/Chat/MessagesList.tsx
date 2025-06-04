@@ -5,11 +5,15 @@ import { type Message } from "@/types/message.types";
 import { Badge } from "../ui/badge";
 import MessageItem from "./MessageItem";
 import { useServicesContext } from "../ServicesProvider";
+import { useDragAndDrop } from "../DrapAndDropPrivider";
 
 export default function MessagesList() {
   const { messageService } = useServicesContext();
   const messageStore = useMessageStore();
   const chatId = useChatStore().chosenChatId;
+
+  const { isDragging } = useDragAndDrop();
+  console.log("isDragging", isDragging);
 
   useEffect(() => {
     messageService.getAllMessages();
