@@ -1,7 +1,17 @@
-import { query, mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
+import {
+  PLURALS,
+  FILE_LABEL,
+  CHAT_LABEL,
+  MESSAGE_LABEL,
+} from "../constants/labels";
 import { v } from "convex/values";
 
-import { PLURALS, MESSAGE_LABEL, CHAT_LABEL } from "../constants/labels";
+export const generateUploadUrl = mutation({
+  handler: async (ctx) => {
+    return await ctx.storage.generateUploadUrl();
+  },
+});
 
 export const getAll = query({
   handler: async (ctx) => {
@@ -11,6 +21,8 @@ export const getAll = query({
       .query("chats")
       .withIndex("by_user", (q) => q.eq("userId", user.subject))
       .collect();
+    if (!chats) throw new Error("Chats not found");
+
     const messages = (
       await Promise.all(
         chats.map(async (chat) => {
@@ -22,7 +34,16 @@ export const getAll = query({
         })
       )
     ).flat();
-    return messages;
+    const files = await Promise.all(
+      messages.map(async (message) => {
+        const messageFiles = await ctx.db
+          .query(PLURALS[FILE_LABEL])
+          .withIndex("by_message", (q) => q.eq("messageId", message.id))
+          .collect();
+        return messageFiles;
+      })
+    );
+    return files.flat();
   },
 });
 
@@ -31,51 +52,32 @@ export const getById = query({
   handler: async (ctx, args) => {
     const user = await ctx.auth.getUserIdentity();
     if (!user) throw new Error("User not found");
-    const message = await ctx.db
-      .query(PLURALS[MESSAGE_LABEL])
+    const file = await ctx.db
+      .query(PLURALS[FILE_LABEL])
       .withIndex("by_my_id", (q) => q.eq("id", args.id))
       .unique();
-    if (!message) throw new Error("Message not found");
-    return message;
+    if (!file) throw new Error("File not found");
+    return file;
   },
 });
 
 export const create = mutation({
   args: {
     id: v.string(),
-    content: v.string(),
-    chatId: v.string(),
+    name: v.string(),
+    messageId: v.string(),
+    storageId: v.string(),
     createdAt: v.optional(v.number()),
     editedAt: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const user = await ctx.auth.getUserIdentity();
     if (!user) throw new Error("User not found");
-    const chat = await ctx.db
-      .query(PLURALS[CHAT_LABEL])
-      .withIndex("by_my_id", (q) => q.eq("id", args.chatId))
+    const message = await ctx.db
+      .query(PLURALS[MESSAGE_LABEL])
+      .withIndex("by_my_id", (q) => q.eq("id", args.messageId))
       .first();
-    if (!chat) throw new Error("Chat not found");
-    if (chat.userId !== user.subject)
-      throw new Error("You are not the owner of this chat");
-    const messageId = await ctx.db.insert(PLURALS[MESSAGE_LABEL], {
-      ...args,
-      createdAt: args.createdAt || Date.now(),
-      editedAt: args.editedAt || Date.now(),
-    });
-    const message = await ctx.db.get(messageId);
-    if (!message) throw new Error("Message not created");
-    return message;
-  },
-});
-
-export const deleteEntry = mutation({
-  args: { _id: v.id("messages") },
-  handler: async (ctx, args) => {
-    const message = await ctx.db.get(args._id);
     if (!message) throw new Error("Message not found");
-    const user = await ctx.auth.getUserIdentity();
-    if (!user) throw new Error("User not found");
     const chat = await ctx.db
       .query(PLURALS[CHAT_LABEL])
       .withIndex("by_my_id", (q) => q.eq("id", message.chatId))
@@ -83,6 +85,26 @@ export const deleteEntry = mutation({
     if (!chat) throw new Error("Chat not found");
     if (chat.userId !== user.subject)
       throw new Error("You are not the owner of this chat");
+    const fileId = await ctx.db.insert(PLURALS[FILE_LABEL], {
+      ...args,
+      isPreview: false,
+      createdAt: args.createdAt || Date.now(),
+      editedAt: args.editedAt || Date.now(),
+    });
+    const file = await ctx.db.get(fileId);
+    if (!file) throw new Error("File not created");
+    return file;
+  },
+});
+
+export const deleteEntry = mutation({
+  args: { _id: v.id("files") },
+  handler: async (ctx, args) => {
+    const file = await ctx.db.get(args._id);
+    if (!file) throw new Error("File not found");
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) throw new Error("User not found");
+    await ctx.storage.delete(file.storageId);
     const deleted = await ctx.db.delete(args._id);
     return deleted;
   },
@@ -90,29 +112,22 @@ export const deleteEntry = mutation({
 
 export const update = mutation({
   args: {
-    _id: v.id("messages"),
-    content: v.string(),
+    _id: v.id("files"),
+    name: v.optional(v.string()),
     editedAt: v.optional(v.number()),
+    storageId: v.string(),
   },
   handler: async (ctx, args) => {
     const user = await ctx.auth.getUserIdentity();
     if (!user) throw new Error("User not found");
-    const message = await ctx.db.get(args._id);
-    if (!message) throw new Error("Message not found");
-    const chat = await ctx.db
-      .query(PLURALS[CHAT_LABEL])
-      .withIndex("by_my_id", (q) => q.eq("id", message.chatId))
-      .first();
-    if (!chat) throw new Error("Chat not found");
-    if (chat.userId !== user.subject)
-      throw new Error("You are not the owner of this chat");
-
+    const file = await ctx.db.get(args._id);
+    if (!file) throw new Error("File not found");
+    await ctx.storage.delete(file.storageId);
     await ctx.db.patch(args._id, {
-      content: args.content,
-      editedAt: args.editedAt || Date.now(),
+      ...args,
     });
-    const newMessage = await ctx.db.get(args._id);
-    if (!newMessage) throw new Error("Message not found"); // TODO: remove this li
-    return newMessage;
+    const newFile = await ctx.db.get(args._id);
+    if (!newFile) throw new Error("File not found");
+    return newFile;
   },
 });

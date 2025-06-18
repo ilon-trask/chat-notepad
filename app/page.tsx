@@ -9,9 +9,7 @@ export default async function Page() {
   const chatsPromise = fetchQuery(
     api.chats.getAll,
     {},
-    {
-      token: token || undefined,
-    }
+    { token: token || undefined }
   );
   const messagesPromise = fetchQuery(
     api.messages.getAll,

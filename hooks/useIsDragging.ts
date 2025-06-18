@@ -12,12 +12,12 @@ function useIsDragging(
       e.preventDefault();
       dragCounter.current++;
       if (dragCounter.current === 1) {
-          setIsDragging(true);
-        }
+        setIsDragging(true);
+      }
     };
-    
+
     const handleDragLeave = (e: DragEvent) => {
-        e.preventDefault();
+      e.preventDefault();
       dragCounter.current--;
       if (dragCounter.current === 0) {
         setIsDragging(false);
@@ -34,7 +34,7 @@ function useIsDragging(
       setIsDragging(false);
 
       const files = e.dataTransfer?.files;
-      if (files && files.length > 0 && onFilesDrop) {
+      if (files && files.length > 0 && onFilesDrop && isDragging) {
         onFilesDrop(files);
       }
     };

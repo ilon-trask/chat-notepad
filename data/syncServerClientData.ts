@@ -2,12 +2,19 @@ import MessageService from "./messageService";
 import ChatService from "./chatService";
 import DeleteService from "./deleteService";
 import { CHAT_LABEL, MESSAGE_LABEL } from "@/constants/labels";
+import { FileService } from "./fileService";
 
-export default async function syncServerClientData(
-  messageService: MessageService,
-  chatService: ChatService,
-  deleteService: DeleteService
-) {
+export default async function syncServerClientData({
+  chatService,
+  messageService,
+  deleteService,
+  fileService,
+}: {
+  messageService: MessageService;
+  chatService: ChatService;
+  deleteService: DeleteService;
+  fileService: FileService;
+}) {
   const deletes = await deleteService.getAllDelete();
 
   for (const deleteItem of deletes) {
@@ -16,6 +23,7 @@ export default async function syncServerClientData(
       deleteService.deleteDelete(deleteItem.id);
     } else if (deleteItem.type === MESSAGE_LABEL) {
       await messageService.remoteDBService.deleteMessage(deleteItem.entity_id);
+      await fileService.deleteMessageFiles(deleteItem.entity_id);
       deleteService.deleteDelete(deleteItem.id);
     }
   }

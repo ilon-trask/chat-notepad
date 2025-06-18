@@ -1,9 +1,11 @@
 import { ALL_LABELS } from "../constants/labels";
 
+const DB_VERSION = 2;
+
 export async function createLocalDB(): Promise<IDBDatabase> {
   const db: IDBDatabase | DOMException = await new Promise(
     (resolve, reject) => {
-      const request = indexedDB.open("DB", 1);
+      const request = indexedDB.open("DB", DB_VERSION);
       request.onupgradeneeded = (event) => {
         //@ts-ignore
         const db = event.target?.result;

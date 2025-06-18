@@ -1,5 +1,5 @@
 "use client";
-import { Loader2, Paperclip, Send, X } from "lucide-react";
+import { Paperclip, Send, X } from "lucide-react";
 import React, { KeyboardEvent, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
@@ -9,7 +9,7 @@ import { useMessageInputStore } from "@/store/messageInputStore";
 import { Muted } from "../Typography";
 import { toast } from "sonner";
 import { useServicesContext } from "../ServicesProvider";
-import fileUploadHandler from "@/data/fileUploadHandler";
+import previewFileUploadHandler from "@/data/fileUploadHandler";
 import FileBubble from "./FileBubble";
 
 type MessageInputForm = {
@@ -17,7 +17,7 @@ type MessageInputForm = {
 };
 
 export default function MessageInput() {
-  const { messageService } = useServicesContext();
+  const { messageService, fileService } = useServicesContext();
   const chatId = useChatStore((state) => state.chosenChatId);
   const messageInputStore = useMessageInputStore();
 
@@ -37,12 +37,31 @@ export default function MessageInput() {
     setFocus,
   ]);
 
-  const onSubmit = (data: MessageInputForm) => {
+  const onSubmit = async (data: MessageInputForm) => {
     if (data.message.trim() === "" || !chatId) {
       toast.error("Please enter a message and select a chat");
       return;
     }
     if (messageInputStore.isUpdate) {
+      const files = await fileService.getMessageFiles(
+        messageInputStore.messageId
+      );
+
+      files.forEach((file) => {
+        if (!messageInputStore.fileUpload.find((el) => el.id === file.id)) {
+          //@ts-ignore
+          fileService.deleteFile(file.id, file._id);
+        }
+      });
+
+      await Promise.all(
+        messageInputStore.fileUpload.map(async (el) => {
+          if (!files.find((file) => file.id === el.id)) {
+            const res = await fileService.createFile(el);
+            return res;
+          }
+        })
+      );
       messageService.updateMessage({
         chatId,
         content: data.message,
@@ -51,9 +70,20 @@ export default function MessageInput() {
       });
       messageInputStore.cancelEditing();
     } else {
-      messageService.createMessage(data.message, chatId);
+      const message = await messageService.createMessage(data.message, chatId);
+      await Promise.all(
+        messageInputStore.fileUpload.map(async (el) => {
+          const res = await fileService.createFile({
+            ...el,
+            isPreview: false,
+            messageId: message.id,
+          });
+          return res;
+        })
+      );
     }
     reset();
+    messageInputStore.setFileUpload([]);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -137,10 +167,11 @@ export default function MessageInput() {
                 id="file-upload"
                 type="file"
                 multiple
+                accept="image/*"
                 className="hidden"
                 onChange={(e) => {
                   const files = e.target.files;
-                  fileUploadHandler(files, messageInputStore);
+                  previewFileUploadHandler(files, messageInputStore);
                 }}
               />
             </Button>

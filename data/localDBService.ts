@@ -4,11 +4,13 @@ import {
   DELETE_LABEL,
   MESSAGE_LABEL,
   AllLabels,
+  FILE_LABEL,
 } from "@/constants/labels";
 import { DataService } from "@/types/dataService.types";
 import { Message } from "@/types/message.types";
 import { Chat } from "@/types/chat.types";
 import { Delete } from "@/types/delete.types";
+import { FileType } from "@/types/file.types";
 
 const DB_METHODS = ["add", "put", "getAll", "delete", "clear"] as const;
 
@@ -28,6 +30,11 @@ type Methods = {
     create: Delete;
     update: Delete;
   };
+  [FILE_LABEL]: {
+    return: FileType;
+    create: Omit<FileType, "storageId" | "createdAt" | "editedAt">;
+    update: FileType;
+  };
 };
 
 export class LocalDBService implements DataService {
@@ -44,6 +51,7 @@ export class LocalDBService implements DataService {
       Awaited<typeof localDB>,
       (typeof DB_METHODS)[number]
     > & {
+      getOne: (id: string) => Promise<Methods[T]["return"]>;
       add: (value: Methods[T]["create"]) => Promise<IDBValidKey>;
       put: (value: Methods[T]["update"]) => Promise<IDBValidKey>;
       getAll: () => Promise<Methods[T]["return"][]>;
@@ -51,10 +59,11 @@ export class LocalDBService implements DataService {
       clear: () => Promise<undefined>;
     };
     return localDB.then((db) => {
-      const { put, add, getAll, clear, delete: deleteDB, ...rest } = db;
+      const { put, add, getAll, clear, delete: deleteDB, get, ...rest } = db;
 
       const newLocalDB = {
         ...rest,
+        getOne: async (...args) => await DBResPromise(get.apply(db, args)),
         put: async (...args) => await DBResPromise(put.apply(db, args)),
         getAll: async (...args) => await DBResPromise(getAll.apply(db, args)),
         add: async (...args) => await DBResPromise(add.apply(db, args)),
@@ -84,6 +93,12 @@ export class LocalDBService implements DataService {
     const DB = await this._getReadDbObject<T>(label);
     const res = await DB.getAll();
     return res as Methods[T]["return"][];
+  }
+
+  async getOne<T extends AllLabels>(label: AllLabels, id: string) {
+    const DB = await this._getReadDbObject<T>(label);
+    const res = await DB.getOne(id);
+    return res as Methods[T]["return"];
   }
 
   async create<T extends AllLabels>(

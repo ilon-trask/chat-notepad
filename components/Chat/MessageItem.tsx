@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { Message } from "@/types/message.types";
 import { Pre } from "../Typography";
 import { useServicesContext } from "../ServicesProvider";
+import { useEffect, useState } from "react";
+import { FileType } from "@/types/file.types";
 
 export default function MessageItem({
   children,
@@ -24,16 +26,36 @@ export default function MessageItem({
   id: string;
   createdAt: Date;
 }) {
-  const { messageService } = useServicesContext();
+  const { messageService, fileService } = useServicesContext();
   const messageStore = useMessageStore();
   const messageInputStore = useMessageInputStore();
 
   const handleEdit = () => {
     //timeout to prevent menu stealing focus form message input
     setTimeout(() => {
-      messageInputStore.startEditing(id, children as string);
+      messageInputStore.startEditing(id, children as string, files);
     }, 200);
   };
+
+  const [files, setFiles] = useState<FileType[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const newFiels = await fileService.getMessageFiles(id);
+      console.log("files", newFiels);
+      if (
+        newFiels
+          .map((el) => el.name)
+          .sort()
+          .toString() !=
+        files
+          .map((el) => el.name)
+          .sort()
+          .toString()
+      )
+        setFiles(newFiels);
+    })();
+  });
 
   return (
     <ContextMenu>
@@ -46,6 +68,13 @@ export default function MessageItem({
           {...props}
         >
           <div className="flex flex-col">
+            {files.map((el) => (
+              <img
+                alt=""
+                key={el.id}
+                src={(() => URL.createObjectURL(el.file))()}
+              />
+            ))}
             <Pre className="break-words">{children}</Pre>
             <div className="text-xs text-gray-500 text-right text-[10px] mt-1 self-end">
               {new Date(createdAt).toLocaleTimeString([], {

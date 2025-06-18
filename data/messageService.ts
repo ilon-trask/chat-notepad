@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { MESSAGE_LABEL } from "@/constants/labels";
 import { RemoteDBService } from "./remoteDBService";
 import DeleteService from "./deleteService";
+import { FileService } from "./fileService";
 
 export class MessageLocalDBService {
   private _localDBService: LocalDBService;
@@ -15,12 +16,27 @@ export class MessageLocalDBService {
   }
 
   async getAllMessages() {
-    const messages = await this._localDBService.getAll<typeof MESSAGE_LABEL>(MESSAGE_LABEL);
+    const messages =
+      await this._localDBService.getAll<typeof MESSAGE_LABEL>(MESSAGE_LABEL);
     return messages;
   }
 
+  async getOneMessage(id: string) {
+    const message = await this._localDBService.getOne<typeof MESSAGE_LABEL>(
+      MESSAGE_LABEL,
+      id
+    );
+    if (!message) throw new Error("Message not found");
+    return message;
+  }
+
   async createMessage(data: Message) {
-    return await this._localDBService.create<typeof MESSAGE_LABEL>(MESSAGE_LABEL, data);
+    const res = await this._localDBService.create<typeof MESSAGE_LABEL>(
+      MESSAGE_LABEL,
+      data
+    );
+
+    return res;
   }
 
   async updateMessage(data: Message) {
@@ -40,15 +56,23 @@ export class MessageRemoteDBService {
   }
 
   async getAllMessages() {
-    return await this._remoteDBService.getAll<typeof MESSAGE_LABEL>(MESSAGE_LABEL);
+    return await this._remoteDBService.getAll<typeof MESSAGE_LABEL>(
+      MESSAGE_LABEL
+    );
   }
 
   async createMessage(data: typeof api.messages.create._args) {
-    return await this._remoteDBService.create<typeof MESSAGE_LABEL>(MESSAGE_LABEL, data);
+    return await this._remoteDBService.create<typeof MESSAGE_LABEL>(
+      MESSAGE_LABEL,
+      data
+    );
   }
 
   async updateMessage(data: typeof api.messages.update._args) {
-    return await this._remoteDBService.update<typeof MESSAGE_LABEL>(MESSAGE_LABEL, data);
+    return await this._remoteDBService.update<typeof MESSAGE_LABEL>(
+      MESSAGE_LABEL,
+      data
+    );
   }
 
   async deleteMessage(_id: string) {
@@ -60,6 +84,7 @@ class MessageService {
   private _messageStore: MessageStore;
   private _isOnline: () => boolean;
   private _deleteService: DeleteService;
+  private _fileService: FileService;
   localDBService: MessageLocalDBService;
   remoteDBService: MessageRemoteDBService;
 
@@ -68,13 +93,15 @@ class MessageService {
     isOnline: () => boolean,
     localDBService: LocalDBService,
     remoteDBService: RemoteDBService,
-    deleteService: DeleteService
+    deleteService: DeleteService,
+    fileService: FileService
   ) {
     this._messageStore = messageStore;
     this._isOnline = isOnline;
     this._deleteService = deleteService;
     this.localDBService = new MessageLocalDBService(localDBService);
     this.remoteDBService = new MessageRemoteDBService(remoteDBService);
+    this._fileService = fileService;
   }
 
   async getAllMessages() {
@@ -92,18 +119,23 @@ class MessageService {
       editedAt: new Date(),
       chatId,
     };
-    
+
     await this.localDBService.createMessage(newMessage);
     this._messageStore.addMessage(newMessage);
 
     if (this._isOnline()) {
-      await this.remoteDBService.createMessage({
-        id: newMessage.id,
-        content: newMessage.content,
-        chatId: newMessage.chatId
-      })
+      await this.remoteDBService
+        .createMessage({
+          id: newMessage.id,
+          content: newMessage.content,
+          chatId: newMessage.chatId,
+        })
         .then(async (el) => {
-          const updatedMessage = { ...el, createdAt: new Date(el.createdAt), editedAt: new Date(el.editedAt) };
+          const updatedMessage = {
+            ...el,
+            createdAt: new Date(el.createdAt),
+            editedAt: new Date(el.editedAt),
+          };
           await this.localDBService.updateMessage(updatedMessage);
           this._messageStore.updateMessage(updatedMessage);
         });
@@ -112,9 +144,10 @@ class MessageService {
   }
 
   async deleteMessage(id: string) {
-    const message = (await this.localDBService.getAllMessages()).find((el) => el.id == id);
+    const message = await this.localDBService.getOneMessage(id);
     if (this._isOnline()) {
-      if (!message || !message._id) throw new Error("Message not found in remoteDB");
+      if (!message || !message._id)
+        throw new Error("Message not found in remoteDB");
       this.remoteDBService.deleteMessage(message._id);
     } else {
       if (message?._id) {
@@ -122,10 +155,11 @@ class MessageService {
           id: uuid(),
           entity_id: message._id,
           entityId: id,
-          type: MESSAGE_LABEL
+          type: MESSAGE_LABEL,
         });
       }
     }
+    this._fileService.deleteMessageFiles(message.id);
     await this.localDBService.deleteMessage(id);
     this._messageStore.deleteMessage(id);
   }
@@ -141,15 +175,18 @@ class MessageService {
   }
 
   async updateMessage(data: MessageUpdate) {
-    const message = (await this.localDBService.getAllMessages()).find((el) => el.id == data.id);
+    const message = await this.localDBService.getOneMessage(data.id);
     if (!message) throw new Error("Message not found");
-    const newMessage = { ...message, content: data.content };
-    
+    const newMessage = {
+      ...message,
+      content: data.content,
+    };
+
     if (this._isOnline()) {
       if (!message._id) throw new Error("Message not found in remoteDB");
       await this.remoteDBService.updateMessage({
         _id: message._id,
-        content: data.content
+        content: data.content,
       });
     }
 

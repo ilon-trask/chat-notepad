@@ -2,7 +2,6 @@ import { TODO } from "@/types/types";
 import { auth } from "@clerk/nextjs/server";
 
 function myAuth(): typeof auth {
-    console.log("myAuth called");
   const isTest = process.env.NEXT_PUBLIC_APP_ENV === "test";
   if (isTest) {
     console.warn("test environment detected, using mock auth");
