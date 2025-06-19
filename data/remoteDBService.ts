@@ -30,15 +30,16 @@ type Methods = {
   };
 };
 
-export class RemoteDBService implements DataService {
+export class RemoteDBService<T extends Labels> implements DataService {
   private _convexDB: ConvexReactClient;
-
-  constructor(convexDB: ConvexReactClient) {
+  label: T;
+  constructor(convexDB: ConvexReactClient, label: T) {
     this._convexDB = convexDB;
+    this.label = label;
   }
 
-  async getAll<T extends Labels>(label: Labels) {
-    const res = await this._convexDB.query(api[PLURALS[label]].getAll);
+  async getAll() {
+    const res = await this._convexDB.query(api[PLURALS[this.label]].getAll);
     return res.map((el) => ({
       ...el,
       createdAt: new Date(el.createdAt),
@@ -46,8 +47,8 @@ export class RemoteDBService implements DataService {
     })) as Methods[T]["return"][];
   }
 
-  async getOne<T extends Labels>(label: Labels, id: string) {
-    const res = await this._convexDB.query(api[PLURALS[label]].getById, {
+  async getOne(id: string) {
+    const res = await this._convexDB.query(api[PLURALS[this.label]].getById, {
       id: id as any,
     });
     return {
@@ -57,8 +58,11 @@ export class RemoteDBService implements DataService {
     } as Methods[T]["return"];
   }
 
-  async create<T extends Labels>(label: Labels, data: Methods[T]["create"]) {
-    const res = await this._convexDB.mutation(api[PLURALS[label]].create, data);
+  async create(data: Methods[T]["create"]) {
+    const res = await this._convexDB.mutation(
+      api[PLURALS[this.label]].create,
+      data
+    );
     return {
       ...res,
       createdAt: new Date(res.createdAt),
@@ -66,15 +70,19 @@ export class RemoteDBService implements DataService {
     } as Methods[T]["return"];
   }
 
-  async delete(label: Labels, id: string) {
-    await this._convexDB.mutation(api[PLURALS[label]].deleteEntry, {
+  async delete(id: string) {
+    await this._convexDB.mutation(api[PLURALS[this.label]].deleteEntry, {
       _id: id as any,
     });
     return true;
   }
-  async update<T extends Labels>(label: Labels, data: Methods[T]["update"]) {
-    if (!data._id) throw new Error("Chat not found in remoteDB");
-    const res = await this._convexDB.mutation(api[PLURALS[label]].update, data);
+
+  async update(data: Methods[T]["update"]) {
+    if (!data._id) throw new Error("Entry not found in remoteDB");
+    const res = await this._convexDB.mutation(
+      api[PLURALS[this.label]].update,
+      data
+    );
     return {
       ...res,
       createdAt: new Date(res.createdAt),

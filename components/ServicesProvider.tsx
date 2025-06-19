@@ -6,27 +6,17 @@ import React, {
   useEffect,
   useState,
 } from "react";
-
 import ChatService from "@/data/chatService";
 import MessageService from "@/data/messageService";
-import DeleteService from "@/data/deleteService";
-import { FileService } from "@/data/fileService";
-import { useMessageStore } from "@/store/messageStore";
-import { useChatStore } from "@/store/chatStore";
-import { convex } from "@/components/ConvexClientProvider";
-import isOnline from "@/helpers/isOnline";
-import { RemoteDBService } from "@/data/remoteDBService";
-import { createLocalDB } from "@/data/createLocalDB";
-import { LocalDBService } from "@/data/localDBService";
 import syncServerClientData from "@/data/syncServerClientData";
+import FileService from "@/data/fileService";
+import DeleteService from "@/data/deleteService";
 
 type NullableServicesContextType = {
   [K in keyof ServicesContextType]: ServicesContextType[K] | null;
 };
 
 type Return = NullableServicesContextType;
-
-const remoteDBService = new RemoteDBService(convex);
 
 export default function useServices(): Return {
   const [services, setServices] = useState<Return>({
@@ -36,45 +26,22 @@ export default function useServices(): Return {
     fileService: null,
   });
 
-  const messageStore = useMessageStore();
-  const chatStore = useChatStore();
-
   useEffect(() => {
-    const localDB = createLocalDB();
-    const localDBService = new LocalDBService(localDB);
-    const deleteService = new DeleteService(localDBService);
-    const fileService = new FileService(
-      localDBService,
-      remoteDBService,
-      deleteService
-    );
-    const messageService = new MessageService(
-      messageStore,
-      isOnline,
-      localDBService,
-      remoteDBService,
-      deleteService,
-      fileService
-    );
-    const chatService = new ChatService(
-      messageService,
-      chatStore,
-      isOnline,
-      localDBService,
-      remoteDBService,
-      deleteService
-    );
+    const deleteService = new DeleteService();
+    const fileService = new FileService(deleteService);
+    const messageService = new MessageService(fileService, deleteService);
+    const chatService = new ChatService(deleteService, messageService);
     setServices({
       chatService,
-      deleteService,
       messageService,
       fileService,
+      deleteService,
     });
     syncServerClientData({
       messageService,
       chatService,
-      deleteService,
       fileService,
+      deleteService,
     });
   }, []);
 
@@ -84,8 +51,8 @@ export default function useServices(): Return {
 interface ServicesContextType {
   chatService: ChatService;
   messageService: MessageService;
-  deleteService: DeleteService;
   fileService: FileService;
+  deleteService: DeleteService;
 }
 
 const ServiceContext = createContext<ServicesContextType | null>(null);

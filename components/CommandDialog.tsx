@@ -8,20 +8,24 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import confirmableChatDelete from "@/helpers/comfirmableChatDelete";
 import { useChatDialogStore } from "@/store/chatDialogStore";
-import { useChatStore } from "@/store/chatStore";
 import useCommandStore from "@/store/commandStore";
 import { useMessageInputStore } from "@/store/messageInputStore";
 import { useEffect } from "react";
 import { useServicesContext } from "./ServicesProvider";
+import useChats from "@/data/useChats";
+import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function CommandMenu() {
   const commandStore = useCommandStore();
-  const chatStore = useChatStore();
+  const params = useParams();
+  const chatId = params.chatId as string;
+  const router = useRouter();
   const chatDialogStore = useChatDialogStore();
   const { chatService } = useServicesContext();
   const messageInputStore = useMessageInputStore();
+  const { chats } = useChats();
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -52,11 +56,11 @@ export default function CommandMenu() {
           >
             Add new chat
           </CommandItem>
-          {chatStore.chosenChatId && (
+          {chatId && (
             <>
               <CommandItem
                 onSelect={() => {
-                  chatDialogStore.startEditing(chatStore.chosenChatId);
+                  chatDialogStore.startEditing(chatId);
                   commandStore.setIsOpen(false);
                 }}
               >
@@ -64,11 +68,7 @@ export default function CommandMenu() {
               </CommandItem>
               <CommandItem
                 onSelect={() => {
-                  confirmableChatDelete(
-                    chatStore,
-                    chatStore.chosenChatId,
-                    chatService
-                  );
+                  chatService.deleteChat(chatId);
                   commandStore.setIsOpen(false);
                 }}
               >
@@ -79,11 +79,11 @@ export default function CommandMenu() {
         </CommandGroup>
         <CommandSeparator />
         <CommandGroup heading="Chats">
-          {chatStore.getChats().map((el) => (
+          {chats.map((el) => (
             <CommandItem
               key={el.id}
               onSelect={() => {
-                chatStore.setChosenChatId(el.id);
+                router.push(`/${el.id}`);
                 commandStore.setIsOpen(false);
                 messageInputStore.startFocus();
               }}

@@ -4,13 +4,13 @@ import React, { KeyboardEvent, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { useForm } from "react-hook-form";
-import { useChatStore } from "@/store/chatStore";
 import { useMessageInputStore } from "@/store/messageInputStore";
 import { Muted } from "../Typography";
 import { toast } from "sonner";
 import { useServicesContext } from "../ServicesProvider";
 import previewFileUploadHandler from "@/data/fileUploadHandler";
 import FileBubble from "./FileBubble";
+import { useParams } from "next/navigation";
 
 type MessageInputForm = {
   message: string;
@@ -18,7 +18,8 @@ type MessageInputForm = {
 
 export default function MessageInput() {
   const { messageService, fileService } = useServicesContext();
-  const chatId = useChatStore((state) => state.chosenChatId);
+  const params = useParams();
+  const chatId = params.chatId as string;
   const messageInputStore = useMessageInputStore();
 
   const { register, handleSubmit, reset, setValue, setFocus } =
@@ -75,7 +76,6 @@ export default function MessageInput() {
         messageInputStore.fileUpload.map(async (el) => {
           const res = await fileService.createFile({
             ...el,
-            isPreview: false,
             messageId: message.id,
           });
           return res;

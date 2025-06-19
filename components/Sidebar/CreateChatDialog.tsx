@@ -1,5 +1,5 @@
+"use client";
 import { useChatDialogStore } from "@/store/chatDialogStore";
-import { useChatStore } from "@/store/chatStore";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -15,6 +15,8 @@ import { Input } from "../ui/input";
 import { Plus } from "lucide-react";
 import { SizeVariant } from "@/types/sizeVariant.types";
 import { useServicesContext } from "../ServicesProvider";
+import useChats from "@/data/useChats";
+import { useRouter } from "next/navigation";
 
 type ChatFormData = {
   name: string;
@@ -26,10 +28,10 @@ export default function CreateChatDialog({
   variant: SizeVariant;
 }) {
   const { chatService } = useServicesContext();
-  const chatStore = useChatStore();
+  const router = useRouter();
   const chatDialogStore = useChatDialogStore();
 
-  const chat = chatStore.getChatById(chatDialogStore.chatId);
+  const chat = useChats().getChatById(chatDialogStore.chatId);
 
   const { register, handleSubmit, setValue } = useForm<ChatFormData>();
 
@@ -41,7 +43,7 @@ export default function CreateChatDialog({
       });
     } else {
       const newChat = await chatService.createChat(data.name);
-      chatStore.setChosenChatId(newChat.id);
+      router.push(`/${newChat.id}`);
     }
     chatDialogStore.setIsOpen(false);
   };

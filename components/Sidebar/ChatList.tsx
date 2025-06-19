@@ -1,31 +1,24 @@
-import { useChatStore } from "@/store/chatStore";
-import { useEffect } from "react";
 import CreateChatDialog from "./CreateChatDialog";
 import ChatItem from "./ChatItem";
 import { SizeVariant } from "@/types/sizeVariant.types";
-import { useServicesContext } from "../ServicesProvider";
+import useChats from "@/data/useChats";
+import { useParams } from "next/navigation";
 
 export default function ChatList({ variant }: { variant: SizeVariant }) {
-  const { chatService } = useServicesContext();
-  const chatStore = useChatStore();
-  
-  useEffect(() => {
-    chatService.getAllChats();
-  }, []);
+  const params = useParams();
+  const chatId = params.chatId as string;
+  const { chats } = useChats();
 
   return (
-    <div
-      data-testid="ChatList"
-      className="overflow-y-auto no-scrollbar"
-    >
+    <div data-testid="ChatList" className="overflow-y-auto no-scrollbar">
       <CreateChatDialog variant={variant} />
-      {chatStore.getChats().map(({ id, ...el }) => (
+      {chats.map(({ id, ...el }) => (
         <ChatItem
           key={id}
           id={id}
           name={el.name}
           lastMessage="Last message preview..."
-          isActive={chatStore.chosenChatId === id}
+          isActive={chatId === id}
           variant={variant}
         />
       ))}

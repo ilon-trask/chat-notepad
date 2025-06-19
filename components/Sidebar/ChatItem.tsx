@@ -4,16 +4,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { useChatStore } from "@/store/chatStore";
 import { useChatDialogStore } from "@/store/chatDialogStore";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 import { Edit, MoreVertical, Trash2 } from "lucide-react";
 import { SizeVariant } from "@/types/sizeVariant.types";
-import confirmableChatDelete from "@/helpers/comfirmableChatDelete";
 import { Muted, Small } from "../Typography";
 import useIsMobile from "@/hooks/useIsMobile";
 import { useServicesContext } from "../ServicesProvider";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function ChatItem({
   type = "button",
@@ -30,40 +30,42 @@ export default function ChatItem({
   isActive?: boolean;
   variant: SizeVariant;
 }) {
-  const chatStore = useChatStore();
-  const { chatService } = useServicesContext();
   const chatDialogStore = useChatDialogStore();
   const isMobile = useIsMobile();
+  const { chatService } = useServicesContext();
+  const router = useRouter();
 
   return (
     <div data-testid="ChatItemGroup" className="relative group">
-      <Button
-        data-testid="ChatItemButton"
-        type={type}
-        variant="ghost"
-        className={cn(
-          "w-full justify-start p-4 rounded-none hover:bg-sidebar-accent",
-          "h-auto",
-          isActive && "bg-sidebar-accent text-primary border-l-4 border-primary"
-        )}
-        onClick={() => chatStore.setChosenChatId(id)}
-        {...props}
-      >
-        <div className="flex items-center gap-3 w-full">
-          <div
-            className={cn(
-              "w-12 h-12 bg-sidebar-primary rounded-full shrink-0",
-              isActive && "border-2 border-primary"
-            )}
-          />
-          <div className="flex-1 text-left">
-            <div className="flex justify-between">
-              {variant === "regular" ? <Small>{name}</Small> : null}
+      <Link href={`/${id}`}>
+        <Button
+          data-testid="ChatItemButton"
+          type={type}
+          variant="ghost"
+          className={cn(
+            "w-full justify-start p-4 rounded-none hover:bg-sidebar-accent",
+            "h-auto",
+            isActive &&
+              "bg-sidebar-accent text-primary border-l-4 border-primary"
+          )}
+          {...props}
+        >
+          <div className="flex items-center gap-3 w-full">
+            <div
+              className={cn(
+                "w-12 h-12 bg-sidebar-primary rounded-full shrink-0",
+                isActive && "border-2 border-primary"
+              )}
+            />
+            <div className="flex-1 text-left">
+              <div className="flex justify-between">
+                {variant === "regular" ? <Small>{name}</Small> : null}
+              </div>
+              {variant === "regular" ? <Muted>{lastMessage}</Muted> : null}
             </div>
-            {variant === "regular" ? <Muted>{lastMessage}</Muted> : null}
           </div>
-        </div>
-      </Button>
+        </Button>
+      </Link>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -94,7 +96,7 @@ export default function ChatItem({
             data-testid="ChatDeleteButton"
             className="text-destructive"
             onClick={() => {
-              confirmableChatDelete(chatStore, id, chatService);
+              chatService.deleteChat(id);
             }}
           >
             <Trash2 className="mr-2 h-4 w-4 text-destructive" />

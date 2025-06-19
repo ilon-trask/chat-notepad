@@ -6,42 +6,20 @@ import { api } from "@/convex/_generated/api";
 import { RemoteDBService } from "./remoteDBService";
 import { convex } from "@/components/ConvexClientProvider";
 import isOnline from "@/helpers/isOnline";
-import { FILE } from "dns";
 import DeleteService from "./deleteService";
 
-class FileLocalService {
-  private _localDBService: LocalDBService;
+class FileService {
+  localDBService: LocalDBService<typeof FILE_LABEL>;
+  remoteDBServie: RemoteDBService<typeof FILE_LABEL>;
+  deleteService: DeleteService;
 
-  constructor(localDBService: LocalDBService) {
-    this._localDBService = localDBService;
-  }
-
-  async getAll() {
-    return this._localDBService.getAll<typeof FILE_LABEL>(FILE_LABEL);
-  }
-
-  async getOne(id: string) {
-    return this._localDBService.getOne<typeof FILE_LABEL>(FILE_LABEL, id);
-  }
-
-  async addFile(
-    data: Omit<FileType, "storageId" | "createdAt" | "editedAt">
-  ): Promise<void> {
-    this._localDBService.create<typeof FILE_LABEL>(FILE_LABEL, data);
-  }
-  async updateFile(data: FileType): Promise<void> {
-    this._localDBService.update<typeof FILE_LABEL>(FILE_LABEL, data);
-  }
-  async deleteFile(id: string): Promise<void> {
-    this._localDBService.delete(FILE_LABEL, id);
-  }
-}
-
-class FileRemoteService {
-  private _remoteDBService: RemoteDBService;
-
-  constructor(remoteDBService: RemoteDBService) {
-    this._remoteDBService = remoteDBService;
+  constructor(deleteService: DeleteService) {
+    this.localDBService = new LocalDBService<typeof FILE_LABEL>(FILE_LABEL);
+    this.remoteDBServie = new RemoteDBService<typeof FILE_LABEL>(
+      convex,
+      FILE_LABEL
+    );
+    this.deleteService = deleteService;
   }
 
   async uploadPreviewFile(
@@ -55,48 +33,6 @@ class FileRemoteService {
     });
     const { storageId } = await res.json();
     return storageId as string | null;
-  }
-
-  async createFile(
-    data: Omit<FileType, "storageId" | "createdAt" | "editedAt"> & {
-      createdAt: number;
-      editedAt: number;
-    }
-  ) {
-    const storageId = await this.uploadPreviewFile(data);
-    if (!storageId) throw new Error("File not uploaded");
-    const { file, isPreview, ...rest } = data;
-    return await this._remoteDBService.create<typeof FILE_LABEL>(FILE_LABEL, {
-      ...rest,
-      storageId,
-    });
-  }
-
-  async updateFile(data: typeof api.files.update._args) {
-    const res = await this._remoteDBService.update<typeof FILE_LABEL>(
-      FILE_LABEL,
-      { ...data }
-    );
-  }
-
-  async deleteFile(_id: string) {
-    return await this._remoteDBService.delete(FILE_LABEL, _id);
-  }
-}
-
-export class FileService {
-  localDBService: FileLocalService;
-  remoteDBServie: FileRemoteService;
-  private _deleteService: DeleteService;
-
-  constructor(
-    localDBService: LocalDBService,
-    remoteDBService: RemoteDBService,
-    deleteService: DeleteService
-  ) {
-    this.localDBService = new FileLocalService(localDBService);
-    this.remoteDBServie = new FileRemoteService(remoteDBService);
-    this._deleteService = deleteService;
   }
 
   async getMessageFiles(messageId: string) {
@@ -113,21 +49,23 @@ export class FileService {
 
   async createFile(file: FileType) {
     if (isOnline()) {
-      const serverFile = await this.remoteDBServie.createFile({
+      const storageId = await this.uploadPreviewFile(file);
+      if (!storageId) throw new Error("File not uploaded");
+      const serverFile = await this.remoteDBServie.create({
         ...file,
         createdAt: file.createdAt.valueOf(),
         editedAt: file.editedAt.valueOf(),
+        storageId,
       });
       if (!serverFile) throw new Error("File not uploaded");
-      if (serverFile.isPreview) throw new Error("File not uploaded");
       if (!serverFile.storageId) throw new Error("File not uploaded");
-      await this.localDBService.updateFile({
+      await this.localDBService.update({
         ...serverFile,
         file: file.file,
       });
       return serverFile;
     }
-    return await this.localDBService.updateFile(file);
+    return await this.localDBService.update(file);
   }
 
   async updateFile(data: FileType): Promise<void> {
@@ -140,10 +78,8 @@ export class FileService {
       editedAt: new Date(),
     } as FileType;
     if (isOnline()) {
-      if (newFile.isPreview) throw new Error("File is preview");
-
       if (newFile._id) {
-        await this.remoteDBServie.updateFile({
+        await this.remoteDBServie.update({
           name: newFile.name,
           editedAt: newFile.editedAt.valueOf(),
           //@ts-ignore
@@ -152,34 +88,35 @@ export class FileService {
         });
       } else {
         const fileFile = newFile.file;
-        newFile = await this.remoteDBServie.createFile({
+        const storageId = await this.uploadPreviewFile(file);
+        if (!storageId) throw new Error("File not uploaded");
+        newFile = await this.remoteDBServie.create({
           ...newFile,
           createdAt: newFile.createdAt.valueOf(),
           editedAt: newFile.editedAt.valueOf(),
+          storageId,
         });
         newFile.file = fileFile;
       }
     }
-    await this.localDBService.updateFile(newFile);
+    await this.localDBService.update(newFile);
   }
   async deleteFile(id: string, _id: string | undefined): Promise<void> {
     const file = await this.localDBService.getOne(id);
     if (!file) throw new Error("File not found");
     if (isOnline()) {
-      if (_id) await this.remoteDBServie.deleteFile(_id);
+      if (_id) await this.remoteDBServie.delete(_id);
     } else {
-      if (!file.isPreview) {
-        if (file._id) {
-          await this._deleteService.createDelete({
-            id: uuid(),
-            entity_id: file._id,
-            entityId: id,
-            type: FILE_LABEL,
-          });
-        }
+      if (file._id) {
+        await this.deleteService.create({
+          id: uuid(),
+          entity_id: file._id,
+          entityId: id,
+          type: FILE_LABEL,
+        });
       }
     }
-    this.localDBService.deleteFile(id);
+    this.localDBService.delete(id);
   }
   async deleteMessageFiles(messageId: string) {
     const files = await this.localDBService.getAll();
@@ -189,8 +126,10 @@ export class FileService {
       .map((el) => ({ id: el.id, _id: el._id }));
 
     for (const { id, _id } of fileIds) {
-      if (isOnline()) await this.remoteDBServie.deleteFile(_id);
-      await this.localDBService.deleteFile(id);
+      if (isOnline()) await this.remoteDBServie.delete(_id);
+      await this.localDBService.delete(id);
     }
   }
 }
+
+export default FileService;

@@ -1,29 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useMessageStore } from "@/store/messageStore";
-import { useChatStore } from "@/store/chatStore";
 import { type Message } from "@/types/message.types";
 import { Badge } from "../ui/badge";
 import MessageItem from "./MessageItem";
-import { useServicesContext } from "../ServicesProvider";
 import { useDragAndDrop } from "../DrapAndDropPrivider";
+import useMessages from "@/data/useMessages";
+import { useParams } from "next/navigation";
 
 export default function MessagesList() {
-  const { messageService } = useServicesContext();
-  const messageStore = useMessageStore();
-  const chatId = useChatStore().chosenChatId;
-
+  const params = useParams();
+  const chatId = params.chatId as string;
+  const messages = useMessages().getMessageForChat(chatId);
   const { isDragging } = useDragAndDrop();
   console.log("isDragging", isDragging);
-
-  useEffect(() => {
-    messageService.getAllMessages();
-  }, []);
 
   const [dateMap, setDateMap] = useState<Map<string, Message[]>>(new Map());
 
   useEffect(() => {
     const newMap = new Map<string, Message[]>();
-    const messages = messageStore.getMessages(chatId);
     messages.forEach((message) => {
       const date = message.createdAt.toLocaleDateString();
       if (newMap.has(date)) {
@@ -33,7 +26,7 @@ export default function MessagesList() {
       }
     });
     setDateMap(newMap);
-  }, [messageStore, chatId]);
+  }, [messages, chatId]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -79,11 +72,7 @@ export default function MessagesList() {
                 </Badge>
               </div>
               {dateMap.get(el)?.map((el) => (
-                <MessageItem
-                  key={el.id}
-                  id={el.id}
-                  createdAt={el.createdAt}
-                >
+                <MessageItem key={el.id} id={el.id} createdAt={el.createdAt}>
                   {el.content}
                 </MessageItem>
               ))}

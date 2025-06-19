@@ -2,12 +2,13 @@ import React from "react";
 import ChatHeader from "./ChatHeader";
 import MessagesList from "./MessagesList";
 import MessageInput from "./MessageInput";
-import { useChatStore } from "@/store/chatStore";
 import { cn } from "@/lib/utils";
 import { DragAndDropProvider } from "../DrapAndDropPrivider";
+import { useParams } from "next/navigation";
 
 function Chat() {
-  const { chosenChatId } = useChatStore();
+  const params = useParams();
+  const chosenChatId = params.chatId as string;
   return (
     <DragAndDropProvider className={cn("flex flex-col h-full")}>
       <ChatHeader />

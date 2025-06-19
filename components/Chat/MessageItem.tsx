@@ -1,5 +1,4 @@
 import { useMessageInputStore } from "@/store/messageInputStore";
-import { useMessageStore } from "@/store/messageStore";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -8,13 +7,11 @@ import {
 } from "../ui/context-menu";
 import { Edit, Trash2 } from "lucide-react";
 import { Card } from "../ui/card";
-import confirmableDelete from "@/helpers/confirmableDelete";
 import { cn } from "@/lib/utils";
-import { Message } from "@/types/message.types";
 import { Pre } from "../Typography";
-import { useServicesContext } from "../ServicesProvider";
 import { useEffect, useState } from "react";
 import { FileType } from "@/types/file.types";
+import { useServicesContext } from "../ServicesProvider";
 
 export default function MessageItem({
   children,
@@ -26,9 +23,8 @@ export default function MessageItem({
   id: string;
   createdAt: Date;
 }) {
-  const { messageService, fileService } = useServicesContext();
-  const messageStore = useMessageStore();
   const messageInputStore = useMessageInputStore();
+  const { fileService, messageService } = useServicesContext();
 
   const handleEdit = () => {
     //timeout to prevent menu stealing focus form message input
@@ -94,14 +90,7 @@ export default function MessageItem({
           data-testid="MessageDeleteButton"
           className="text-destructive"
           onClick={() => {
-            confirmableDelete<Message>({
-              getEntity: () => messageStore.getMessageById(id),
-              onDelete: () => messageService.deleteMessage(id),
-              onStoreDelete: () => messageStore.deleteMessage(id),
-              onReverseDelete: (message: Message) =>
-                messageStore.addMessage(message),
-              name: "Message",
-            });
+            messageService.deleteMessage(id);
           }}
         >
           <Trash2 className="mr-2 h-4 w-4 text-destructive" />

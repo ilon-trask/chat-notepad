@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { TOAST_DURATION } from "@/helpers/confirmableDelete";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import CommandMenu from "@/components/CommandDialog";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { ServiceProvider } from "@/components/ServicesProvider";
 import { ClerkProvider } from "@clerk/nextjs";
 import myAuth from "@/lib/myAuth";
+
+const TOAST_DURATION = 2000;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -69,8 +70,8 @@ export default async function RootLayout({
                 disableTransitionOnChange
               >
                 {children}
-                <CommandMenu />
-                <Toaster position="top-right" duration={TOAST_DURATION} />
+                {/* <CommandMenu /> */}
+                {/* <Toaster position="top-right" duration={TOAST_DURATION} /> */}
               </ThemeProvider>
             </ServiceProvider>
           </ConvexClientProvider>

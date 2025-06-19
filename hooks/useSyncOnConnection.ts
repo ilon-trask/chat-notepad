@@ -4,7 +4,6 @@ import { useEffect } from "react";
 
 export default function useSyncOnConnection() {
   const services = useServicesContext();
-
   useEffect(() => {
     // const offlineFunc = () => {
     // };

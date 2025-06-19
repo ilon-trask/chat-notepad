@@ -1,11 +1,9 @@
-import { Labels } from "@/constants/labels"; 
-
 type T = any;
 
 export type DataService = {
-    getAll: (label: Labels) => Promise<T[]>;
-    getOne: (label: Labels, id: string) => Promise<T>;
-    create: (label: Labels, data: T) => Promise<T>;
-    delete: (label: Labels, id: string) => Promise<boolean>;
-    update: (label: Labels, data: T) => Promise<T>;
-}
+  getAll: () => Promise<T[]>;
+  getOne: (id: string) => Promise<T>;
+  create: (data: T) => Promise<T>;
+  delete: (id: string) => Promise<boolean>;
+  update: (data: T) => Promise<T>;
+};

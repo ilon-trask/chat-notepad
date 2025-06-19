@@ -5,7 +5,4 @@ export type FileType = {
   messageId: string;
   createdAt: Date;
   editedAt: Date;
-} & (
-  | { isPreview: false; storageId?: string; _id?: string }
-  | { isPreview: true }
-);
+} & { storageId?: string; _id?: string };

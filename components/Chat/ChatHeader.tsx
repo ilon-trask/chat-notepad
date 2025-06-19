@@ -1,13 +1,17 @@
 import React from "react";
 import { Large } from "../Typography";
-import { useChatStore } from "@/store/chatStore";
 import useIsMobile from "@/hooks/useIsMobile";
 import { Button } from "../ui/button";
 import { ArrowLeft } from "lucide-react";
+import useChats from "@/data/useChats";
+import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function ChatHeader() {
-  const chatStore = useChatStore();
-  const chat = chatStore.getChatById(chatStore.chosenChatId);
+  const params = useParams();
+  const chatId = params.chatId as string;
+  const router = useRouter();
+  const chat = useChats().getChatById(chatId);
   const isMobile = useIsMobile();
 
   return (
@@ -18,7 +22,7 @@ export default function ChatHeader() {
             className="min-w-fit"
             variant="ghost"
             size="icon"
-            onClick={() => chatStore.setChosenChatId("")}
+            onClick={() => router.push("/")}
           >
             <ArrowLeft /> Back
           </Button>

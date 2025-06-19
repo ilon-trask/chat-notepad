@@ -22,7 +22,6 @@ export default function previewFileUploadHandler(
 
     messageInputStore.addFileUpload({
       file: file,
-      isPreview: true,
       messageId: messageInputStore.messageId,
       id: uuid(),
       createdAt: new Date(),
