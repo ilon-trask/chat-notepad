@@ -1,8 +1,13 @@
-export type FileType = {
-  id: string;
-  name: string;
+import { Doc } from "@/convex/_generated/dataModel";
+
+export type RemoteFileType = Doc<"files">;
+
+export type LocalFileType = Omit<
+  RemoteFileType,
+  "_id" | "storageId" | "_creationTime" | "editedAt" | "createdAt" | "storageId"
+> & {
   file: File;
-  messageId: string;
-  createdAt: Date;
   editedAt: Date;
-} & { storageId?: string; _id?: string };
+  createdAt: Date;
+  status: "pending" | "server";
+};

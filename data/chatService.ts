@@ -1,4 +1,4 @@
-import { ChatUpdate } from "@/types/chat.types";
+import { ChatUpdate, OfflineChat } from "@/types/chat.types";
 import { v4 as uuid } from "uuid";
 import { LocalDBService } from "./localDBService";
 import { CHAT_LABEL } from "@/constants/labels";
@@ -37,7 +37,8 @@ class ChatService {
       name,
       createdAt: new Date(),
       editedAt: new Date(),
-    };
+      status: "pending",
+    } satisfies OfflineChat;
     let chat = await this.localDBService.create(newChat);
 
     if (isOnline()) {
@@ -48,7 +49,8 @@ class ChatService {
             ...el,
             createdAt: new Date(el.createdAt),
             editedAt: new Date(el.editedAt),
-          };
+            status: "server",
+          } satisfies OfflineChat;
           await this.localDBService.update(newChat);
           chat = newChat;
         });
@@ -57,18 +59,14 @@ class ChatService {
   }
 
   async deleteChat(id: string) {
-    const chat = (await this.localDBService.getAll()).find((el) => el.id == id);
     if (isOnline()) {
-      if (!chat || !chat._id) throw new Error("Chat not found in remoteDB");
-      this.remoteDBService.delete(chat._id);
+      this.remoteDBService.delete(id);
     } else {
-      if (chat?._id)
-        await this.deleteService.create({
-          id: uuid(),
-          entity_id: chat._id,
-          entityId: id,
-          type: CHAT_LABEL,
-        });
+      this.deleteService.create({
+        id: uuid(),
+        entityId: id,
+        type: CHAT_LABEL,
+      });
     }
     await this.messageService.deleteChatMessages(id);
     await this.localDBService.delete(id);
@@ -79,13 +77,26 @@ class ChatService {
       (el) => el.id == data.id
     );
     if (!chat) throw new Error("Chat not found");
-    const newChat = { ...chat, name: data.name, editedAt: new Date() };
+    const newChat = {
+      ...chat,
+      name: data.name,
+      editedAt: new Date(),
+    } satisfies OfflineChat;
     if (isOnline()) {
-      if (!newChat._id) throw new Error("Chat not found in remoteDB");
-      await this.remoteDBService.update({
-        _id: newChat._id,
-        name: newChat.name,
-      });
+      this.remoteDBService
+        .update({
+          id: newChat.id,
+          name: newChat.name,
+        })
+        .then(async (el) => {
+          const newChat = {
+            ...el,
+            createdAt: new Date(el.createdAt),
+            editedAt: new Date(el.editedAt),
+            status: "server",
+          } satisfies OfflineChat;
+          await this.localDBService.update(newChat);
+        });
     }
     const res = await this.localDBService.update(newChat);
   }

@@ -1,4 +1,4 @@
-import { CHAT_LABEL, MESSAGE_LABEL } from "@/constants/labels";
+import { CHAT_LABEL, FILE_LABEL, MESSAGE_LABEL } from "@/constants/labels";
 import ChatService from "./chatService";
 import MessageService from "./messageService";
 import FileService from "./fileService";
@@ -19,26 +19,37 @@ export default async function syncServerClientData({
 
   for (const deleteItem of deletes) {
     if (deleteItem.type === CHAT_LABEL) {
-      await chatService.remoteDBService.delete(deleteItem.entity_id);
+      await chatService.remoteDBService.delete(deleteItem.entityId);
       deleteService.delete(deleteItem.id);
     } else if (deleteItem.type === MESSAGE_LABEL) {
-      await messageService.remoteDBService.delete(deleteItem.entity_id);
-      await fileService.deleteMessageFiles(deleteItem.entity_id);
+      await messageService.remoteDBService.delete(deleteItem.entityId);
+      await fileService.deleteMessageFiles(deleteItem.entityId);
+      deleteService.delete(deleteItem.id);
+    } else if (deleteItem.type === FILE_LABEL) {
+      await fileService.remoteDBService.delete(deleteItem.entityId);
       deleteService.delete(deleteItem.id);
     }
   }
 
   const serverChats = await chatService.remoteDBService.getAll();
-  const serverMessages = await messageService.remoteDBService.getAll();
-  const serverChatsIds = serverChats.map((el) => el.id);
-  const serverMessagesIds = serverMessages.map((el) => el.id);
   const clientChats = await chatService.localDBService.getAll();
-  const clientMessages = await messageService.localDBService.getAll();
+  const serverChatsIds = serverChats.map((el) => el.id);
   const clientChatsIds = clientChats.map((el) => el.id);
+
+  const serverMessages = await messageService.remoteDBService.getAll();
+  const clientMessages = await messageService.localDBService.getAll();
+  const serverMessagesIds = serverMessages.map((el) => el.id);
   const clientMessagesIds = clientMessages.map((el) => el.id);
+
+  const serverFiles = await fileService.remoteDBService.getAll();
+  const clientFiles = await fileService.localDBService.getAll();
+  const serverFilesIds = serverFiles.map((el) => el.id);
+  const clientFilesIds = clientFiles.map((el) => el.id);
 
   const chatIdSet = new Set([...clientChatsIds, ...serverChatsIds]);
   const messageIdSet = new Set([...clientMessagesIds, ...serverMessagesIds]);
+  const fileIdSet = new Set([...clientFilesIds, ...serverFilesIds]);
+
   for (const chatId of chatIdSet) {
     if (!clientChatsIds.includes(chatId)) {
       const newChat = serverChats.find((el) => el.id === chatId);
@@ -47,6 +58,7 @@ export default async function syncServerClientData({
         ...newChat,
         createdAt: new Date(newChat.createdAt),
         editedAt: new Date(newChat.editedAt),
+        status: "server",
       });
     } else if (!serverChatsIds.includes(chatId)) {
       const newChat = clientChats.find((el) => el.id === chatId);
@@ -60,6 +72,7 @@ export default async function syncServerClientData({
         ...newServerChat,
         createdAt: new Date(newServerChat.createdAt),
         editedAt: new Date(newServerChat.editedAt),
+        status: "server",
       });
     } else {
       const isEqualContent =
@@ -71,7 +84,7 @@ export default async function syncServerClientData({
         if (!serverChat || !clientChat) throw new Error("Chat not found");
         if (serverChat.editedAt.valueOf() > clientChat.editedAt.valueOf()) {
           const newServerChat = await chatService.remoteDBService.update({
-            _id: clientChat._id!,
+            id: clientChat.id,
             name: clientChat.name,
             editedAt: serverChat.editedAt.valueOf(),
           });
@@ -79,12 +92,14 @@ export default async function syncServerClientData({
             ...newServerChat,
             createdAt: new Date(newServerChat.createdAt),
             editedAt: new Date(newServerChat.editedAt),
+            status: "server",
           });
         } else {
           await chatService.localDBService.update({
             ...serverChat,
             editedAt: new Date(serverChat.editedAt),
             createdAt: new Date(serverChat.createdAt),
+            status: "server",
           });
         }
       }
@@ -99,6 +114,7 @@ export default async function syncServerClientData({
         ...newMessage,
         createdAt: new Date(newMessage.createdAt),
         editedAt: new Date(newMessage.editedAt),
+        status: "server",
       });
     } else if (!serverMessagesIds.includes(messageId)) {
       const newMessage = clientMessages.find((el) => el.id === messageId);
@@ -114,6 +130,7 @@ export default async function syncServerClientData({
         ...newServerMessage,
         createdAt: new Date(newServerMessage.createdAt),
         editedAt: new Date(newServerMessage.editedAt),
+        status: "server",
       });
     } else {
       const isEqualContent =
@@ -128,7 +145,7 @@ export default async function syncServerClientData({
           serverMessage.editedAt.valueOf() > clientMessage.editedAt.valueOf()
         ) {
           const newServerMessage = await messageService.remoteDBService.update({
-            _id: clientMessage._id!,
+            id: clientMessage.id,
             content: clientMessage.content,
             editedAt: serverMessage.editedAt.valueOf(),
           });
@@ -136,17 +153,17 @@ export default async function syncServerClientData({
             ...newServerMessage,
             createdAt: new Date(newServerMessage.createdAt),
             editedAt: new Date(newServerMessage.editedAt),
+            status: "server",
           });
         } else {
           await messageService.localDBService.update({
             ...serverMessage,
             editedAt: new Date(serverMessage.editedAt),
             createdAt: new Date(serverMessage.createdAt),
+            status: "server",
           });
         }
       }
     }
   }
-  chatService.getAllChats();
-  messageService.getAllMessages();
 }

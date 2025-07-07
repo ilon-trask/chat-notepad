@@ -10,7 +10,7 @@ import { Card } from "../ui/card";
 import { cn } from "@/lib/utils";
 import { Pre } from "../Typography";
 import { useEffect, useState } from "react";
-import { FileType } from "@/types/file.types";
+import { LocalFileType } from "@/types/file.types";
 import { useServicesContext } from "../ServicesProvider";
 
 export default function MessageItem({
@@ -33,7 +33,7 @@ export default function MessageItem({
     }, 200);
   };
 
-  const [files, setFiles] = useState<FileType[]>([]);
+  const [files, setFiles] = useState<LocalFileType[]>([]);
 
   useEffect(() => {
     (async () => {

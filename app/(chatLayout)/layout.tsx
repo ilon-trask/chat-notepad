@@ -27,28 +27,26 @@ function layout({
   const params = useParams();
   const chatId = params.chatId as string;
 
-  console.log("chatid", chatId);
-
   useDynamicFavicon();
   useSyncOnConnection();
 
-    if (isMobile) {
-      if (chatId) {
-        return (
-          <div className="flex flex-col h-screen">
-            <ChatHeader />
-            <MessagesList />
-            <MessageInput />
-          </div>
-        );
-      }
-
+  if (isMobile) {
+    if (chatId) {
       return (
-        <div className="h-screen">
-          <Sidebar variant="regular" />
+        <div className="flex flex-col h-screen">
+          <ChatHeader />
+          <MessagesList />
+          <MessageInput />
         </div>
       );
     }
+
+    return (
+      <div className="h-screen">
+        <Sidebar variant="regular" />
+      </div>
+    );
+  }
 
   return (
     <ResizablePanelGroup
@@ -74,6 +72,7 @@ function layout({
       </ResizablePanel>
       <ResizableHandle />
       <ResizablePanel id="chat" className="flex flex-col">
+        {/* TODO: if I put children here app doesn't work */} 
         <Chat />
       </ResizablePanel>
     </ResizablePanelGroup>

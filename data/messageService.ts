@@ -1,11 +1,10 @@
-import { MessageUpdate } from "@/types/message.types";
+import { MessageUpdate, OfflineMessage } from "@/types/message.types";
 import { v4 as uuid } from "uuid";
 import { LocalDBService } from "./localDBService";
 import { MESSAGE_LABEL } from "@/constants/labels";
 import { RemoteDBService } from "./remoteDBService";
 import { convex } from "@/components/ConvexClientProvider";
-import deleteService, { DeleteService } from "./deleteService";
-import fileService from "./fileService";
+import { DeleteService } from "./deleteService";
 import isOnline from "@/helpers/isOnline";
 import FileService from "./fileService";
 
@@ -42,12 +41,13 @@ class MessageService {
       createdAt: new Date(),
       editedAt: new Date(),
       chatId,
-    };
+      status: "pending",
+    } satisfies OfflineMessage;
 
     await this.localDBService.create(newMessage);
 
     if (isOnline()) {
-      await this.remoteDBService
+      this.remoteDBService
         .create({
           id: newMessage.id,
           content: newMessage.content,
@@ -58,7 +58,8 @@ class MessageService {
             ...el,
             createdAt: new Date(el.createdAt),
             editedAt: new Date(el.editedAt),
-          };
+            status: "server",
+          } satisfies OfflineMessage;
           await this.localDBService.update(updatedMessage);
         });
     }
@@ -67,21 +68,18 @@ class MessageService {
 
   async deleteMessage(id: string) {
     const message = await this.localDBService.getOne(id);
+
     if (isOnline()) {
-      if (!message || !message._id)
-        throw new Error("Message not found in remoteDB");
-      this.remoteDBService.delete(message._id);
+      this.remoteDBService.delete(message.id);
     } else {
-      if (message?._id) {
-        await this.deleteService.create({
-          id: uuid(),
-          entity_id: message._id,
-          entityId: id,
-          type: MESSAGE_LABEL,
-        });
-      }
+      await this.deleteService.create({
+        id: uuid(),
+        entityId: id,
+        type: MESSAGE_LABEL,
+      });
     }
-    this.fileService.deleteMessageFiles(message.id);
+    await this.fileService.deleteMessageFiles(message.id);
+
     await this.localDBService.delete(id);
   }
 
@@ -96,16 +94,15 @@ class MessageService {
 
   async updateMessage(data: MessageUpdate) {
     const message = await this.localDBService.getOne(data.id);
-    if (!message) throw new Error("Message not found");
+
     const newMessage = {
       ...message,
       content: data.content,
-    };
+    } as OfflineMessage;
 
     if (isOnline()) {
-      if (!message._id) throw new Error("Message not found in remoteDB");
       await this.remoteDBService.update({
-        _id: message._id,
+        id: message.id,
         content: data.content,
       });
     }

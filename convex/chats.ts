@@ -55,15 +55,18 @@ export const create = mutation({
 });
 
 export const deleteEntry = mutation({
-  args: { _id: v.id("chats") },
+  args: { id: v.string() },
   handler: async (ctx, args) => {
     const user = await ctx.auth.getUserIdentity();
     if (!user) throw new Error("User not found");
-    const chat = await ctx.db.get(args._id);
+    const chat = await ctx.db
+      .query("chats")
+      .withIndex("by_my_id", (q) => q.eq("id", args.id))
+      .first();
     if (!chat) return;
     if (chat.userId !== user.subject)
       throw new Error("You are not the owner of this chat");
-    const deleted = await ctx.db.delete(args._id);
+    const deleted = await ctx.db.delete(chat._id);
     const messages = await ctx.db
       .query(PLURALS[MESSAGE_LABEL])
       .withIndex("by_chat", (q) => q.eq("chatId", chat.id))
@@ -77,22 +80,25 @@ export const deleteEntry = mutation({
 
 export const update = mutation({
   args: {
-    _id: v.id("chats"),
+    id: v.string(),
     name: v.string(),
     editedAt: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const user = await ctx.auth.getUserIdentity();
     if (!user) throw new Error("User not found");
-    const chat = await ctx.db.get(args._id);
+    const chat = await ctx.db
+      .query("chats")
+      .withIndex("by_my_id", (q) => q.eq("id", args.id))
+      .first();
     if (!chat) throw new Error("Chat not found");
     if (chat.userId !== user.subject)
       throw new Error("You are not the owner of this chat");
-    await ctx.db.patch(args._id, {
+    await ctx.db.patch(chat._id, {
       name: args.name,
       editedAt: args.editedAt || Date.now().valueOf(),
     });
-    const newChat = await ctx.db.get(args._id);
+    const newChat = await ctx.db.get(chat._id);
     if (!newChat) throw new Error("Chat not found");
     return newChat;
   },

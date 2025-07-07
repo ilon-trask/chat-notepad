@@ -7,24 +7,24 @@ import {
   FILE_LABEL,
 } from "@/constants/labels";
 import { DataService } from "@/types/dataService.types";
-import { Message } from "@/types/message.types";
-import { Chat } from "@/types/chat.types";
+import { OfflineMessage } from "@/types/message.types";
+import { OfflineChat } from "@/types/chat.types";
 import { Delete } from "@/types/delete.types";
-import { FileType } from "@/types/file.types";
+import { LocalFileType } from "@/types/file.types";
 import { createLocalDB } from "./createLocalDB";
 
 const DB_METHODS = ["add", "put", "getAll", "delete", "clear"] as const;
 
 type Methods = {
   [MESSAGE_LABEL]: {
-    return: Message;
-    create: Message;
-    update: Message;
+    return: OfflineMessage;
+    create: OfflineMessage;
+    update: OfflineMessage;
   };
   [CHAT_LABEL]: {
-    return: Chat;
-    create: Chat;
-    update: Chat;
+    return: OfflineChat;
+    create: OfflineChat;
+    update: OfflineChat;
   };
   [DELETE_LABEL]: {
     return: Delete;
@@ -32,9 +32,9 @@ type Methods = {
     update: Delete;
   };
   [FILE_LABEL]: {
-    return: FileType;
-    create: Omit<FileType, "storageId" | "createdAt" | "editedAt">;
-    update: FileType;
+    return: LocalFileType;
+    create: LocalFileType;
+    update: LocalFileType;
   };
 };
 

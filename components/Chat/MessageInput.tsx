@@ -50,8 +50,7 @@ export default function MessageInput() {
 
       files.forEach((file) => {
         if (!messageInputStore.fileUpload.find((el) => el.id === file.id)) {
-          //@ts-ignore
-          fileService.deleteFile(file.id, file._id);
+          fileService.deleteFile(file.id);
         }
       });
 
@@ -68,6 +67,7 @@ export default function MessageInput() {
         content: data.message,
         editedAt: new Date(),
         id: messageInputStore.messageId,
+        status: "pending",
       });
       messageInputStore.cancelEditing();
     } else {

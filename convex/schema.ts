@@ -23,7 +23,6 @@ export default defineSchema({
   files: defineTable({
     id: v.string(),
     name: v.string(),
-    isPreview: v.boolean(),
     storageId: v.string(),
     messageId: v.string(),
     createdAt: v.number(),
