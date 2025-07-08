@@ -102,7 +102,6 @@ class FileService {
     const files = await this.localDBService.getAll();
     const fileIds = files
       .filter((file) => file.messageId === messageId)
-      //@ts-ignore
       .map((el) => el.id);
 
     for (const id of fileIds) {
