@@ -1,9 +1,9 @@
-import { Message } from "@/types/message.types";
+import { OfflineMessage } from "@/types/message.types";
 import { useEffect, useMemo, useState } from "react";
 import { useServicesContext } from "@/components/ServicesProvider";
 
 function useMessages() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<OfflineMessage[]>([]);
   const { messageService } = useServicesContext();
   useEffect(() => {
     const unsubscribe = messageService.localDBService.subscribe(async () => {

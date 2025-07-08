@@ -1,4 +1,4 @@
-import { FileType } from "@/types/file.types";
+import { LocalFileType } from "@/types/file.types";
 import { create } from "zustand";
 
 export type MessageInputStore = {
@@ -13,12 +13,12 @@ export type MessageInputStore = {
   startEditing: (
     messageId: string,
     messageText: string,
-    files: FileType[]
+    files: LocalFileType[]
   ) => void;
   cancelEditing: () => void;
-  fileUpload: FileType[];
-  setFileUpload: (file: FileType[]) => void;
-  addFileUpload: (file: FileType) => void;
+  fileUpload: LocalFileType[];
+  setFileUpload: (file: LocalFileType[]) => void;
+  addFileUpload: (file: LocalFileType) => void;
   removeFileUpload: (id: string) => void;
 };
 
@@ -31,7 +31,7 @@ export const useMessageInputStore = create<MessageInputStore>((set) => ({
   setMessage: (message: string) => set({ message }),
   setIsUpdate: (isUpdate: boolean) => set({ isUpdate }),
   setMessageId: (messageId: string) => set({ messageId }),
-  startEditing: (messageId: string, messageText: string, files: FileType[]) =>
+  startEditing: (messageId: string, messageText: string, files: LocalFileType[]) =>
     set({
       messageId,
       message: messageText,
@@ -45,8 +45,8 @@ export const useMessageInputStore = create<MessageInputStore>((set) => ({
       isUpdate: false,
     }),
   fileUpload: [],
-  setFileUpload: (file: FileType[]) => set({ fileUpload: file }),
-  addFileUpload: (file: FileType) =>
+  setFileUpload: (file: LocalFileType[]) => set({ fileUpload: file }),
+  addFileUpload: (file: LocalFileType) =>
     set((state) => ({ fileUpload: [...state.fileUpload, file] })),
   removeFileUpload: (id: string) =>
     set((state) => ({

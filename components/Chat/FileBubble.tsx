@@ -1,10 +1,10 @@
 import { X } from "lucide-react";
 import React from "react";
 import { Button } from "../ui/button";
-import { FileType } from "@/types/file.types";
+import { LocalFileType } from "@/types/file.types";
 import { useMessageInputStore } from "@/store/messageInputStore";
 
-function FileBubble({ file }: { file: FileType }) {
+function FileBubble({ file }: { file: LocalFileType }) {
   const messageInputStore = useMessageInputStore();
 
   return (

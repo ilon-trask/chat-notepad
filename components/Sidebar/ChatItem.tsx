@@ -12,7 +12,6 @@ import { SizeVariant } from "@/types/sizeVariant.types";
 import { Muted, Small } from "../Typography";
 import useIsMobile from "@/hooks/useIsMobile";
 import { useServicesContext } from "../ServicesProvider";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function ChatItem({
@@ -33,7 +32,7 @@ export default function ChatItem({
   const chatDialogStore = useChatDialogStore();
   const isMobile = useIsMobile();
   const { chatService } = useServicesContext();
-  const router = useRouter();
+
 
   return (
     <div data-testid="ChatItemGroup" className="relative group">

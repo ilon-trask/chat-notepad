@@ -22,7 +22,7 @@ class FileService {
     this.deleteService = deleteService;
   }
 
-  async uploadFile(file: File) {
+  async uploadFile(file: Blob) {
     const url = await convex.mutation(api.files.generateUploadUrl);
     const res = await fetch(url, {
       method: "POST",
@@ -31,6 +31,17 @@ class FileService {
     });
     const { storageId } = await res.json();
     return storageId as string | null;
+  }
+
+  async serveFile(storageId: string) {
+    const getImageUrl = new URL(
+      `${process.env.NEXT_PUBLIC_CONVEX_SITE_URL}/getImage`
+    );
+    getImageUrl.searchParams.set("storageId", storageId);
+    console.log("getImageUrl", getImageUrl, getImageUrl.href);
+    const res = await fetch(getImageUrl);
+    const blob = await res.blob();
+    return blob;
   }
 
   async getMessageFiles(messageId: string) {
@@ -47,7 +58,7 @@ class FileService {
 
   async createFile(file: LocalFileType) {
     if (isOnline()) {
-      const { file: _, ...rest } = file;
+      const { file: _, status, ...rest } = file;
       const storageId = await this.uploadFile(file.file);
       if (!storageId) throw new Error("File not uploaded");
       const serverFile = await this.remoteDBService

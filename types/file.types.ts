@@ -6,7 +6,7 @@ export type LocalFileType = Omit<
   RemoteFileType,
   "_id" | "storageId" | "_creationTime" | "editedAt" | "createdAt" | "storageId"
 > & {
-  file: File;
+  file: Blob;
   editedAt: Date;
   createdAt: Date;
   status: "pending" | "server";

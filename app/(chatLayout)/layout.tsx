@@ -16,8 +16,7 @@ import useSyncOnConnection from "@/hooks/useSyncOnConnection";
 import { useParams } from "next/navigation";
 import React, { useState } from "react";
 
-function layout({
-  children,
+function Layout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
@@ -79,4 +78,4 @@ function layout({
   );
 }
 
-export default layout;
+export default Layout;

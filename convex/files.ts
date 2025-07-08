@@ -77,7 +77,7 @@ export const create = mutation({
       .query(PLURALS[MESSAGE_LABEL])
       .withIndex("by_my_id", (q) => q.eq("id", args.messageId))
       .first();
-    if (!message) throw new Error("Message not found");
+    if (!message) throw new Error(`Message ${args.messageId} not found`);
     const chat = await ctx.db
       .query(PLURALS[CHAT_LABEL])
       .withIndex("by_my_id", (q) => q.eq("id", message.chatId))

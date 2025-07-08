@@ -40,6 +40,7 @@ export default function CreateChatDialog({
       chatService.updateChat({
         id: chatDialogStore.chatId,
         name: data.name,
+        status: "pending",
       });
     } else {
       const newChat = await chatService.createChat(data.name);

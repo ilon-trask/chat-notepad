@@ -1,9 +1,9 @@
-import { Chat } from "@/types/chat.types";
+import { OfflineChat } from "@/types/chat.types";
 import { useEffect, useMemo, useState } from "react";
 import { useServicesContext } from "@/components/ServicesProvider";
 
 function useChats() {
-  const [chats, setChats] = useState<Chat[]>([]);
+  const [chats, setChats] = useState<OfflineChat[]>([]);
   const { chatService } = useServicesContext();
   useEffect(() => {
     const unsubscribe = chatService.localDBService.subscribe(async () => {
