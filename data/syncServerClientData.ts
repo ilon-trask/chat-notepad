@@ -3,7 +3,6 @@ import ChatService from "./chatService";
 import MessageService from "./messageService";
 import FileService from "./fileService";
 import { DeleteService } from "./deleteService";
-import { DataService } from "@/types/dataService.types";
 
 export default async function syncServerClientData({
   chatService,

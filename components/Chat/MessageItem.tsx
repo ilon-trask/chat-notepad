@@ -38,7 +38,6 @@ export default function MessageItem({
   useEffect(() => {
     (async () => {
       const newFiels = await fileService.getMessageFiles(id);
-      console.log("files", newFiels);
       if (
         newFiels
           .map((el) => el.name)

@@ -12,7 +12,7 @@ import {
 import useDynamicFavicon from "@/hooks/useDynamicFavicon";
 import useIsMobile from "@/hooks/useIsMobile";
 import useMaxMinPanelWidth from "@/hooks/useMaxMinPanelWidth";
-import useSyncOnConnection from "@/hooks/useSyncOnConnection";
+import useSync from "@/hooks/useSyncOnConnection";
 import { useParams } from "next/navigation";
 import React, { useState } from "react";
 
@@ -27,7 +27,7 @@ function Layout({
   const chatId = params.chatId as string;
 
   useDynamicFavicon();
-  useSyncOnConnection();
+  useSync();
 
   if (isMobile) {
     if (chatId) {

@@ -31,6 +31,5 @@ export default function previewFileUploadHandler(
     });
 
     res.push(file);
-    console.log(file?.name);
   }
 }
