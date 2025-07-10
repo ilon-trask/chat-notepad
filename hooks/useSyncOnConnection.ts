@@ -14,7 +14,11 @@ export default function useSync() {
     const onlineFunc = () => {
       syncServerClientData(services);
     };
-    syncEngine(services.messageService);
+    syncEngine(
+      services.messageService,
+      services.chatService,
+      services.fileService
+    );
     window.addEventListener("online", onlineFunc);
     return () => {
       // window.removeEventListener("offline", offlineFunc);

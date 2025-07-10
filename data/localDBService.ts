@@ -7,8 +7,8 @@ import {
   FILE_LABEL,
 } from "@/constants/labels";
 import { DataService } from "@/types/dataService.types";
-import { OfflineMessage } from "@/types/message.types";
-import { OfflineChat } from "@/types/chat.types";
+import { LocalMessage } from "@/types/message.types";
+import { LocalChat } from "@/types/chat.types";
 import { Delete } from "@/types/delete.types";
 import { LocalFileType } from "@/types/file.types";
 import { createLocalDB } from "./createLocalDB";
@@ -17,14 +17,14 @@ const DB_METHODS = ["add", "put", "getAll", "delete", "clear"] as const;
 
 type Methods = {
   [MESSAGE_LABEL]: {
-    return: OfflineMessage;
-    create: OfflineMessage;
-    update: OfflineMessage;
+    return: LocalMessage;
+    create: LocalMessage;
+    update: LocalMessage;
   };
   [CHAT_LABEL]: {
-    return: OfflineChat;
-    create: OfflineChat;
-    update: OfflineChat;
+    return: LocalChat;
+    create: LocalChat;
+    update: LocalChat;
   };
   [DELETE_LABEL]: {
     return: Delete;

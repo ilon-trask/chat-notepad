@@ -1,38 +1,50 @@
 import { convex } from "@/components/ConvexClientProvider";
 import { api } from "@/convex/_generated/api";
 import MessageService from "./messageService";
+import { DataService } from "@/types/dataService.types";
+import ChatService from "./chatService";
+import FileService from "./fileService";
 
-export default function syncEngine(messageService: MessageService) {
-  convex.watchQuery(api.messages.getAll).onUpdate(async () => {
-    console.log("message update");
-    const serverMessages = await messageService.remoteDBService.getAll();
-    const localMessages = await messageService.localDBService.getAll();
-    const localMessagesIds = localMessages.map((el) => el.id);
-    await Promise.all(
-      localMessagesIds.map(async (id) => {
-        messageService.localDBService.delete(id);
-      })
+export default function syncEngine(
+  messageService: MessageService,
+  chatService: ChatService,
+  fileService: FileService
+) {
+  //TODO: when delete message, delete all files
+  convex
+    .watchQuery(api.messages.getAll)
+    .onUpdate(() =>
+      sync(messageService.remoteDBService, messageService.localDBService)
     );
-    console.log("localMessages", localMessages);
-    await Promise.all(
-      serverMessages.map(async (message) => {
-        const localMessage = localMessages.find((el) => el.id === message.id);
-        if (localMessage) {
-          await messageService.localDBService.update({
-            ...message,
-            createdAt: new Date(message.createdAt),
-            editedAt: new Date(message.editedAt),
-            status: "server",
-          });
-          return;
-        }
-        await messageService.localDBService.create({
-          ...message,
-          createdAt: new Date(message.createdAt),
-          editedAt: new Date(message.editedAt),
-          status: "server",
-        });
-      })
+  //TODO: when delete chat, delete all messages
+  convex
+    .watchQuery(api.chats.getAll)
+    .onUpdate(() =>
+      sync(chatService.remoteDBService, chatService.localDBService)
     );
-  });
+    convex
+    .watchQuery(api.files.getAll)
+    .onUpdate(() =>
+      sync(fileService.remoteDBService, fileService.localDBService)
+    );
+}
+
+async function sync(remoteDBService: DataService, localDBService: DataService) {
+  const serverItems = await remoteDBService.getAll();
+  const localItems = await localDBService.getAll();
+  const localItemsIds = localItems.map((el) => el.id);
+  await Promise.all(
+    localItemsIds.map(async (id) => {
+      localDBService.delete(id);
+    })
+  );
+  await Promise.all(
+    serverItems.map(async (item) => {
+      if (localItemsIds.includes(item.id)) {
+        await localDBService.update(item);
+        return;
+      }
+      await localDBService.create(item);
+    })
+  );
 }

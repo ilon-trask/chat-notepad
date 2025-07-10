@@ -8,21 +8,24 @@ import {
 } from "@/constants/labels";
 import { ConvexReactClient } from "convex/react";
 import { DataService } from "@/types/dataService.types";
-import { Doc } from "@/convex/_generated/dataModel";
+import { LocalMessage } from "@/types/message.types";
+import { LocalChat } from "@/types/chat.types";
+import { LocalFileType } from "@/types/file.types";
+import { serveFile } from "@/helpers/serveFile";
 
 type Methods = {
   [MESSAGE_LABEL]: {
-    return: Doc<"messages">;
+    return: LocalMessage;
     create: typeof api.messages.create._args;
     update: typeof api.messages.update._args;
   };
   [CHAT_LABEL]: {
-    return: Doc<"chats">;
+    return: LocalChat;
     create: typeof api.chats.create._args;
     update: typeof api.chats.update._args;
   };
   [FILE_LABEL]: {
-    return: Doc<"files">;
+    return: LocalFileType;
     create: typeof api.files.create._args;
     update: typeof api.files.update._args;
   };
@@ -35,25 +38,57 @@ export class RemoteDBService<T extends Labels> implements DataService {
     this._convexDB = convexDB;
     this.label = label;
   }
-
-  async getAll() {
+  private async remoteToLocalEntity(value: any): Promise<Methods[T]["return"]> {
+    const newRes = {
+      ...value,
+      createdAt: new Date(value.createdAt),
+      editedAt: new Date(value.editedAt),
+      status: "server",
+    } as const;
+    if(this.label === FILE_LABEL) {
+      newRes.file = await serveFile(value.storageId!);
+    }
+    return newRes satisfies Methods[T]["return"];
+  }
+  async getAll(): Promise<Methods[T]["return"][]> {
     const res = await this._convexDB.query(api[PLURALS[this.label]].getAll);
-    return res as Methods[T]["return"][];
+    const newRes = res.map(
+      (el) =>
+        ({
+          ...el,
+          createdAt: new Date(el.createdAt),
+          editedAt: new Date(el.editedAt),
+          status: "server",
+        }) as const
+    );
+    return newRes satisfies Methods[T]["return"][];
   }
 
-  async getOne(id: string) {
+  async getOne(id: string): Promise<Methods[T]["return"]> {
     const res = await this._convexDB.query(api[PLURALS[this.label]].getById, {
       id: id,
     });
-    return res as Methods[T]["return"];
+    const newRes = {
+      ...res,
+      createdAt: new Date(res.createdAt),
+      editedAt: new Date(res.editedAt),
+      status: "server",
+    } as const;
+    return newRes satisfies Methods[T]["return"];
   }
 
-  async create(data: Methods[T]["create"]) {
+  async create(data: Methods[T]["create"]): Promise<Methods[T]["return"]> {
     const res = await this._convexDB.mutation(
       api[PLURALS[this.label]].create,
       data
     );
-    return res as Methods[T]["return"];
+    const newRes = {
+      ...res,
+      createdAt: new Date(res.createdAt),
+      editedAt: new Date(res.editedAt),
+      status: "server",
+    } as const;
+    return newRes satisfies Methods[T]["return"];
   }
 
   async delete(id: string) {
@@ -63,11 +98,17 @@ export class RemoteDBService<T extends Labels> implements DataService {
     return true;
   }
 
-  async update(data: Methods[T]["update"]) {
+  async update(data: Methods[T]["update"]): Promise<Methods[T]["return"]> {
     const res = await this._convexDB.mutation(
       api[PLURALS[this.label]].update,
       data
     );
-    return res as Methods[T]["return"];
+    const newRes = {
+      ...res,
+      createdAt: new Date(res.createdAt),
+      editedAt: new Date(res.editedAt),
+      status: "server",
+    } as const;
+    return newRes satisfies Methods[T]["return"];
   }
 }

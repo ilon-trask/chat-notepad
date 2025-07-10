@@ -1,6 +1,6 @@
 import { Doc, Id } from "@/convex/_generated/dataModel";
 
-export type OfflineMessage = Omit<
+export type LocalMessage = Omit<
   Doc<"messages">,
   "_id" | "_creationTime" | "createdAt" | "editedAt"
 > & {
@@ -9,6 +9,6 @@ export type OfflineMessage = Omit<
   status: "pending" | "server";
 };
 
-export type MessageUpdate = Omit<OfflineMessage, "createdAt"> & {
+export type MessageUpdate = Omit<LocalMessage, "createdAt"> & {
   createdAt?: Date;
 };

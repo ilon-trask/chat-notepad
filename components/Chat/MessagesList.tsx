@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { type OfflineMessage } from "@/types/message.types";
+import { type LocalMessage } from "@/types/message.types";
 import { Badge } from "../ui/badge";
 import MessageItem from "./MessageItem";
 import { useDragAndDrop } from "../DrapAndDropPrivider";
@@ -13,10 +13,10 @@ export default function MessagesList() {
   const { isDragging } = useDragAndDrop();
   console.log("isDragging", isDragging);
 
-  const [dateMap, setDateMap] = useState<Map<string, OfflineMessage[]>>(new Map());
+  const [dateMap, setDateMap] = useState<Map<string, LocalMessage[]>>(new Map());
 
   useEffect(() => {
-    const newMap = new Map<string, OfflineMessage[]>();
+    const newMap = new Map<string, LocalMessage[]>();
     messages.forEach((message) => {
       const date = message.createdAt.toLocaleDateString();
       if (newMap.has(date)) {

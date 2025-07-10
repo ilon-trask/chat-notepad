@@ -1,4 +1,4 @@
-import { ChatUpdate, OfflineChat } from "@/types/chat.types";
+import { ChatUpdate, LocalChat } from "@/types/chat.types";
 import { v4 as uuid } from "uuid";
 import { LocalDBService } from "./localDBService";
 import { CHAT_LABEL } from "@/constants/labels";
@@ -38,7 +38,7 @@ class ChatService {
       createdAt: new Date(),
       editedAt: new Date(),
       status: "pending",
-    } satisfies OfflineChat;
+    } satisfies LocalChat;
     let chat = await this.localDBService.create(newChat);
 
     if (isOnline()) {
@@ -50,7 +50,7 @@ class ChatService {
             createdAt: new Date(el.createdAt),
             editedAt: new Date(el.editedAt),
             status: "server",
-          } satisfies OfflineChat;
+          } satisfies LocalChat;
           await this.localDBService.update(newChat);
           chat = newChat;
         });
@@ -81,7 +81,7 @@ class ChatService {
       ...chat,
       name: data.name,
       editedAt: new Date(),
-    } satisfies OfflineChat;
+    } satisfies LocalChat;
     if (isOnline()) {
       this.remoteDBService
         .update({
@@ -94,7 +94,7 @@ class ChatService {
             createdAt: new Date(el.createdAt),
             editedAt: new Date(el.editedAt),
             status: "server",
-          } satisfies OfflineChat;
+          } satisfies LocalChat;
           await this.localDBService.update(newChat);
         });
     }

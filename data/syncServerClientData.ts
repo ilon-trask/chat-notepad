@@ -53,12 +53,7 @@ export default async function syncServerClientData({
     if (!clientChatsIds.includes(chatId)) {
       const newChat = serverChats.find((el) => el.id === chatId);
       if (!newChat) throw new Error("Chat not found");
-      await chatService.localDBService.create({
-        ...newChat,
-        createdAt: new Date(newChat.createdAt),
-        editedAt: new Date(newChat.editedAt),
-        status: "server",
-      });
+      await chatService.localDBService.create(newChat);
     } else if (!serverChatsIds.includes(chatId)) {
       const newChat = clientChats.find((el) => el.id === chatId);
       if (!newChat) throw new Error("Chat not found");
@@ -67,12 +62,7 @@ export default async function syncServerClientData({
         name: newChat.name,
         createdAt: newChat.createdAt.valueOf(),
       });
-      await chatService.localDBService.update({
-        ...newServerChat,
-        createdAt: new Date(newServerChat.createdAt),
-        editedAt: new Date(newServerChat.editedAt),
-        status: "server",
-      });
+      await chatService.localDBService.update(newServerChat);
     } else {
       const isEqualContent =
         JSON.stringify(clientChats.find((el) => el.id === chatId)) ==
@@ -87,19 +77,9 @@ export default async function syncServerClientData({
             name: clientChat.name,
             editedAt: serverChat.editedAt.valueOf(),
           });
-          await chatService.localDBService.update({
-            ...newServerChat,
-            createdAt: new Date(newServerChat.createdAt),
-            editedAt: new Date(newServerChat.editedAt),
-            status: "server",
-          });
+          await chatService.localDBService.update(newServerChat);
         } else {
-          await chatService.localDBService.update({
-            ...serverChat,
-            editedAt: new Date(serverChat.editedAt),
-            createdAt: new Date(serverChat.createdAt),
-            status: "server",
-          });
+          await chatService.localDBService.update(serverChat);
         }
       }
     }
@@ -125,12 +105,7 @@ export default async function syncServerClientData({
         createdAt: newMessage.createdAt.valueOf(),
         editedAt: newMessage.editedAt.valueOf(),
       });
-      await messageService.localDBService.update({
-        ...newServerMessage,
-        createdAt: new Date(newServerMessage.createdAt),
-        editedAt: new Date(newServerMessage.editedAt),
-        status: "server",
-      });
+      await messageService.localDBService.update(newServerMessage);
     } else {
       const isEqualContent =
         JSON.stringify(clientMessages.find((el) => el.id === messageId)) ==
@@ -148,19 +123,9 @@ export default async function syncServerClientData({
             content: clientMessage.content,
             editedAt: serverMessage.editedAt.valueOf(),
           });
-          await messageService.localDBService.update({
-            ...newServerMessage,
-            createdAt: new Date(newServerMessage.createdAt),
-            editedAt: new Date(newServerMessage.editedAt),
-            status: "server",
-          });
+          await messageService.localDBService.update(newServerMessage);
         } else {
-          await messageService.localDBService.update({
-            ...serverMessage,
-            editedAt: new Date(serverMessage.editedAt),
-            createdAt: new Date(serverMessage.createdAt),
-            status: "server",
-          });
+          await messageService.localDBService.update(serverMessage);
         }
       }
     }
@@ -170,7 +135,6 @@ export default async function syncServerClientData({
     if (!clientFilesIds.includes(entryId)) {
       const newChat = serverFiles.find((el) => el.id === entryId);
       if (!newChat) throw new Error("Chat not found");
-      const blob = await fileService.serveFile(newChat.storageId);
       await fileService.localDBService.create({
         id: newChat.id,
         name: newChat.name,
@@ -178,7 +142,7 @@ export default async function syncServerClientData({
         createdAt: new Date(newChat.createdAt),
         editedAt: new Date(newChat.editedAt),
         status: "server",
-        file: blob,
+        file: newChat.file,
       });
     } else if (!serverFilesIds.includes(entryId)) {
       const newChat = clientFiles.find((el) => el.id === entryId);
@@ -192,12 +156,7 @@ export default async function syncServerClientData({
         file: newChat.file,
         status: "pending",
       });
-      await fileService.localDBService.update({
-        ...newServerChat,
-        createdAt: new Date(newServerChat.createdAt),
-        editedAt: new Date(newServerChat.editedAt),
-        status: "server",
-      });
+      await fileService.localDBService.update(newServerChat);
     }
   }
 }

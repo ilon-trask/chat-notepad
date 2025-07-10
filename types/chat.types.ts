@@ -1,6 +1,6 @@
 import { Doc } from "@/convex/_generated/dataModel";
 
-export type OfflineChat = Omit<
+export type LocalChat = Omit<
   Doc<"chats">,
   "_id" | "_creationTime" | "createdAt" | "editedAt" | "userId"
 > & {
@@ -9,4 +9,4 @@ export type OfflineChat = Omit<
   status: "pending" | "server";
 };
 
-export type ChatUpdate = Omit<OfflineChat, "createdAt" | "editedAt">;
+export type ChatUpdate = Omit<LocalChat, "createdAt" | "editedAt">;

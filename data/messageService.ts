@@ -1,4 +1,4 @@
-import { MessageUpdate, OfflineMessage } from "@/types/message.types";
+import { MessageUpdate, LocalMessage } from "@/types/message.types";
 import { v4 as uuid } from "uuid";
 import { LocalDBService } from "./localDBService";
 import { MESSAGE_LABEL } from "@/constants/labels";
@@ -42,7 +42,7 @@ class MessageService {
       editedAt: new Date(),
       chatId,
       status: "pending",
-    } satisfies OfflineMessage;
+    } satisfies LocalMessage;
 
     await this.localDBService.create(newMessage);
 
@@ -59,7 +59,7 @@ class MessageService {
             createdAt: new Date(el.createdAt),
             editedAt: new Date(el.editedAt),
             status: "server",
-          } satisfies OfflineMessage;
+          } satisfies LocalMessage;
           await this.localDBService.update(updatedMessage);
         });
     }
@@ -98,7 +98,7 @@ class MessageService {
     const newMessage = {
       ...message,
       content: data.content,
-    } as OfflineMessage;
+    } as LocalMessage;
 
     if (isOnline()) {
       await this.remoteDBService.update({

@@ -33,17 +33,6 @@ class FileService {
     return storageId as string | null;
   }
 
-  async serveFile(storageId: string) {
-    const getImageUrl = new URL(
-      `${process.env.NEXT_PUBLIC_CONVEX_SITE_URL}/getImage`
-    );
-    getImageUrl.searchParams.set("storageId", storageId);
-    console.log("getImageUrl", getImageUrl, getImageUrl.href);
-    const res = await fetch(getImageUrl);
-    const blob = await res.blob();
-    return blob;
-  }
-
   async getMessageFiles(messageId: string) {
     const files = await this.localDBService.getAll();
     const res = files.filter((file) => file.messageId === messageId);
