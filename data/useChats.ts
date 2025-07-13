@@ -7,10 +7,10 @@ function useChats() {
   const { chatService } = useServicesContext();
   useEffect(() => {
     const unsubscribe = chatService.localDBService.subscribe(async () => {
-      setChats(await chatService.getAllChats());
+      setChats(await chatService.getAll());
     });
     (async () => {
-      setChats(await chatService.getAllChats());
+      setChats(await chatService.getAll());
     })();
     return () => {
       unsubscribe();

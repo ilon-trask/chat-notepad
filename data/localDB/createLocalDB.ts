@@ -1,4 +1,4 @@
-import { ALL_LABELS } from "../constants/labels";
+import { ALL_LABELS } from "../../constants/labels";
 
 const DB_VERSION = 2;
 

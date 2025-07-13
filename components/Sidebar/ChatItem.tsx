@@ -95,7 +95,7 @@ export default function ChatItem({
             data-testid="ChatDeleteButton"
             className="text-destructive"
             onClick={() => {
-              chatService.deleteChat(id);
+              chatService.delete(id);
             }}
           >
             <Trash2 className="mr-2 h-4 w-4 text-destructive" />

@@ -37,7 +37,9 @@ export default function MessageItem({
 
   useEffect(() => {
     (async () => {
-      const newFiels = await fileService.getMessageFiles(id);
+      const newFiels = (await fileService.getAll()).filter(
+        (el) => el.messageId == id
+      );
       if (
         newFiels
           .map((el) => el.name)
@@ -89,7 +91,7 @@ export default function MessageItem({
           data-testid="MessageDeleteButton"
           className="text-destructive"
           onClick={() => {
-            messageService.deleteMessage(id);
+            messageService.delete(id);
           }}
         >
           <Trash2 className="mr-2 h-4 w-4 text-destructive" />

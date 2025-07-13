@@ -68,7 +68,7 @@ export default function CommandMenu() {
               </CommandItem>
               <CommandItem
                 onSelect={() => {
-                  chatService.deleteChat(chatId);
+                  chatService.delete(chatId);
                   commandStore.setIsOpen(false);
                 }}
               >

@@ -11,6 +11,7 @@ import { useServicesContext } from "../ServicesProvider";
 import previewFileUploadHandler from "@/data/fileUploadHandler";
 import FileBubble from "./FileBubble";
 import { useParams } from "next/navigation";
+import { v4 as uuid } from "uuid";
 
 type MessageInputForm = {
   message: string;
@@ -44,37 +45,44 @@ export default function MessageInput() {
       return;
     }
     if (messageInputStore.isUpdate) {
-      const files = await fileService.getMessageFiles(
-        messageInputStore.messageId
+      const files = (await fileService.getAll()).filter(
+        (el) => el.messageId === messageInputStore.messageId
       );
-
       files.forEach((file) => {
         if (!messageInputStore.fileUpload.find((el) => el.id === file.id)) {
-          fileService.deleteFile(file.id);
+          fileService.delete(file.id);
         }
       });
 
       await Promise.all(
         messageInputStore.fileUpload.map(async (el) => {
           if (!files.find((file) => file.id === el.id)) {
-            const res = await fileService.createFile(el);
+            const res = await fileService.create(el);
             return res;
           }
         })
       );
-      messageService.updateMessage({
+      messageService.update({
         chatId,
         content: data.message,
         editedAt: new Date(),
+        createdAt: new Date(),
         id: messageInputStore.messageId,
         status: "pending",
       });
       messageInputStore.cancelEditing();
     } else {
-      const message = await messageService.createMessage(data.message, chatId);
+      const message = await messageService.create({
+        id: uuid(),
+        content: data.message,
+        chatId,
+        createdAt: new Date(),
+        editedAt: new Date(),
+        status: "pending",
+      });
       await Promise.all(
         messageInputStore.fileUpload.map(async (el) => {
-          const res = await fileService.createFile({
+          const res = await fileService.create({
             ...el,
             messageId: message.id,
           });

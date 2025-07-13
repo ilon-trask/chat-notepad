@@ -72,13 +72,13 @@ export const create = mutation({
 export const deleteEntry = mutation({
   args: { id: v.string() },
   handler: async (ctx, args) => {
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) throw new Error("User not found");
     const message = await ctx.db
       .query("messages")
       .withIndex("by_my_id", (q) => q.eq("id", args.id))
       .first();
     if (!message) throw new Error("Message not found");
-    const user = await ctx.auth.getUserIdentity();
-    if (!user) throw new Error("User not found");
     const chat = await ctx.db
       .query(PLURALS[CHAT_LABEL])
       .withIndex("by_my_id", (q) => q.eq("id", message.chatId))

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { createLocalDB } from "../../data/createLocalDB";
+import { createLocalDB } from "../../data/localDB/createLocalDB";
 import { setupClerkTestingToken } from "@clerk/testing/cypress";
 
 function createReadyDB() {

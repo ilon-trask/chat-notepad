@@ -17,6 +17,7 @@ import { SizeVariant } from "@/types/sizeVariant.types";
 import { useServicesContext } from "../ServicesProvider";
 import useChats from "@/data/useChats";
 import { useRouter } from "next/navigation";
+import { v4 as uuid } from "uuid";
 
 type ChatFormData = {
   name: string;
@@ -37,13 +38,21 @@ export default function CreateChatDialog({
 
   const onSubmit = async (data: ChatFormData) => {
     if (chatDialogStore.isUpdate) {
-      chatService.updateChat({
+      chatService.update({
         id: chatDialogStore.chatId,
         name: data.name,
         status: "pending",
+        editedAt: new Date(),
+        createdAt: new Date(),
       });
     } else {
-      const newChat = await chatService.createChat(data.name);
+      const newChat = await chatService.create({
+        id: uuid(),
+        name: data.name,
+        status: "pending",
+        editedAt: new Date(),
+        createdAt: new Date(),
+      });
       router.push(`/${newChat.id}`);
     }
     chatDialogStore.setIsOpen(false);

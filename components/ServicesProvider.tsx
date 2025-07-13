@@ -6,11 +6,20 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import ChatService from "@/data/chatService";
-import MessageService from "@/data/messageService";
 import syncServerClientData from "@/data/syncServerClientData";
-import FileService from "@/data/fileService";
-import DeleteService from "@/data/deleteService";
+import { DeleteLocalDBService } from "@/data/delete/deleteLocalDBService";
+import { FileLocalDBService } from "@/data/file/fileLocalDBService";
+import { DBService } from "@/data/DBService";
+import {
+  CHAT_LABEL,
+  FILE_LABEL,
+  MESSAGE_LABEL,
+} from "@/constants/labels";
+import { MessageLocalDBService } from "@/data/message/messageLocalDBService";
+import { ChatLocalDBService } from "@/data/chat/chatLocalDBService";
+import { FileRemoteDBService } from "@/data/file/fileRemoteDBService";
+import { MessageRemoteDBService } from "@/data/message/messageRemoteDBService";
+import { ChatRemoteDBService } from "@/data/chat/chatRemoteDBService";
 
 type NullableServicesContextType = {
   [K in keyof ServicesContextType]: ServicesContextType[K] | null;
@@ -27,10 +36,31 @@ export default function useServices(): Return {
   });
 
   useEffect(() => {
-    const deleteService = new DeleteService();
-    const fileService = new FileService(deleteService);
-    const messageService = new MessageService(fileService, deleteService);
-    const chatService = new ChatService(deleteService, messageService);
+    const deleteService = new DeleteLocalDBService();
+    const fileLocalDBService = new FileLocalDBService();
+    const fileRemoteDBService = new FileRemoteDBService();
+    const fileService = new DBService<typeof FILE_LABEL>(
+      fileLocalDBService,
+      fileRemoteDBService,
+      deleteService,
+      FILE_LABEL
+    );
+    const messageLocalDBService = new MessageLocalDBService(fileLocalDBService);
+    const messageRemoteDBService = new MessageRemoteDBService();
+    const messageService = new DBService<typeof MESSAGE_LABEL>(
+      messageLocalDBService,
+      messageRemoteDBService,
+      deleteService,
+      MESSAGE_LABEL
+    );
+    const chatLocalDBService = new ChatLocalDBService(messageLocalDBService);
+    const chatRemoteDBService = new ChatRemoteDBService();
+    const chatService = new DBService<typeof CHAT_LABEL>(
+      chatLocalDBService,
+      chatRemoteDBService,
+      deleteService,
+      CHAT_LABEL
+    );
     setServices({
       chatService,
       messageService,
@@ -49,10 +79,10 @@ export default function useServices(): Return {
 }
 
 interface ServicesContextType {
-  chatService: ChatService;
-  messageService: MessageService;
-  fileService: FileService;
-  deleteService: DeleteService;
+  chatService: DBService<typeof CHAT_LABEL>;
+  messageService: DBService<typeof MESSAGE_LABEL>;
+  fileService: DBService<typeof FILE_LABEL>;
+  deleteService: DeleteLocalDBService;
 }
 
 const ServiceContext = createContext<ServicesContextType | null>(null);

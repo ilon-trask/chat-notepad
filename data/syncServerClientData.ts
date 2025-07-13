@@ -1,8 +1,6 @@
 import { CHAT_LABEL, FILE_LABEL, MESSAGE_LABEL } from "@/constants/labels";
-import ChatService from "./chatService";
-import MessageService from "./messageService";
-import FileService from "./fileService";
-import { DeleteService } from "./deleteService";
+import { DeleteLocalDBService } from "./delete/deleteLocalDBService";
+import { DBService } from "./DBService";
 
 export default async function syncServerClientData({
   chatService,
@@ -10,10 +8,10 @@ export default async function syncServerClientData({
   fileService,
   messageService,
 }: {
-  chatService: ChatService;
-  messageService: MessageService;
-  fileService: FileService;
-  deleteService: DeleteService;
+  chatService: DBService<typeof CHAT_LABEL>;
+  messageService: DBService<typeof MESSAGE_LABEL>;
+  fileService: DBService<typeof FILE_LABEL>;
+  deleteService: DeleteLocalDBService;
 }) {
   const deletes = await deleteService.getAll();
 
@@ -23,7 +21,7 @@ export default async function syncServerClientData({
       deleteService.delete(deleteItem.id);
     } else if (deleteItem.type === MESSAGE_LABEL) {
       await messageService.remoteDBService.delete(deleteItem.entityId);
-      await fileService.deleteMessageFiles(deleteItem.entityId);
+      await fileService.delete(deleteItem.entityId);
       deleteService.delete(deleteItem.id);
     } else if (deleteItem.type === FILE_LABEL) {
       await fileService.remoteDBService.delete(deleteItem.entityId);
@@ -50,33 +48,24 @@ export default async function syncServerClientData({
   const fileIdSet = new Set([...clientFilesIds, ...serverFilesIds]);
 
   for (const chatId of chatIdSet) {
-    if (!clientChatsIds.includes(chatId)) {
-      const newChat = serverChats.find((el) => el.id === chatId);
-      if (!newChat) throw new Error("Chat not found");
-      await chatService.localDBService.create(newChat);
-    } else if (!serverChatsIds.includes(chatId)) {
-      const newChat = clientChats.find((el) => el.id === chatId);
-      if (!newChat) throw new Error("Chat not found");
-      const newServerChat = await chatService.remoteDBService.create({
-        id: newChat.id,
-        name: newChat.name,
-        createdAt: newChat.createdAt.valueOf(),
-      });
+    const serverChat = serverChats.find((el) => el.id === chatId);
+    const clientChat = clientChats.find((el) => el.id === chatId);
+    if (!clientChat) {
+      if (!serverChat) throw new Error("Chat not found");
+      await chatService.localDBService.create(serverChat);
+    } else if (!serverChat) {
+      if (!clientChat) throw new Error("Chat not found");
+      const newServerChat =
+        await chatService.remoteDBService.create(clientChat);
       await chatService.localDBService.update(newServerChat);
     } else {
       const isEqualContent =
-        JSON.stringify(clientChats.find((el) => el.id === chatId)) ==
-        JSON.stringify(serverChats.find((el) => el.id === chatId));
+        serverChat.editedAt.valueOf() > clientChat.editedAt.valueOf();
       if (!isEqualContent) {
-        const serverChat = serverChats.find((el) => el.id === chatId);
-        const clientChat = clientChats.find((el) => el.id === chatId);
         if (!serverChat || !clientChat) throw new Error("Chat not found");
         if (serverChat.editedAt.valueOf() > clientChat.editedAt.valueOf()) {
-          const newServerChat = await chatService.remoteDBService.update({
-            id: clientChat.id,
-            name: clientChat.name,
-            editedAt: serverChat.editedAt.valueOf(),
-          });
+          const newServerChat =
+            await chatService.remoteDBService.update(clientChat);
           await chatService.localDBService.update(newServerChat);
         } else {
           await chatService.localDBService.update(serverChat);
@@ -86,30 +75,24 @@ export default async function syncServerClientData({
   }
 
   for (const messageId of messageIdSet) {
-    if (!clientMessagesIds.includes(messageId)) {
-      const newMessage = serverMessages.find((el) => el.id === messageId);
-      if (!newMessage) throw new Error("Message not found");
+    const serverMessage = serverMessages.find((el) => el.id === messageId);
+    const clientMessage = clientMessages.find((el) => el.id === messageId);
+    if (!clientMessage) {
+      if (!serverMessage) throw new Error("Message not found");
       await messageService.localDBService.create({
-        ...newMessage,
-        createdAt: new Date(newMessage.createdAt),
-        editedAt: new Date(newMessage.editedAt),
+        ...serverMessage,
+        createdAt: new Date(serverMessage.createdAt),
+        editedAt: new Date(serverMessage.editedAt),
         status: "server",
       });
-    } else if (!serverMessagesIds.includes(messageId)) {
-      const newMessage = clientMessages.find((el) => el.id === messageId);
-      if (!newMessage) throw new Error("Message not found");
-      const newServerMessage = await messageService.remoteDBService.create({
-        id: newMessage.id,
-        content: newMessage.content,
-        chatId: newMessage.chatId,
-        createdAt: newMessage.createdAt.valueOf(),
-        editedAt: newMessage.editedAt.valueOf(),
-      });
+    } else if (!serverMessage) {
+      if (!clientMessage) throw new Error("Message not found");
+      const newServerMessage =
+        await messageService.remoteDBService.create(clientMessage);
       await messageService.localDBService.update(newServerMessage);
     } else {
       const isEqualContent =
-        JSON.stringify(clientMessages.find((el) => el.id === messageId)) ==
-        JSON.stringify(serverMessages.find((el) => el.id === messageId));
+        serverMessage.editedAt.valueOf() > clientMessage.editedAt.valueOf();
       if (!isEqualContent) {
         const serverMessage = serverMessages.find((el) => el.id === messageId);
         const clientMessage = clientMessages.find((el) => el.id === messageId);
@@ -118,11 +101,8 @@ export default async function syncServerClientData({
         if (
           serverMessage.editedAt.valueOf() > clientMessage.editedAt.valueOf()
         ) {
-          const newServerMessage = await messageService.remoteDBService.update({
-            id: clientMessage.id,
-            content: clientMessage.content,
-            editedAt: serverMessage.editedAt.valueOf(),
-          });
+          const newServerMessage =
+            await messageService.remoteDBService.update(serverMessage);
           await messageService.localDBService.update(newServerMessage);
         } else {
           await messageService.localDBService.update(serverMessage);
@@ -135,27 +115,11 @@ export default async function syncServerClientData({
     if (!clientFilesIds.includes(entryId)) {
       const newChat = serverFiles.find((el) => el.id === entryId);
       if (!newChat) throw new Error("Chat not found");
-      await fileService.localDBService.create({
-        id: newChat.id,
-        name: newChat.name,
-        messageId: newChat.messageId,
-        createdAt: new Date(newChat.createdAt),
-        editedAt: new Date(newChat.editedAt),
-        status: "server",
-        file: newChat.file,
-      });
+      await fileService.localDBService.create(newChat);
     } else if (!serverFilesIds.includes(entryId)) {
       const newChat = clientFiles.find((el) => el.id === entryId);
       if (!newChat) throw new Error("Chat not found");
-      const newServerChat = await fileService.createFile({
-        id: newChat.id,
-        name: newChat.name,
-        messageId: newChat.messageId,
-        editedAt: newChat.editedAt,
-        createdAt: newChat.createdAt,
-        file: newChat.file,
-        status: "pending",
-      });
+      const newServerChat = await fileService.create(newChat);
       await fileService.localDBService.update(newServerChat);
     }
   }

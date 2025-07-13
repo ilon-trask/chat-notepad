@@ -7,10 +7,10 @@ function useMessages() {
   const { messageService } = useServicesContext();
   useEffect(() => {
     const unsubscribe = messageService.localDBService.subscribe(async () => {
-      setMessages(await messageService.getAllMessages());
+      setMessages(await messageService.getAll());
     });
     (async () => {
-      setMessages(await messageService.getAllMessages());
+      setMessages(await messageService.getAll());
     })();
     return () => {
       unsubscribe();

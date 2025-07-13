@@ -1,44 +1,14 @@
 import DBResPromise from "@/helpers/DBResPromise";
-import {
-  CHAT_LABEL,
-  DELETE_LABEL,
-  MESSAGE_LABEL,
-  AllLabels,
-  FILE_LABEL,
-} from "@/constants/labels";
+import { AllLabels, LocalDBServiceMethods } from "@/constants/labels";
 import { DataService } from "@/types/dataService.types";
-import { LocalMessage } from "@/types/message.types";
-import { LocalChat } from "@/types/chat.types";
-import { Delete } from "@/types/delete.types";
-import { LocalFileType } from "@/types/file.types";
 import { createLocalDB } from "./createLocalDB";
 
 const DB_METHODS = ["add", "put", "getAll", "delete", "clear"] as const;
 
-type Methods = {
-  [MESSAGE_LABEL]: {
-    return: LocalMessage;
-    create: LocalMessage;
-    update: LocalMessage;
-  };
-  [CHAT_LABEL]: {
-    return: LocalChat;
-    create: LocalChat;
-    update: LocalChat;
-  };
-  [DELETE_LABEL]: {
-    return: Delete;
-    create: Delete;
-    update: Delete;
-  };
-  [FILE_LABEL]: {
-    return: LocalFileType;
-    create: LocalFileType;
-    update: LocalFileType;
-  };
-};
-
-export class LocalDBService<T extends AllLabels> implements DataService {
+//TODO: handle errors when work with indexedDB
+export class LocalDBService<T extends AllLabels>
+  implements DataService<LocalDBServiceMethods[T]>
+{
   private _db: Promise<IDBDatabase>;
   label: T;
   subscribers: Array<() => void>;
@@ -54,10 +24,10 @@ export class LocalDBService<T extends AllLabels> implements DataService {
       Awaited<typeof localDB>,
       (typeof DB_METHODS)[number]
     > & {
-      getOne: (id: string) => Promise<Methods[T]["return"]>;
-      add: (value: Methods[T]["create"]) => Promise<IDBValidKey>;
-      put: (value: Methods[T]["update"]) => Promise<IDBValidKey>;
-      getAll: () => Promise<Methods[T]["return"][]>;
+      getOne: (id: string) => Promise<LocalDBServiceMethods[T]["return"]>;
+      add: (value: LocalDBServiceMethods[T]["create"]) => Promise<IDBValidKey>;
+      put: (value: LocalDBServiceMethods[T]["update"]) => Promise<IDBValidKey>;
+      getAll: () => Promise<LocalDBServiceMethods[T]["return"][]>;
       delete: (query: string) => Promise<undefined>;
       clear: () => Promise<undefined>;
     };
@@ -97,16 +67,16 @@ export class LocalDBService<T extends AllLabels> implements DataService {
   async getAll() {
     const DB = await this._getReadDbObject();
     const res = await DB.getAll();
-    return res as Methods[T]["return"][];
+    return res satisfies LocalDBServiceMethods[T]["return"][];
   }
 
   async getOne(id: string) {
     const DB = await this._getReadDbObject();
     const res = await DB.getOne(id);
-    return res as Methods[T]["return"];
+    return res satisfies LocalDBServiceMethods[T]["return"];
   }
 
-  async create(data: Methods[T]["create"]) {
+  async create(data: LocalDBServiceMethods[T]["create"]) {
     const DB = await this._getWriteDbObject();
     const req = await DB.add(data);
     this.notifySubscribers();
@@ -120,7 +90,7 @@ export class LocalDBService<T extends AllLabels> implements DataService {
     return true;
   }
 
-  async update(data: Methods[T]["update"]) {
+  async update(data: LocalDBServiceMethods[T]["update"]) {
     const DB = await this._getWriteDbObject();
     const req = await DB.put(data);
     this.notifySubscribers();

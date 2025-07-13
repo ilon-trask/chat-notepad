@@ -1,43 +1,60 @@
 import { convex } from "@/components/ConvexClientProvider";
 import { api } from "@/convex/_generated/api";
-import MessageService from "./messageService";
 import { DataService } from "@/types/dataService.types";
-import ChatService from "./chatService";
-import FileService from "./fileService";
+import { DBService } from "./DBService";
+import {
+  CHAT_LABEL,
+  FILE_LABEL,
+  Labels,
+  LocalDBServiceMethods,
+  MESSAGE_LABEL,
+} from "@/constants/labels";
 
 export default function syncEngine(
-  messageService: MessageService,
-  chatService: ChatService,
-  fileService: FileService
+  messageService: DBService<typeof MESSAGE_LABEL>,
+  chatService: DBService<typeof CHAT_LABEL>,
+  fileService: DBService<typeof FILE_LABEL>
 ) {
-  //TODO: when delete message, delete all files
   convex
     .watchQuery(api.messages.getAll)
     .onUpdate(() =>
-      sync(messageService.remoteDBService, messageService.localDBService)
+      sync<typeof MESSAGE_LABEL>(
+        messageService.remoteDBService,
+        messageService.localDBService
+      )
     );
-  //TODO: when delete chat, delete all messages
   convex
     .watchQuery(api.chats.getAll)
     .onUpdate(() =>
-      sync(chatService.remoteDBService, chatService.localDBService)
+      sync<typeof CHAT_LABEL>(
+        chatService.remoteDBService,
+        chatService.localDBService
+      )
     );
-    convex
+  convex
     .watchQuery(api.files.getAll)
     .onUpdate(() =>
-      sync(fileService.remoteDBService, fileService.localDBService)
+      sync<typeof FILE_LABEL>(
+        fileService.remoteDBService,
+        fileService.localDBService
+      )
     );
 }
 
-async function sync(remoteDBService: DataService, localDBService: DataService) {
+async function sync<T extends Labels>(
+  remoteDBService: DataService<LocalDBServiceMethods[T]>,
+  localDBService: DataService<LocalDBServiceMethods[T]>
+) {
   const serverItems = await remoteDBService.getAll();
   const localItems = await localDBService.getAll();
   const localItemsIds = localItems.map((el) => el.id);
+  //TODO: handle errors
   await Promise.all(
     localItemsIds.map(async (id) => {
       localDBService.delete(id);
     })
   );
+  //TODO: handle errors
   await Promise.all(
     serverItems.map(async (item) => {
       if (localItemsIds.includes(item.id)) {
