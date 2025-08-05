@@ -13,7 +13,7 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Plus } from "lucide-react";
-import { SizeVariant } from "@/types/sizeVariant.types";
+import { SizeVariant } from "@/types/sizeVariant";
 import { useServicesContext } from "../ServicesProvider";
 import useChats from "@/data/useChats";
 import { useRouter } from "next/navigation";
@@ -41,6 +41,7 @@ export default function CreateChatDialog({
       chatService.update({
         id: chatDialogStore.chatId,
         name: data.name,
+        type: "chat",
         status: "pending",
         editedAt: new Date(),
         createdAt: new Date(),
@@ -50,6 +51,7 @@ export default function CreateChatDialog({
         id: uuid(),
         name: data.name,
         status: "pending",
+        type: "chat",
         editedAt: new Date(),
         createdAt: new Date(),
       });

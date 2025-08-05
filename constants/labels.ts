@@ -1,20 +1,20 @@
-import { LocalChat } from "@/types/chat.types";
-import { Delete } from "@/types/delete.types";
-import { LocalFileType } from "@/types/file.types";
-import { LocalMessage } from "@/types/message.types";
+import { LocalChat } from "../types/data/chat";
+import { LocalFileType } from "../types/data/file";
+import { LocalMessage } from "../types/data/message";
 
 export const CHAT_LABEL = "chat" as const;
 export const MESSAGE_LABEL = "message" as const;
-export const DELETE_LABEL = "delete" as const;
 export const FILE_LABEL = "file" as const;
+export const CHANGE_LABEL = "change" as const;
 
 export const LABELS = [CHAT_LABEL, MESSAGE_LABEL, FILE_LABEL] as const;
-export const SYSTEM_LABELS = [DELETE_LABEL, FILE_LABEL] as const;
+export const SYSTEM_LABELS = [FILE_LABEL] as const;
 export const ALL_LABELS = [...LABELS, ...SYSTEM_LABELS] as const;
 export const PLURALS = {
   chat: "chats",
   message: "messages",
   file: "files",
+  change: "changes",
 } as const;
 
 export type Labels = (typeof LABELS)[number];
@@ -30,11 +30,6 @@ export type LocalDBServiceMethods = {
     return: LocalChat;
     create: LocalChat;
     update: LocalChat;
-  };
-  [DELETE_LABEL]: {
-    return: Delete;
-    create: Delete;
-    update: Delete;
   };
   [FILE_LABEL]: {
     return: LocalFileType;

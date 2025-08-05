@@ -10,7 +10,7 @@ import { Card } from "../ui/card";
 import { cn } from "@/lib/utils";
 import { Pre } from "../Typography";
 import { useEffect, useState } from "react";
-import { LocalFileType } from "@/types/file.types";
+import { LocalFileType } from "@/types/data/file";
 import { useServicesContext } from "../ServicesProvider";
 
 export default function MessageItem({

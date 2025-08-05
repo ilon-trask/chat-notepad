@@ -30,4 +30,20 @@ export default defineSchema({
   })
     .index("by_message", ["messageId"])
     .index("by_my_id", ["id"]),
+  changes: defineTable({
+    id: v.string(),
+    table: v.string(),
+    type: v.union(
+      v.literal("create"),
+      v.literal("update"),
+      v.literal("delete")
+    ),
+    data: v.record(v.string(), v.any()),
+    createdAt: v.number(),
+    editedAt: v.number(),
+    oldData: v.optional(v.record(v.string(), v.any())),
+    userId: v.string(),
+  })
+    .index("by_my_id", ["id"])
+    .index("by_user_id", ["userId"]),
 });

@@ -16,8 +16,7 @@ import useSync from "@/hooks/useSyncOnConnection";
 import { useParams } from "next/navigation";
 import React, { useState } from "react";
 
-function Layout({
-}: Readonly<{
+function Layout({}: Readonly<{
   children: React.ReactNode;
 }>) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -48,33 +47,35 @@ function Layout({
   }
 
   return (
-    <ResizablePanelGroup
-      id="chat-layout"
-      direction="horizontal"
-      className="max-h-screen flex flex-col"
-    >
-      <ResizablePanel
-        id="sidebar"
-        defaultSize={25}
-        minSize={minSize}
-        collapsible
-        collapsedSize={maxSize}
-        onCollapse={() => setIsCollapsed(true)}
-        onExpand={() => setIsCollapsed(false)}
-        className="flex flex-col"
+    <>
+      <ResizablePanelGroup
+        id="chat-layout"
+        direction="horizontal"
+        className="max-h-screen flex flex-col"
       >
-        {!isCollapsed ? (
-          <Sidebar variant="regular" />
-        ) : (
-          <Sidebar variant="mini" />
-        )}
-      </ResizablePanel>
-      <ResizableHandle />
-      <ResizablePanel id="chat" className="flex flex-col">
-        {/* TODO: if I put children here app doesn't work */} 
-        <Chat />
-      </ResizablePanel>
-    </ResizablePanelGroup>
+        <ResizablePanel
+          id="sidebar"
+          defaultSize={25}
+          minSize={minSize}
+          collapsible
+          collapsedSize={maxSize}
+          onCollapse={() => setIsCollapsed(true)}
+          onExpand={() => setIsCollapsed(false)}
+          className="flex flex-col"
+        >
+          {!isCollapsed ? (
+            <Sidebar variant="regular" />
+          ) : (
+            <Sidebar variant="mini" />
+          )}
+        </ResizablePanel>
+        <ResizableHandle />
+        <ResizablePanel id="chat" className="flex flex-col">
+          {/* TODO: if I put children here app doesn't work */}
+          <Chat />
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </>
   );
 }
 

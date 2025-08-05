@@ -1,4 +1,10 @@
 "use client";
+import { DATA_LABEL } from "@/data/localDB/createLocalDB";
+import { LocalDBService } from "@/data/localDB/localDBService";
+import { LocalChat } from "@/types/data/chat";
+import { Data } from "@/types/data/data";
+import { LocalFileType } from "@/types/data/file";
+import { LocalMessage } from "@/types/data/message";
 import React, {
   createContext,
   useContext,
@@ -6,20 +12,11 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import syncServerClientData from "@/data/syncServerClientData";
-import { DeleteLocalDBService } from "@/data/delete/deleteLocalDBService";
-import { FileLocalDBService } from "@/data/file/fileLocalDBService";
-import { DBService } from "@/data/DBService";
-import {
-  CHAT_LABEL,
-  FILE_LABEL,
-  MESSAGE_LABEL,
-} from "@/constants/labels";
-import { MessageLocalDBService } from "@/data/message/messageLocalDBService";
-import { ChatLocalDBService } from "@/data/chat/chatLocalDBService";
-import { FileRemoteDBService } from "@/data/file/fileRemoteDBService";
-import { MessageRemoteDBService } from "@/data/message/messageRemoteDBService";
-import { ChatRemoteDBService } from "@/data/chat/chatRemoteDBService";
+import { Resolver } from "../data/resolver";
+import { CHANGE_LABEL } from "@/constants/labels";
+import { ChangeService } from "@/data/changeService";
+import { LocalChange } from "@/types/change";
+import { DataService } from "@/data/dataService";
 
 type NullableServicesContextType = {
   [K in keyof ServicesContextType]: ServicesContextType[K] | null;
@@ -31,47 +28,23 @@ export default function useServices(): Return {
   const [services, setServices] = useState<Return>({
     chatService: null,
     messageService: null,
-    deleteService: null,
     fileService: null,
   });
 
   useEffect(() => {
-    const deleteService = new DeleteLocalDBService();
-    const fileLocalDBService = new FileLocalDBService();
-    const fileRemoteDBService = new FileRemoteDBService();
-    const fileService = new DBService<typeof FILE_LABEL>(
-      fileLocalDBService,
-      fileRemoteDBService,
-      deleteService,
-      FILE_LABEL
+    const dataDB = new LocalDBService<Data, Data, Data>(DATA_LABEL);
+    const changeDB = new LocalDBService<LocalChange, LocalChange, LocalChange>(
+      CHANGE_LABEL
     );
-    const messageLocalDBService = new MessageLocalDBService(fileLocalDBService);
-    const messageRemoteDBService = new MessageRemoteDBService();
-    const messageService = new DBService<typeof MESSAGE_LABEL>(
-      messageLocalDBService,
-      messageRemoteDBService,
-      deleteService,
-      MESSAGE_LABEL
-    );
-    const chatLocalDBService = new ChatLocalDBService(messageLocalDBService);
-    const chatRemoteDBService = new ChatRemoteDBService();
-    const chatService = new DBService<typeof CHAT_LABEL>(
-      chatLocalDBService,
-      chatRemoteDBService,
-      deleteService,
-      CHAT_LABEL
-    );
+    const changeService = new ChangeService(changeDB, dataDB);
+    const dataService = new DataService(dataDB, changeService);
+    const resolver = new Resolver(dataDB, changeDB, changeService);
+    resolver.subscribeResolver();
+    resolver.subscribeSendChanges();
     setServices({
-      chatService,
-      messageService,
-      fileService,
-      deleteService,
-    });
-    syncServerClientData({
-      messageService,
-      chatService,
-      fileService,
-      deleteService,
+      chatService: dataService as any,
+      fileService: dataService as any,
+      messageService: dataService as any,
     });
   }, []);
 
@@ -79,10 +52,9 @@ export default function useServices(): Return {
 }
 
 interface ServicesContextType {
-  chatService: DBService<typeof CHAT_LABEL>;
-  messageService: DBService<typeof MESSAGE_LABEL>;
-  fileService: DBService<typeof FILE_LABEL>;
-  deleteService: DeleteLocalDBService;
+  chatService: LocalDBService<LocalChat, LocalChat, LocalChat>;
+  messageService: LocalDBService<LocalMessage, LocalMessage, LocalMessage>;
+  fileService: LocalDBService<LocalFileType, LocalFileType, LocalFileType>;
 }
 
 const ServiceContext = createContext<ServicesContextType | null>(null);

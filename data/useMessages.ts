@@ -1,4 +1,4 @@
-import { LocalMessage } from "@/types/message.types";
+import { LocalMessage } from "@/types/data/message";
 import { useEffect, useMemo, useState } from "react";
 import { useServicesContext } from "@/components/ServicesProvider";
 
@@ -6,7 +6,7 @@ function useMessages() {
   const [messages, setMessages] = useState<LocalMessage[]>([]);
   const { messageService } = useServicesContext();
   useEffect(() => {
-    const unsubscribe = messageService.localDBService.subscribe(async () => {
+    const unsubscribe = messageService.subscribe(async () => {
       setMessages(await messageService.getAll());
     });
     (async () => {

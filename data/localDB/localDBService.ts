@@ -1,22 +1,30 @@
-import DBResPromise from "@/helpers/DBResPromise";
-import { AllLabels, LocalDBServiceMethods } from "@/constants/labels";
-import { DataService } from "@/types/dataService.types";
-import { createLocalDB } from "./createLocalDB";
+import { DataService } from "@/types/dataService";
+import { createLocalDB, DATA_LABEL } from "./createLocalDB";
+import { ChangeTypes } from "@/types/change";
+import { CHANGE_LABEL } from "@/constants/labels";
 
 const DB_METHODS = ["add", "put", "getAll", "delete", "clear"] as const;
 
-//TODO: handle errors when work with indexedDB
-export class LocalDBService<T extends AllLabels>
-  implements DataService<LocalDBServiceMethods[T]>
+export class LocalDBService<TCreate, TUpdate, TReturn extends TCreate | TUpdate>
+  implements DataService<TCreate, TUpdate, TReturn>
 {
   private _db: Promise<IDBDatabase>;
-  label: T;
-  subscribers: Array<() => void>;
+  subscribers: Array<(id: string, type: ChangeTypes) => void>;
+  label: typeof DATA_LABEL | typeof CHANGE_LABEL;
 
-  constructor(label: T) {
+  constructor(label: typeof DATA_LABEL | typeof CHANGE_LABEL) {
     this._db = createLocalDB();
     this.label = label;
     this.subscribers = [];
+  }
+
+  async DBResPromise<T>(req: IDBRequest<T>): Promise<T> {
+    const res = await new Promise((resolve, reject) => {
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    if (res instanceof DOMException) throw res;
+    return res as T;
   }
 
   protected _changeDBType(localDB: Promise<IDBObjectStore>) {
@@ -24,86 +32,81 @@ export class LocalDBService<T extends AllLabels>
       Awaited<typeof localDB>,
       (typeof DB_METHODS)[number]
     > & {
-      getOne: (id: string) => Promise<LocalDBServiceMethods[T]["return"]>;
-      add: (value: LocalDBServiceMethods[T]["create"]) => Promise<IDBValidKey>;
-      put: (value: LocalDBServiceMethods[T]["update"]) => Promise<IDBValidKey>;
-      getAll: () => Promise<LocalDBServiceMethods[T]["return"][]>;
-      delete: (query: string) => Promise<undefined>;
+      getOne: (id: string) => Promise<TReturn | undefined>;
+      add: (value: TCreate) => Promise<IDBValidKey>;
+      put: (value: TUpdate) => Promise<IDBValidKey>;
+      getAll: () => Promise<TReturn[]>;
+      delete: (id: string) => Promise<undefined>;
       clear: () => Promise<undefined>;
     };
     return localDB.then((db) => {
       const { put, add, getAll, clear, delete: deleteDB, get, ...rest } = db;
-
       const newLocalDB = {
         ...rest,
-        getOne: async (...args) => await DBResPromise(get.apply(db, args)),
-        put: async (...args) => await DBResPromise(put.apply(db, args)),
-        getAll: async (...args) => await DBResPromise(getAll.apply(db, args)),
-        add: async (...args) => await DBResPromise(add.apply(db, args)),
-        clear: async (...args) => await DBResPromise(clear.apply(db, args)),
-        delete: async (...args) => await DBResPromise(deleteDB.apply(db, args)),
+        getOne: async (...args) => await this.DBResPromise(get.apply(db, args)),
+        put: async (...args) => await this.DBResPromise(put.apply(db, args)),
+        getAll: async (...args) =>
+          await this.DBResPromise(getAll.apply(db, args)),
+        add: async (...args) => await this.DBResPromise(add.apply(db, args)),
+        clear: async (...args) =>
+          await this.DBResPromise(clear.apply(db, args)),
+        delete: async (...args) =>
+          await this.DBResPromise(deleteDB.apply(db, args)),
       } as LocalDB;
 
       return newLocalDB;
     });
   }
 
-  protected async _getReadDbObject() {
-    const transaction = this._db.then((db) =>
-      db.transaction(this.label, "readonly")
-    );
-    const DB = transaction.then((t) => t.objectStore(this.label));
-    return this._changeDBType(DB);
-  }
-
-  protected async _getWriteDbObject() {
-    const transaction = this._db.then((db) =>
-      db.transaction(this.label, "readwrite")
-    );
+  protected async _getStore(mode: "readonly" | "readwrite") {
+    const transaction = this._db.then((db) => db.transaction(this.label, mode));
     const DB = transaction.then((t) => t.objectStore(this.label));
     return this._changeDBType(DB);
   }
 
   async getAll() {
-    const DB = await this._getReadDbObject();
+    const DB = await this._getStore("readonly");
     const res = await DB.getAll();
-    return res satisfies LocalDBServiceMethods[T]["return"][];
+    return res;
   }
 
   async getOne(id: string) {
-    const DB = await this._getReadDbObject();
+    const DB = await this._getStore("readonly");
     const res = await DB.getOne(id);
-    return res satisfies LocalDBServiceMethods[T]["return"];
+    return res;
   }
 
-  async create(data: LocalDBServiceMethods[T]["create"]) {
-    const DB = await this._getWriteDbObject();
+  async create(data: TCreate, notify: boolean = true) {
+    console.log("create update", data);
+    const DB = await this._getStore("readwrite");
     const req = await DB.add(data);
-    this.notifySubscribers();
-    return data;
+    if (notify) this.notifySubscribers(req as string, "create");
+    return data as TReturn;
   }
 
-  async delete(id: string) {
-    const DB = await this._getWriteDbObject();
+  async delete(id: string, notify: boolean = true) {
+    const DB = await this._getStore("readwrite");
     const req = await DB.delete(id);
-    this.notifySubscribers();
+    if (notify) this.notifySubscribers(id, "delete");
     return true;
   }
 
-  async update(data: LocalDBServiceMethods[T]["update"]) {
-    const DB = await this._getWriteDbObject();
+  async update(data: TUpdate, notify: boolean = true) {
+    console.log("change update", data);
+    const DB = await this._getStore("readwrite");
     const req = await DB.put(data);
-    this.notifySubscribers();
-    return data;
+    if (notify) this.notifySubscribers(req as string, "update");
+    return data as TReturn;
   }
 
-  subscribe(callback: () => void) {
+  subscribe(callback: (id: string, type: ChangeTypes) => void) {
     this.subscribers.push(callback);
     return () => {
       this.subscribers = this.subscribers.filter((sub) => sub !== callback);
     };
   }
-  notifySubscribers() {
-    this.subscribers.forEach((sub) => sub());
+
+  notifySubscribers(id: string, type: ChangeTypes) {
+    this.subscribers.forEach((sub) => sub(id, type));
   }
 }

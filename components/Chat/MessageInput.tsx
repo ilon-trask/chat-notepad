@@ -64,6 +64,7 @@ export default function MessageInput() {
       );
       messageService.update({
         chatId,
+        type: "message",
         content: data.message,
         editedAt: new Date(),
         createdAt: new Date(),
@@ -75,6 +76,7 @@ export default function MessageInput() {
       const message = await messageService.create({
         id: uuid(),
         content: data.message,
+        type: "message",
         chatId,
         createdAt: new Date(),
         editedAt: new Date(),

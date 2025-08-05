@@ -1,12 +1,12 @@
-import { LocalChat } from "@/types/chat.types";
+import { LocalChat } from "@/types/data/chat";
 import { useEffect, useMemo, useState } from "react";
 import { useServicesContext } from "@/components/ServicesProvider";
 
 function useChats() {
   const [chats, setChats] = useState<LocalChat[]>([]);
-  const { chatService } = useServicesContext();
+    const { chatService } = useServicesContext();
   useEffect(() => {
-    const unsubscribe = chatService.localDBService.subscribe(async () => {
+    const unsubscribe = chatService.subscribe(async () => {
       setChats(await chatService.getAll());
     });
     (async () => {

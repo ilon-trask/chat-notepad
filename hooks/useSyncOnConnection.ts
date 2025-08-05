@@ -1,6 +1,4 @@
 import { useServicesContext } from "@/components/ServicesProvider";
-import syncEngine from "@/data/syncEngine";
-import syncServerClientData from "@/data/syncServerClientData";
 import { useEffect } from "react";
 
 export default function useSync() {
@@ -12,13 +10,9 @@ export default function useSync() {
     // window.addEventListener("offline", offlineFunc);
 
     const onlineFunc = () => {
-      syncServerClientData(services);
+      // syncServerClientData(services);
     };
-    syncEngine(
-      services.messageService,
-      services.chatService,
-      services.fileService
-    );
+
     window.addEventListener("online", onlineFunc);
     return () => {
       // window.removeEventListener("offline", offlineFunc);

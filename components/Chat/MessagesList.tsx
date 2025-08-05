@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { type LocalMessage } from "@/types/message.types";
+import { type LocalMessage } from "@/types/data/message";
 import { Badge } from "../ui/badge";
 import MessageItem from "./MessageItem";
 import { useDragAndDrop } from "../DrapAndDropPrivider";

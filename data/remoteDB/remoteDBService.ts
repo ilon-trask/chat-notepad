@@ -7,10 +7,10 @@ import {
   CHAT_LABEL,
 } from "@/constants/labels";
 import { ConvexReactClient } from "convex/react";
-import { DataService } from "@/types/dataService.types";
-import { LocalMessage } from "@/types/message.types";
-import { LocalChat } from "@/types/chat.types";
-import { LocalFileType } from "@/types/file.types";
+import { DataService } from "@/types/dataService";
+import { LocalMessage } from "@/types/data/message";
+import { LocalChat } from "@/types/data/chat";
+import { LocalFileType } from "@/types/file";
 
 export type Methods = {
   [MESSAGE_LABEL]: {

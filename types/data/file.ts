@@ -1,4 +1,5 @@
-import { Doc } from "@/convex/_generated/dataModel";
+import { FILE_LABEL } from "../../constants/labels";
+import { Doc } from "../../convex/_generated/dataModel";
 
 export type RemoteFileType = Doc<"files">;
 
@@ -10,6 +11,7 @@ export type LocalFileType = Omit<
   editedAt: Date;
   createdAt: Date;
   status: "pending" | "server";
+  type: typeof FILE_LABEL;
   //TODO: propper type for file
   storageId?: string;
 };

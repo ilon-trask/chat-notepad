@@ -8,7 +8,7 @@ import { useChatDialogStore } from "@/store/chatDialogStore";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 import { Edit, MoreVertical, Trash2 } from "lucide-react";
-import { SizeVariant } from "@/types/sizeVariant.types";
+import { SizeVariant } from "@/types/sizeVariant";
 import { Muted, Small } from "../Typography";
 import useIsMobile from "@/hooks/useIsMobile";
 import { useServicesContext } from "../ServicesProvider";

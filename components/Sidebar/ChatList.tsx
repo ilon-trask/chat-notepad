@@ -1,6 +1,6 @@
 import CreateChatDialog from "./CreateChatDialog";
 import ChatItem from "./ChatItem";
-import { SizeVariant } from "@/types/sizeVariant.types";
+import { SizeVariant } from "@/types/sizeVariant";
 import useChats from "@/data/useChats";
 import { useParams } from "next/navigation";
 

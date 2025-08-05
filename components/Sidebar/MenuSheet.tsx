@@ -1,3 +1,4 @@
+"use client";
 import { Menu, Moon, Sun, Monitor, Check, Search } from "lucide-react";
 import {
   Sheet,
@@ -16,10 +17,12 @@ import {
 import { Button } from "../ui/button";
 import { useTheme } from "next-themes";
 import { Muted, Large } from "../Typography";
+import { Switch } from "../ui/switch";
+import useSettings from "@/hooks/useSettings";
 
 export default function MenuSheet() {
   const { setTheme, theme } = useTheme();
-
+  const { settings, setSettings } = useSettings();
   return (
     <Sheet>
       <SheetTrigger>
@@ -69,6 +72,27 @@ export default function MenuSheet() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+
+          <div className="py-4">
+            <div className="flex items-center gap-4">
+              <Switch
+                checked={settings.privateMode}
+                onCheckedChange={() => {
+                  console.log("onChange");
+                  setSettings({
+                    ...settings,
+                    privateMode: !settings.privateMode,
+                  });
+                }}
+              />
+              <div>
+                <Large className="mb-2">Private mode</Large>
+                <Muted className="mb-2">
+                  All your data will be stored locally
+                </Muted>
+              </div>
+            </div>
           </div>
 
           <div className="py-4">

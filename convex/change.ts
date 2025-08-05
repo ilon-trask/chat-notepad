@@ -1,0 +1,118 @@
+import { v } from "convex/values";
+import { mutation, query } from "./_generated/server";
+import { CHANGE_LABEL, PLURALS } from "../constants/labels";
+
+export const getAll = query({
+  handler: async (ctx) => {
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) throw new Error("Not logged in");
+    return await ctx.db
+      .query(PLURALS[CHANGE_LABEL])
+      .withIndex("by_user_id", (q) => q.eq("userId", user.subject))
+      .collect();
+  },
+});
+
+export const getAfter = query({
+  args: { after: v.number() },
+  handler: async (ctx, args) => {
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) throw new Error("Not logged in");
+    const changes = await ctx.db
+      .query(PLURALS[CHANGE_LABEL])
+      .withIndex("by_user_id", (q) => q.eq("userId", user.subject))
+      .filter((q) => q.gt(q.field("createdAt"), args.after))
+      .collect();
+    return changes;
+  },
+});
+
+export const create = mutation({
+  args: {
+    id: v.string(),
+    table: v.string(),
+    type: v.union(
+      v.literal("create"),
+      v.literal("update"),
+      v.literal("delete")
+    ),
+    data: v.record(v.string(), v.any()),
+    createdAt: v.number(),
+    editedAt: v.number(),
+    oldData: v.optional(v.record(v.string(), v.any())),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) throw new Error("Not logged in");
+    async function performChange(table: "chat" | "message" | "file") {
+      switch (args.type) {
+        case "create":
+          await ctx.db.insert(PLURALS[table], {
+            ...args.data,
+            userId: user?.subject!,
+          } as any);
+          const created = await ctx.db
+            .query(PLURALS[table])
+            .withIndex("by_my_id", (q) => q.eq("id", args.data.id))
+            .first();
+          return created;
+          break;
+        case "update":
+          const entity = await ctx.db
+            .query(PLURALS[table])
+            .withIndex("by_my_id", (q) => q.eq("id", args.data.id))
+            .first();
+          if (!entity) throw new Error("no such entity");
+          await ctx.db.patch(entity._id, {
+            ...args.data,
+          });
+          const upd = await ctx.db
+            .query(PLURALS[table])
+            .withIndex("by_my_id", (q) => q.eq("id", args.data.id))
+            .first();
+          return upd;
+          break;
+        case "delete":
+          const delEntity = await ctx.db
+            .query(PLURALS[table])
+            .withIndex("by_my_id", (q) => q.eq("id", args.data.id))
+            .first();
+          if (!delEntity) throw new Error("no such entity");
+          await ctx.db.delete(delEntity._id);
+          return { id: delEntity.id };
+          break;
+        default:
+          break;
+      }
+    }
+
+    try {
+      const lastChange = await ctx.db
+        .query(PLURALS[CHANGE_LABEL])
+        .filter((q) =>
+          q.and(
+            q.eq(q.field("userId"), user.subject),
+            q.eq(q.field("table"), args.table)
+          )
+        )
+        .first();
+
+      if (lastChange) {
+        if (lastChange.createdAt > args.createdAt)
+          throw new Error("older change was applied");
+      }
+      const newChangeId = await ctx.db.insert(PLURALS[CHANGE_LABEL], {
+        ...args,
+        userId: user.subject,
+      });
+      const data = await performChange(args.table as any);
+      const change = args;
+      change.data = data as any;
+      const newChange = await ctx.db.get(newChangeId);
+      if (!newChange) throw new Error("change wan't created");
+      return { success: true, change: newChange } as const;
+    } catch (error) {
+      return { success: false } as const;
+    }
+  },
+});
