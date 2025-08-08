@@ -4,13 +4,22 @@ import { useServicesContext } from "@/components/ServicesProvider";
 
 function useChats() {
   const [chats, setChats] = useState<LocalChat[]>([]);
-    const { chatService } = useServicesContext();
+  const { chatService } = useServicesContext();
+  //TODO: remove filters
   useEffect(() => {
     const unsubscribe = chatService.subscribe(async () => {
-      setChats(await chatService.getAll());
+      setChats(
+        (await chatService.getAll())
+          .filter((el) => el.type == "chat")
+          .sort((a, b) => a.createdAt.valueOf() - b.createdAt.valueOf())
+      );
     });
     (async () => {
-      setChats(await chatService.getAll());
+      setChats(
+        (await chatService.getAll())
+          .filter((el) => el.type == "chat")
+          .sort((a, b) => a.createdAt.valueOf() - b.createdAt.valueOf())
+      );
     })();
     return () => {
       unsubscribe();

@@ -1,49 +1,79 @@
 import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { v, VFloat64 } from "convex/values";
+
+type MandatoryFields = {
+  createdAt: VFloat64<number, "required">;
+  editedAt: VFloat64<number, "required">;
+};
+
+function addMandatoryFields<T>(schema: T): T & MandatoryFields {
+  return { ...schema, createdAt: v.number(), editedAt: v.number() };
+}
+
+export const messagesSchema = addMandatoryFields({
+  id: v.string(),
+  content: v.string(),
+  chatId: v.string(),
+});
+
+export const chatsSchema = addMandatoryFields({
+  id: v.string(),
+  name: v.string(),
+});
+
+export const filesSchema = addMandatoryFields({
+  id: v.string(),
+  name: v.string(),
+  storageId: v.string(),
+  messageId: v.string(),
+});
+
+export const dataSchema = v.union(
+  v.object(messagesSchema),
+  v.object(chatsSchema),
+  v.object(filesSchema)
+);
+
+const changeObj = addMandatoryFields({
+  id: v.string(),
+  table: v.string(),
+});
+
+const createChangeSchema = <T>(obj: T) => {
+  return v.union(
+    v.object({
+      ...obj,
+      type: v.literal("create"),
+      data: dataSchema,
+    }),
+    v.object({
+      ...obj,
+      type: v.literal("update"),
+      data: dataSchema,
+      oldData: dataSchema,
+    }),
+    v.object({
+      ...obj,
+      type: v.literal("delete"),
+      data: v.object({ id: v.string() }),
+      oldData: dataSchema,
+    })
+  );
+};
+
+export const changeSchema = createChangeSchema(changeObj);
 
 export default defineSchema({
-  messages: defineTable({
-    id: v.string(),
-    content: v.string(),
-    createdAt: v.number(),
-    editedAt: v.number(),
-    chatId: v.string(),
-  })
+  messages: defineTable(messagesSchema)
     .index("by_chat", ["chatId"])
     .index("by_my_id", ["id"]),
-  chats: defineTable({
-    id: v.string(),
-    name: v.string(),
-    createdAt: v.number(),
-    editedAt: v.number(),
-    userId: v.string(),
-  })
+  chats: defineTable({ ...chatsSchema, userId: v.string() })
     .index("by_user", ["userId"])
     .index("by_my_id", ["id"]),
-  files: defineTable({
-    id: v.string(),
-    name: v.string(),
-    storageId: v.string(),
-    messageId: v.string(),
-    createdAt: v.number(),
-    editedAt: v.number(),
-  })
+  files: defineTable(filesSchema)
     .index("by_message", ["messageId"])
     .index("by_my_id", ["id"]),
-  changes: defineTable({
-    id: v.string(),
-    table: v.string(),
-    type: v.union(
-      v.literal("create"),
-      v.literal("update"),
-      v.literal("delete")
-    ),
-    data: v.record(v.string(), v.any()),
-    createdAt: v.number(),
-    editedAt: v.number(),
-    oldData: v.optional(v.record(v.string(), v.any())),
-    userId: v.string(),
-  })
+  changes: defineTable(createChangeSchema({ ...changeObj, userId: v.string() }))
     .index("by_my_id", ["id"])
     .index("by_user_id", ["userId"]),
 });

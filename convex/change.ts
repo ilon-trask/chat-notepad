@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { CHANGE_LABEL, PLURALS } from "../constants/labels";
+import { changeSchema } from "./schema";
 
 export const getAll = query({
   handler: async (ctx) => {
@@ -28,20 +29,8 @@ export const getAfter = query({
 });
 
 export const create = mutation({
-  args: {
-    id: v.string(),
-    table: v.string(),
-    type: v.union(
-      v.literal("create"),
-      v.literal("update"),
-      v.literal("delete")
-    ),
-    data: v.record(v.string(), v.any()),
-    createdAt: v.number(),
-    editedAt: v.number(),
-    oldData: v.optional(v.record(v.string(), v.any())),
-  },
-  handler: async (ctx, args) => {
+  args: v.object({ args: changeSchema }),
+  handler: async (ctx, { args }) => {
     const user = await ctx.auth.getUserIdentity();
     if (!user) throw new Error("Not logged in");
     async function performChange(table: "chat" | "message" | "file") {
@@ -50,7 +39,7 @@ export const create = mutation({
           await ctx.db.insert(PLURALS[table], {
             ...args.data,
             userId: user?.subject!,
-          } as any);
+          });
           const created = await ctx.db
             .query(PLURALS[table])
             .withIndex("by_my_id", (q) => q.eq("id", args.data.id))

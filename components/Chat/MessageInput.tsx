@@ -12,6 +12,7 @@ import previewFileUploadHandler from "@/data/fileUploadHandler";
 import FileBubble from "./FileBubble";
 import { useParams } from "next/navigation";
 import { v4 as uuid } from "uuid";
+import useMessages from "@/data/useMessages";
 
 type MessageInputForm = {
   message: string;
@@ -22,6 +23,7 @@ export default function MessageInput() {
   const params = useParams();
   const chatId = params.chatId as string;
   const messageInputStore = useMessageInputStore();
+  const { messages } = useMessages();
 
   const { register, handleSubmit, reset, setValue, setFocus } =
     useForm<MessageInputForm>();
@@ -62,12 +64,22 @@ export default function MessageInput() {
           }
         })
       );
+      
+      const message = messages.find(
+        (el) => el.id == messageInputStore.messageId
+      );
+
+      if (!message)
+        throw new Error(
+          `Can't update message: message with id="${messageInputStore.messageId}" does not exist`
+        );
+
       messageService.update({
         chatId,
         type: "message",
         content: data.message,
         editedAt: new Date(),
-        createdAt: new Date(),
+        createdAt: message.createdAt,
         id: messageInputStore.messageId,
         status: "pending",
       });

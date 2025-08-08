@@ -38,13 +38,18 @@ export default function CreateChatDialog({
 
   const onSubmit = async (data: ChatFormData) => {
     if (chatDialogStore.isUpdate) {
+      if (!chat)
+        throw new Error(
+          `Can't update chat: chat with id="${chatDialogStore.chatId}" does not exist`
+        );
+
       chatService.update({
         id: chatDialogStore.chatId,
         name: data.name,
         type: "chat",
         status: "pending",
         editedAt: new Date(),
-        createdAt: new Date(),
+        createdAt: chat.createdAt,
       });
     } else {
       const newChat = await chatService.create({

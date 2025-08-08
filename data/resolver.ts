@@ -4,52 +4,120 @@ import { LocalDBService } from "./localDB/localDBService";
 import { api } from "@/convex/_generated/api";
 import { LocalChange, RemoteChange } from "@/types/change";
 import { Data } from "@/types/data/data";
+import { changeSchema } from "@/convex/schema";
 
 function adapterServerFromClient(
   change: LocalChange
-): Omit<RemoteChange, "userId"> {
-  const newChange = {
-    ...change,
-    data: { ...change.data },
-    oldData: { ...change.oldData },
-  };
+): typeof changeSchema.type {
+  const { createdAt, editedAt, synced, ...rest } = change;
+  //@ts-ignore
+  delete rest.data?.status;
+  //@ts-ignore
+  delete rest.data?.type;
+  //@ts-ignore
+  delete rest.oldData?.status;
+  //@ts-ignore
+  delete rest.oldData?.type;
 
-  if (newChange.data.editedAt)
-    newChange.data.editedAt = newChange.data.editedAt.valueOf();
-  if (newChange.data.createdAt)
-    newChange.data.createdAt = newChange.data.createdAt.valueOf();
-  if (newChange.oldData?.editedAt)
-    newChange.oldData.editedAt = newChange.oldData.editedAt.valueOf();
-  if (newChange.oldData?.createdAt)
-    newChange.oldData.createdAt = newChange.oldData.createdAt.valueOf();
-  if (newChange.createdAt) newChange.createdAt = newChange.createdAt.valueOf();
-  if (newChange.editedAt) newChange.editedAt = newChange.editedAt.valueOf();
+  const serverChange = (
+    rest.type == "create"
+      ? {
+          ...rest,
+          data: {
+            ...rest.data,
+            editedAt: rest.data.editedAt.valueOf(),
+            createdAt: rest.data.createdAt.valueOf(),
+          },
+          //@ts-ignore
+          oldData: undefined,
+          createdAt: createdAt.valueOf(),
+          editedAt: editedAt.valueOf(),
+        }
+      : rest.type == "delete"
+        ? {
+            ...rest,
+            data: { ...rest.data },
+            oldData: {
+              ...rest.oldData,
+              editedAt: rest.oldData.editedAt.valueOf(),
+              createdAt: rest.oldData.createdAt.valueOf(),
+            },
+            createdAt: createdAt.valueOf(),
+            editedAt: editedAt.valueOf(),
+          }
+        : {
+            ...rest,
+            data: {
+              ...rest.data,
+              editedAt: rest.data.editedAt.valueOf(),
+              createdAt: rest.data.createdAt.valueOf(),
+            },
+            oldData: {
+              ...rest.oldData,
+              editedAt: rest.oldData.editedAt.valueOf(),
+              createdAt: rest.oldData.createdAt.valueOf(),
+            },
+            createdAt: createdAt.valueOf(),
+            editedAt: editedAt.valueOf(),
+          }
+  ) satisfies typeof changeSchema.type;
 
-  delete newChange.data.status;
-  delete newChange.data.type;
-  delete newChange.synced;
-
-  return newChange;
+  return serverChange;
 }
 
 function adapterClientFromServer(change: RemoteChange): LocalChange {
-  const newChange = {
-    ...change,
-    data: change.data && { ...change.data },
-    oldData: change.oldData && { ...change.oldData },
-    synced: true,
-  };
-
-  if (newChange.data.editedAt)
-    newChange.data.editedAt = new Date(newChange.data.editedAt);
-  if (newChange.data.createdAt)
-    newChange.data.createdAt = new Date(newChange.data.createdAt);
-  if (newChange.oldData?.editedAt)
-    newChange.oldData.editedAt = new Date(newChange.oldData.editedAt);
-  if (newChange.oldData?.createdAt)
-    newChange.oldData.createdAt = new Date(newChange.oldData.createdAt);
-  if (newChange.createdAt) newChange.createdAt = new Date(newChange.createdAt);
-  if (newChange.editedAt) newChange.editedAt = new Date(newChange.editedAt);
+  const newChange = (
+    change.type == "delete"
+      ? {
+          ...change,
+          data: { ...change.data },
+          oldData: {
+            ...change.oldData,
+            status: "server",
+            type: change.table as any,
+            createdAt: new Date(change.oldData.createdAt),
+            editedAt: new Date(change.oldData.editedAt),
+          },
+          synced: true,
+          createdAt: new Date(change.createdAt),
+          editedAt: new Date(change.editedAt),
+        }
+      : change.type == "create"
+        ? {
+            ...change,
+            data: {
+              ...change.data,
+              createdAt: new Date(change.data.createdAt),
+              editedAt: new Date(change.data.editedAt),
+              status: "server",
+              type: change.table as any,
+            },
+            oldData: undefined,
+            synced: true,
+            createdAt: new Date(change.createdAt),
+            editedAt: new Date(change.editedAt),
+          }
+        : {
+            ...change,
+            data: {
+              ...change.data,
+              createdAt: new Date(change.data.createdAt),
+              editedAt: new Date(change.data.editedAt),
+              status: "server",
+              type: change.table as any,
+            },
+            oldData: {
+              ...change.oldData,
+              status: "server",
+              type: change.table as any,
+              createdAt: new Date(change.oldData.createdAt),
+              editedAt: new Date(change.oldData.editedAt),
+            },
+            synced: true,
+            createdAt: new Date(change.createdAt),
+            editedAt: new Date(change.editedAt),
+          }
+  ) satisfies LocalChange;
 
   return newChange;
 }
@@ -89,9 +157,9 @@ export class Resolver {
     if (!change) throw new Error("Change not found");
     const remoteChange = adapterServerFromClient(change);
     //TODO: file upload needs to be implemented
-    const res = await convex.mutation(api.change.create, remoteChange);
-    console.log("res", remoteChange, change);
-    console.log("res", res);
+    const res = await convex.mutation(api.change.create, {
+      args: remoteChange,
+    });
     if (res.success) {
       this.applyChanges(adapterClientFromServer(res.change));
     } else {
@@ -104,26 +172,17 @@ export class Resolver {
 
   async applyChanges(change: LocalChange) {
     const checkChange = await this.changeService.getOne(change.id);
-    console.log("change", change, checkChange);
     if (checkChange && checkChange.synced) return;
 
     switch (change.type) {
       case "create":
         this.dataDBService.create({
           ...change.data,
-          editedAt: new Date(change.data.editedAt),
-          createdAt: new Date(change.data.createdAt),
-          type: change.table as any,
-          status: "server",
         });
         break;
       case "update":
         this.dataDBService.update({
           ...change.data,
-          editedAt: new Date(change.data.editedAt),
-          createdAt: new Date(change.data.createdAt),
-          type: change.table as any,
-          status: "server",
         });
         break;
       case "delete":

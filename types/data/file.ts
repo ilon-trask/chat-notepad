@@ -1,11 +1,12 @@
+import { WithoutSystemFields } from "convex/server";
 import { FILE_LABEL } from "../../constants/labels";
 import { Doc } from "../../convex/_generated/dataModel";
 
-export type RemoteFileType = Doc<"files">;
+export type RemoteFileType = WithoutSystemFields<Doc<"files">>;
 
 export type LocalFileType = Omit<
   RemoteFileType,
-  "_id" | "storageId" | "_creationTime" | "editedAt" | "createdAt"
+  "storageId" | "editedAt" | "createdAt"
 > & {
   file: Blob;
   editedAt: Date;

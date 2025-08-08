@@ -9,16 +9,25 @@ export type RemoteChange = WithoutSystemFields<
 
 type Change = Omit<RemoteChange, "createdAt" | "editedAt" | "userId">;
 
-type CreateChange = Omit<Change, "type" | "oldData"> & {
+type CreateChange = Omit<Change, "type" | "oldData" | "data"> & {
   type: "create";
   oldData: undefined;
-};
-type OtherChange = Omit<Change, "type" | "oldData"> & {
-  type: "update" | "delete";
-  oldData: Data;
+  data: Data;
 };
 
-export type LocalChange = (CreateChange | OtherChange) & {
+type UpdateChange = Omit<Change, "type" | "oldData" | "data"> & {
+  type: "update";
+  oldData: Data;
+  data: Data;
+};
+
+type DeleteChange = Omit<Change, "type" | "oldData" | "data"> & {
+  type: "delete";
+  oldData: Data;
+  data: { id: string };
+};
+
+export type LocalChange = (CreateChange | UpdateChange | DeleteChange) & {
   synced: boolean;
   createdAt: Date;
   editedAt: Date;
