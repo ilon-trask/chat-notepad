@@ -43,13 +43,12 @@ export default function CreateChatDialog({
           `Can't update chat: chat with id="${chatDialogStore.chatId}" does not exist`
         );
 
-      chatService.update({
-        id: chatDialogStore.chatId,
+      chatService.update(chat.id, {
         name: data.name,
-        type: "chat",
         status: "pending",
         editedAt: new Date(),
         createdAt: chat.createdAt,
+        type: "chat",
       });
     } else {
       const newChat = await chatService.create({

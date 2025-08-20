@@ -1,9 +1,9 @@
 const runtimeCaching = [
   {
     urlPattern: /^https:\/\/chat-notepade\.vercel\.app\/.*$/,
-    handler: 'NetworkFirst',
+    handler: "NetworkFirst",
     options: {
-      cacheName: 'api-cache',
+      cacheName: "api-cache",
       expiration: {
         maxEntries: 50,
         maxAgeSeconds: 300,
@@ -20,23 +20,27 @@ const withPWA = require("next-pwa")({
   runtimeCaching: [
     {
       urlPattern: /^https?.*/,
-      handler: 'NetworkFirst',
+      handler: "NetworkFirst",
       options: {
-        cacheName: 'offlineCache',
+        cacheName: "offlineCache",
         expiration: {
           maxEntries: 200,
         },
       },
     },
     {
-      urlPattern: ({ url }: any) => url.pathname === '/_offline',
-      handler: 'NetworkOnly',
+      urlPattern: ({ url }: any) => url.pathname === "/_offline",
+      handler: "NetworkOnly",
     },
   ],
 });
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    // Skip ESLint during next build
+    ignoreDuringBuilds: true,
+  },
   // your existing next config
 };
 

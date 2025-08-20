@@ -28,6 +28,7 @@ export default function previewFileUploadHandler(
       editedAt: new Date(),
       name: file.name,
       status: "pending",
+      type: "file",
     });
 
     res.push(file);

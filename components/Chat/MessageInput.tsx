@@ -64,7 +64,7 @@ export default function MessageInput() {
           }
         })
       );
-      
+
       const message = messages.find(
         (el) => el.id == messageInputStore.messageId
       );
@@ -74,13 +74,12 @@ export default function MessageInput() {
           `Can't update message: message with id="${messageInputStore.messageId}" does not exist`
         );
 
-      messageService.update({
+      messageService.update(messageInputStore.messageId, {
         chatId,
         type: "message",
         content: data.message,
         editedAt: new Date(),
         createdAt: message.createdAt,
-        id: messageInputStore.messageId,
         status: "pending",
       });
       messageInputStore.cancelEditing();

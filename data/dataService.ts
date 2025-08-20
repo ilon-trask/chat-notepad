@@ -6,14 +6,14 @@ import { ChangeTypes } from "@/types/change";
 
 export type UniType = { id: string; createdAt: Date; editedAt: Date };
 
-export type IDataService = LocalDataService<Data, Data, Data>;
+export type IDataService = LocalDataService<Data>;
 
 export class DataService implements IDataService {
-  localDBService: LocalDBService<Data, Data, Data>;
+  localDBService: LocalDBService<Data>;
   changeService: ChangeService;
 
   constructor(
-    localDBService: LocalDBService<Data, Data, Data>,
+    localDBService: LocalDBService<Data>,
     changeDBService: ChangeService
   ) {
     this.localDBService = localDBService;
@@ -33,18 +33,21 @@ export class DataService implements IDataService {
   }
 
   async create(data: Data) {
-    const res = await this.changeService.create(data);
-    return res;
+    await this.changeService.create(data);
+    const optimistic = await this.localDBService.create(data);
+    return optimistic;
   }
 
-  async update(data: Data) {
-    const res = await this.changeService.update(data);
-    return res;
+  async update(id: string, data: Partial<Omit<Data, "id">>) {
+    await this.changeService.update(id, { ...data });
+    const optimistic = await this.localDBService.update(id, { ...data });
+    return optimistic;
   }
 
   async delete(id: string) {
-    const res = await this.changeService.delete(id);
-    return res;
+    await this.changeService.delete(id);
+    const optimistic = await this.localDBService.delete(id);
+    return optimistic;
   }
 
   subscribe(callback: (id: string, type: ChangeTypes) => void) {

@@ -1,9 +1,10 @@
+import { WithoutSystemFields } from "convex/server";
 import { CHAT_LABEL } from "../../constants/labels";
 import { Doc } from "../../convex/_generated/dataModel";
 
 export type LocalChat = Omit<
-  Doc<"chats">,
-  "_id" | "_creationTime" | "createdAt" | "editedAt" | "userId"
+  WithoutSystemFields<Doc<"chats">>,
+  "createdAt" | "editedAt" | "userId"
 > & {
   createdAt: Date;
   editedAt: Date;

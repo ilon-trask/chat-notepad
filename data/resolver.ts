@@ -5,6 +5,8 @@ import { api } from "@/convex/_generated/api";
 import { LocalChange, RemoteChange } from "@/types/change";
 import { Data } from "@/types/data/data";
 import { changeSchema } from "@/convex/schema";
+import tryCatch from "@/helpers/tryCatch";
+import { FILE_LABEL } from "@/constants/labels";
 
 function adapterServerFromClient(
   change: LocalChange
@@ -18,6 +20,10 @@ function adapterServerFromClient(
   delete rest.oldData?.status;
   //@ts-ignore
   delete rest.oldData?.type;
+  //@ts-ignore
+  delete rest.data?.file;
+  //@ts-ignore
+  delete rest.oldData?.file;
 
   const serverChange = (
     rest.type == "create"
@@ -124,24 +130,22 @@ function adapterClientFromServer(change: RemoteChange): LocalChange {
 
 export class Resolver {
   constructor(
-    private dataDBService: LocalDBService<Data, Data, Data>,
-    private changeDBService: LocalDBService<
-      LocalChange,
-      LocalChange,
-      LocalChange
-    >,
+    private localDBService: LocalDBService<Data>,
+    private changeDBService: LocalDBService<LocalChange>,
     private changeService: ChangeService
   ) {}
 
   subscribeResolver() {
     convex.watchQuery(api.change.getAll).onUpdate(async () => {
       const res = await convex.query(api.change.getAll, {});
+      console.log("changes: ", res);
       this.resolver(res);
     });
   }
 
   resolver(res: RemoteChange[]) {
     res.forEach(async (change) => {
+      console.log("loop change:", change);
       this.applyChanges(adapterClientFromServer(change));
     });
   }
@@ -152,20 +156,86 @@ export class Resolver {
     });
   }
 
+  async uploadFileHandler(file: Blob) {
+    const url = await convex.mutation(api.files.generateUploadUrl);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+    const {
+      storageId,
+    }: {
+      storageId: string | null | undefined;
+    } = await res.json();
+    if (!storageId) throw new Error("file upload fail");
+    return storageId;
+  }
+
+  async serveFile(storageId: string) {
+    const getImageUrl = new URL(
+      `${process.env.NEXT_PUBLIC_CONVEX_SITE_URL}/getImage`
+    );
+    getImageUrl.searchParams.set("storageId", storageId);
+    console.log("getImageUrl", getImageUrl, getImageUrl.href);
+    const res = await fetch(getImageUrl);
+    const blob = await res.blob();
+    return blob;
+  }
+
   async sendChangesHandler(id: string) {
     const change = await this.changeService.getOne(id);
     if (!change) throw new Error("Change not found");
+    if (change.type != "delete") {
+      if (change.data.type == FILE_LABEL) {
+        const storageId = await this.uploadFileHandler(change.data.file);
+        change.data.storageId = storageId;
+      }
+    }
+
     const remoteChange = adapterServerFromClient(change);
-    //TODO: file upload needs to be implemented
-    const res = await convex.mutation(api.change.create, {
-      args: remoteChange,
-    });
-    if (res.success) {
-      this.applyChanges(adapterClientFromServer(res.change));
-    } else {
+    const [error, res] = await tryCatch(
+      convex.mutation(api.change.create, { args: remoteChange })
+    );
+    if (error) {
+      if (error.message == "no such entity") {
+        //delete the entry and change
+        return;
+      } else if (error.message == "older change was applied") {
+        //delete the entry and change
+      }
+      this.rollbackChangesHandler(change);
+      throw error;
     }
   }
 
+  async rollbackChangesHandler(change: LocalChange) {
+    switch (change.type) {
+      case "create":
+        this.localDBService.delete(change.data.id);
+        break;
+
+      case "delete":
+        if (change.oldData.type == FILE_LABEL) {
+          const blob = await this.serveFile(change.oldData.storageId!);
+          change.oldData.file = blob;
+        }
+        this.localDBService.create(change.oldData);
+        break;
+
+      case "update":
+        if (change.oldData.type == FILE_LABEL) {
+          const blob = await this.serveFile(change.oldData.storageId!);
+          change.oldData.file = blob;
+        }
+        this.localDBService.update(change.oldData.id, change.oldData);
+        break;
+
+      default:
+        const _exhaustive: never = change;
+        return _exhaustive;
+    }
+  }
   subscribeSendChanges() {
     this.subscribeLocal(this.sendChangesHandler.bind(this));
   }
@@ -176,22 +246,27 @@ export class Resolver {
 
     switch (change.type) {
       case "create":
-        this.dataDBService.create({
-          ...change.data,
-        });
+        if (change.data.type == FILE_LABEL) {
+          const blob = await this.serveFile(change.data.storageId!);
+          change.data.file = blob;
+        }
+        this.localDBService.create({ ...change.data });
         break;
       case "update":
-        this.dataDBService.update({
-          ...change.data,
-        });
+        if (change.data.type == FILE_LABEL) {
+          const blob = await this.serveFile(change.data.storageId!);
+          change.data.file = blob;
+        }
+        this.localDBService.update(change.data.id, { ...change.data });
         break;
       case "delete":
-        this.dataDBService.delete(change.data.id);
+        console.log("delete try: ", change.data.id);
+        this.localDBService.delete(change.data.id);
         break;
     }
 
     if (checkChange) {
-      await this.changeDBService.update(change, false);
+      await this.changeDBService.update(change.id, change, false);
     } else {
       await this.changeDBService.create(change, false);
     }

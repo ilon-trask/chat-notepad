@@ -1,26 +1,26 @@
 import { CHANGE_LABEL } from "@/constants/labels";
+import { MANDATORY_FIELDS } from "@/convex/schema";
+import { LocalChange } from "@/types/change";
+import { Data } from "@/types/data/data";
+import { Dexie, EntityTable } from "dexie";
 
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 export const DATA_LABEL = "data";
 
-export async function createLocalDB(): Promise<IDBDatabase> {
-  const db: IDBDatabase | DOMException = await new Promise(
-    (resolve, reject) => {
-      const request = indexedDB.open("DB", DB_VERSION);
-      request.onupgradeneeded = (event) => {
-        if (!event.target) throw new Error("localDB not found");
-        //@ts-ignore
-        const db = event.target.result;
-        [DATA_LABEL, CHANGE_LABEL].forEach((lable) => {
-          if (!db.objectStoreNames.contains(lable)) {
-            db.createObjectStore(lable, { keyPath: "id" });
-          }
-        });
-      };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    }
-  );
-  if (db instanceof DOMException) throw db;
+export type DB = Dexie & {
+  [DATA_LABEL]: EntityTable<Data, "id">;
+  [CHANGE_LABEL]: EntityTable<LocalChange, "id">;
+};
+
+const db = new Dexie("DB") as DB;
+
+const FIELDS = Object.keys(MANDATORY_FIELDS).join(", ");
+
+db.version(DB_VERSION).stores({
+  [DATA_LABEL]: FIELDS,
+  [CHANGE_LABEL]: FIELDS,
+});
+
+export function createLocalDB(): DB {
   return db;
 }

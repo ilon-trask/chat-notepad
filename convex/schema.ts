@@ -1,28 +1,35 @@
 import { defineSchema, defineTable } from "convex/server";
-import { v, VFloat64 } from "convex/values";
+import { v, VFloat64, VString } from "convex/values";
 
 type MandatoryFields = {
+  id: VString<string, "required">;
   createdAt: VFloat64<number, "required">;
   editedAt: VFloat64<number, "required">;
 };
 
+export const MANDATORY_FIELDS = {
+  id: v.string(),
+  createdAt: v.number(),
+  editedAt: v.number(),
+};
+
 function addMandatoryFields<T>(schema: T): T & MandatoryFields {
-  return { ...schema, createdAt: v.number(), editedAt: v.number() };
+  return {
+    ...schema,
+    ...MANDATORY_FIELDS,
+  };
 }
 
 export const messagesSchema = addMandatoryFields({
-  id: v.string(),
   content: v.string(),
   chatId: v.string(),
 });
 
 export const chatsSchema = addMandatoryFields({
-  id: v.string(),
   name: v.string(),
 });
 
 export const filesSchema = addMandatoryFields({
-  id: v.string(),
   name: v.string(),
   storageId: v.string(),
   messageId: v.string(),
@@ -35,7 +42,6 @@ export const dataSchema = v.union(
 );
 
 const changeObj = addMandatoryFields({
-  id: v.string(),
   table: v.string(),
 });
 

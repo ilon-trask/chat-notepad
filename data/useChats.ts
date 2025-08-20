@@ -1,30 +1,16 @@
-import { LocalChat } from "@/types/data/chat";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useServicesContext } from "@/components/ServicesProvider";
+import { useLiveQuery } from "dexie-react-hooks";
 
 function useChats() {
-  const [chats, setChats] = useState<LocalChat[]>([]);
   const { chatService } = useServicesContext();
-  //TODO: remove filters
-  useEffect(() => {
-    const unsubscribe = chatService.subscribe(async () => {
-      setChats(
-        (await chatService.getAll())
-          .filter((el) => el.type == "chat")
-          .sort((a, b) => a.createdAt.valueOf() - b.createdAt.valueOf())
-      );
-    });
-    (async () => {
-      setChats(
-        (await chatService.getAll())
-          .filter((el) => el.type == "chat")
-          .sort((a, b) => a.createdAt.valueOf() - b.createdAt.valueOf())
-      );
-    })();
-    return () => {
-      unsubscribe();
-    };
-  }, []);
+
+  const chats =
+    useLiveQuery(async () =>
+      (await chatService.getAll())
+        .filter((el) => el.type == "chat")
+        .sort((a, b) => a.createdAt.valueOf() - b.createdAt.valueOf())
+    ) ?? [];
 
   const getChatById = (chatId: string) => {
     return useMemo(() => {

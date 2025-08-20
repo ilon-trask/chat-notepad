@@ -1,21 +1,18 @@
-import { LocalMessage } from "@/types/data/message";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useServicesContext } from "@/components/ServicesProvider";
+import { useLiveQuery } from "dexie-react-hooks";
 
 function useMessages() {
-  const [messages, setMessages] = useState<LocalMessage[]>([]);
   const { messageService } = useServicesContext();
-  useEffect(() => {
-    const unsubscribe = messageService.subscribe(async () => {
-      setMessages(await messageService.getAll());
-    });
-    (async () => {
-      setMessages(await messageService.getAll());
-    })();
-    return () => {
-      unsubscribe();
-    };
-  }, []);
+
+  const messages =
+    useLiveQuery(async () => {
+      const messages = await messageService.getAll();
+      const res = messages
+        .filter((el) => el.type == "message")
+        .sort((a, b) => a.createdAt.valueOf() - b.createdAt.valueOf());
+      return res;
+    }) || [];
 
   const getMessageForChat = (chatId: string) => {
     return useMemo(() => {

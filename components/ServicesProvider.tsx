@@ -32,15 +32,14 @@ export default function useServices(): Return {
   });
 
   useEffect(() => {
-    const dataDB = new LocalDBService<Data, Data, Data>(DATA_LABEL);
-    const changeDB = new LocalDBService<LocalChange, LocalChange, LocalChange>(
-      CHANGE_LABEL
-    );
+    const dataDB = new LocalDBService<Data>(DATA_LABEL);
+    const changeDB = new LocalDBService<LocalChange>(CHANGE_LABEL);
     const changeService = new ChangeService(changeDB, dataDB);
     const dataService = new DataService(dataDB, changeService);
     const resolver = new Resolver(dataDB, changeDB, changeService);
     resolver.subscribeResolver();
     resolver.subscribeSendChanges();
+    // change services to data service
     setServices({
       chatService: dataService as any,
       fileService: dataService as any,
@@ -52,9 +51,9 @@ export default function useServices(): Return {
 }
 
 interface ServicesContextType {
-  chatService: LocalDBService<LocalChat, LocalChat, LocalChat>;
-  messageService: LocalDBService<LocalMessage, LocalMessage, LocalMessage>;
-  fileService: LocalDBService<LocalFileType, LocalFileType, LocalFileType>;
+  chatService: LocalDBService<LocalChat>;
+  messageService: LocalDBService<LocalMessage>;
+  fileService: LocalDBService<LocalFileType>;
 }
 
 const ServiceContext = createContext<ServicesContextType | null>(null);

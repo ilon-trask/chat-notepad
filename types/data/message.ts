@@ -1,9 +1,10 @@
+import { WithoutSystemFields } from "convex/server";
 import { MESSAGE_LABEL } from "../../constants/labels";
 import { Doc } from "../../convex/_generated/dataModel";
 
 export type LocalMessage = Omit<
-  Doc<"messages">,
-  "_id" | "_creationTime" | "createdAt" | "editedAt"
+  WithoutSystemFields<Doc<"messages">>,
+  "createdAt" | "editedAt"
 > & {
   createdAt: Date;
   editedAt: Date;

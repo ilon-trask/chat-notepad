@@ -1,4 +1,3 @@
-"use client";
 import Chat from "@/components/Chat/Chat";
 
 function PageContent({}: { chatId: string }) {

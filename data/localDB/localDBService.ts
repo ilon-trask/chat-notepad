@@ -1,14 +1,14 @@
 import { DataService } from "@/types/dataService";
-import { createLocalDB, DATA_LABEL } from "./createLocalDB";
-import { ChangeTypes } from "@/types/change";
+import { createLocalDB, DATA_LABEL, DB } from "./createLocalDB";
+import { ChangeTypes, LocalChange } from "@/types/change";
 import { CHANGE_LABEL } from "@/constants/labels";
+import { Data } from "@/types/data/data";
+import { v4 as uuid } from "uuid";
 
-const DB_METHODS = ["add", "put", "getAll", "delete", "clear"] as const;
-
-export class LocalDBService<TCreate, TUpdate, TReturn extends TCreate | TUpdate>
-  implements DataService<TCreate, TUpdate, TReturn>
+export class LocalDBService<T extends Data | LocalChange>
+  implements DataService<T>
 {
-  private _db: Promise<IDBDatabase>;
+  private _db: DB;
   subscribers: Array<(id: string, type: ChangeTypes) => void>;
   label: typeof DATA_LABEL | typeof CHANGE_LABEL;
 
@@ -18,85 +18,43 @@ export class LocalDBService<TCreate, TUpdate, TReturn extends TCreate | TUpdate>
     this.subscribers = [];
   }
 
-  async DBResPromise<T>(req: IDBRequest<T>): Promise<T> {
-    const res = await new Promise((resolve, reject) => {
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-    if (res instanceof DOMException) throw res;
-    return res as T;
-  }
-
-  protected _changeDBType(localDB: Promise<IDBObjectStore>) {
-    type LocalDB = Omit<
-      Awaited<typeof localDB>,
-      (typeof DB_METHODS)[number]
-    > & {
-      getOne: (id: string) => Promise<TReturn | undefined>;
-      add: (value: TCreate) => Promise<IDBValidKey>;
-      put: (value: TUpdate) => Promise<IDBValidKey>;
-      getAll: () => Promise<TReturn[]>;
-      delete: (id: string) => Promise<undefined>;
-      clear: () => Promise<undefined>;
-    };
-    return localDB.then((db) => {
-      const { put, add, getAll, clear, delete: deleteDB, get, ...rest } = db;
-      const newLocalDB = {
-        ...rest,
-        getOne: async (...args) => await this.DBResPromise(get.apply(db, args)),
-        put: async (...args) => await this.DBResPromise(put.apply(db, args)),
-        getAll: async (...args) =>
-          await this.DBResPromise(getAll.apply(db, args)),
-        add: async (...args) => await this.DBResPromise(add.apply(db, args)),
-        clear: async (...args) =>
-          await this.DBResPromise(clear.apply(db, args)),
-        delete: async (...args) =>
-          await this.DBResPromise(deleteDB.apply(db, args)),
-      } as LocalDB;
-
-      return newLocalDB;
-    });
-  }
-
-  protected async _getStore(mode: "readonly" | "readwrite") {
-    const transaction = this._db.then((db) => db.transaction(this.label, mode));
-    const DB = transaction.then((t) => t.objectStore(this.label));
-    return this._changeDBType(DB);
-  }
-
   async getAll() {
-    const DB = await this._getStore("readonly");
-    const res = await DB.getAll();
-    return res;
+    const res = await this._db[this.label].toArray();
+    return res as T[];
   }
 
   async getOne(id: string) {
-    const DB = await this._getStore("readonly");
-    const res = await DB.getOne(id);
-    return res;
+    const res = await this._db[this.label].get(id);
+    return res as T | undefined;
   }
 
-  async create(data: TCreate, notify: boolean = true) {
-    console.log("create update", data);
-    const DB = await this._getStore("readwrite");
-    const req = await DB.add(data);
+  async create(data: T, notify: boolean = true) {
+    //@ts-ignore
+    const req = await this._db[this.label].add(data);
     if (notify) this.notifySubscribers(req as string, "create");
-    return data as TReturn;
+    return data as T;
   }
 
   async delete(id: string, notify: boolean = true) {
-    const DB = await this._getStore("readwrite");
-    const req = await DB.delete(id);
+    const req = await this._db[this.label].delete(id);
     if (notify) this.notifySubscribers(id, "delete");
     return true;
   }
 
-  async update(data: TUpdate, notify: boolean = true) {
-    console.log("change update", data);
-    const DB = await this._getStore("readwrite");
-    const req = await DB.put(data);
-    if (notify) this.notifySubscribers(req as string, "update");
-    return data as TReturn;
+  async update(
+    id: string,
+    data: Partial<Omit<T, "id">>,
+    notify: boolean = true
+  ) {
+    const entity = await this.getOne(id);
+    if (!entity) throw new Error("no such entity in local db");
+    //@ts-ignore
+    const req = await this._db[this.label].update(id, {
+      ...entity,
+      ...data,
+    });
+    if (notify) this.notifySubscribers(req.toString(), "update");
+    return data as T;
   }
 
   subscribe(callback: (id: string, type: ChangeTypes) => void) {

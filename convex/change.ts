@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { CHANGE_LABEL, PLURALS } from "../constants/labels";
 import { changeSchema } from "./schema";
+import { cronJobs } from "convex/server";
 
 export const getAll = query({
   handler: async (ctx) => {
@@ -38,7 +39,9 @@ export const create = mutation({
         case "create":
           await ctx.db.insert(PLURALS[table], {
             ...args.data,
-            userId: user?.subject!,
+
+            //@ts-ignore
+            userId: table == "chat" ? user?.subject! : undefined,
           });
           const created = await ctx.db
             .query(PLURALS[table])
@@ -75,33 +78,34 @@ export const create = mutation({
       }
     }
 
-    try {
-      const lastChange = await ctx.db
-        .query(PLURALS[CHANGE_LABEL])
-        .filter((q) =>
-          q.and(
-            q.eq(q.field("userId"), user.subject),
-            q.eq(q.field("table"), args.table)
-          )
+    const lastChange = await ctx.db
+      .query(PLURALS[CHANGE_LABEL])
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("userId"), user.subject),
+          q.eq(q.field("table"), args.table)
         )
-        .first();
+      )
+      .first();
 
-      if (lastChange) {
-        if (lastChange.createdAt > args.createdAt)
-          throw new Error("older change was applied");
-      }
-      const newChangeId = await ctx.db.insert(PLURALS[CHANGE_LABEL], {
-        ...args,
-        userId: user.subject,
-      });
-      const data = await performChange(args.table as any);
-      const change = args;
-      change.data = data as any;
-      const newChange = await ctx.db.get(newChangeId);
-      if (!newChange) throw new Error("change wan't created");
-      return { success: true, change: newChange } as const;
-    } catch (error) {
-      return { success: false } as const;
+    if (lastChange) {
+      if (lastChange.createdAt > args.createdAt)
+        throw new Error("older change was applied");
     }
+    const newChangeId = await ctx.db.insert(PLURALS[CHANGE_LABEL], {
+      ...args,
+      userId: user.subject,
+    });
+    const data = await performChange(args.table as any);
+    const change = args;
+    change.data = data as any;
+    const newChange = await ctx.db.get(newChangeId);
+    if (!newChange) throw new Error("change wan't created");
+    return { success: true, change: newChange } as const;
   },
 });
+
+
+const crons = cronJobs()
+
+// crons.daily('delete old changes',)

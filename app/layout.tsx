@@ -70,7 +70,7 @@ export default async function RootLayout({
                 disableTransitionOnChange
               >
                 {children}
-                {/* <CommandMenu /> */}
+                <CommandMenu />
                 <Toaster position="top-right" duration={TOAST_DURATION} />
               </ThemeProvider>
             </ServiceProvider>

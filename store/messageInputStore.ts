@@ -1,4 +1,4 @@
-import { LocalFileType } from "@/types/file.types";
+import { LocalFileType } from "@/types/data/file";
 import { create } from "zustand";
 
 export type MessageInputStore = {
@@ -31,7 +31,11 @@ export const useMessageInputStore = create<MessageInputStore>((set) => ({
   setMessage: (message: string) => set({ message }),
   setIsUpdate: (isUpdate: boolean) => set({ isUpdate }),
   setMessageId: (messageId: string) => set({ messageId }),
-  startEditing: (messageId: string, messageText: string, files: LocalFileType[]) =>
+  startEditing: (
+    messageId: string,
+    messageText: string,
+    files: LocalFileType[]
+  ) =>
     set({
       messageId,
       message: messageText,

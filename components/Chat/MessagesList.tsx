@@ -10,10 +10,13 @@ export default function MessagesList() {
   const params = useParams();
   const chatId = params.chatId as string;
   const messages = useMessages().getMessageForChat(chatId);
+  console.log("chatId: ", chatId, "messages: ", messages.length);
   const { isDragging } = useDragAndDrop();
   console.log("isDragging", isDragging);
 
-  const [dateMap, setDateMap] = useState<Map<string, LocalMessage[]>>(new Map());
+  const [dateMap, setDateMap] = useState<Map<string, LocalMessage[]>>(
+    new Map()
+  );
 
   useEffect(() => {
     const newMap = new Map<string, LocalMessage[]>();
