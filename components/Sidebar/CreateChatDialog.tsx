@@ -16,7 +16,6 @@ import { Plus } from "lucide-react";
 import { SizeVariant } from "@/types/sizeVariant";
 import { useServicesContext } from "../ServicesProvider";
 import useChats from "@/data/useChats";
-import { useRouter } from "next/navigation";
 import { v4 as uuid } from "uuid";
 
 type ChatFormData = {
@@ -29,7 +28,6 @@ export default function CreateChatDialog({
   variant: SizeVariant;
 }) {
   const { chatService } = useServicesContext();
-  const router = useRouter();
   const chatDialogStore = useChatDialogStore();
 
   const chat = useChats().getChatById(chatDialogStore.chatId);
@@ -52,7 +50,7 @@ export default function CreateChatDialog({
         editedAt: new Date(),
         createdAt: new Date(),
       });
-      router.push(`/${newChat.id}`);
+      window.history.pushState({}, "", `/${newChat.id}`);
     }
     chatDialogStore.setIsOpen(false);
   };

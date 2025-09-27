@@ -12,7 +12,6 @@ import { SizeVariant } from "@/types/sizeVariant";
 import { Muted, Small } from "../Typography";
 import useIsMobile from "@/hooks/useIsMobile";
 import { useServicesContext } from "../ServicesProvider";
-import Link from "next/link";
 
 export default function ChatItem({
   type = "button",
@@ -35,7 +34,11 @@ export default function ChatItem({
 
   return (
     <div data-testid="ChatItemGroup" className="relative group">
-      <Link href={`/${id}`}>
+      <div
+        onClick={() => {
+          window.history.pushState({}, "", `/${id}`);
+        }}
+      >
         <Button
           data-testid="ChatItemButton"
           type={type}
@@ -63,7 +66,7 @@ export default function ChatItem({
             </div>
           </div>
         </Button>
-      </Link>
+      </div>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

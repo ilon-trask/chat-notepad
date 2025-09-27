@@ -1,23 +1,18 @@
+"use client";
 import React, { useEffect, useRef, useState } from "react";
 import { type LocalMessage } from "@/types/data/message";
 import { Badge } from "../ui/badge";
 import MessageItem from "./MessageItem";
-import { useDragAndDrop } from "../DrapAndDropPrivider";
 import useMessages from "@/data/useMessages";
-import { useParams } from "next/navigation";
+import { useDynamicChatId } from "@/hooks/useDynamicChatId";
 
 export default function MessagesList() {
-  const params = useParams();
-  const chatId = params.chatId as string;
+  const chatId = useDynamicChatId();
   const messages = useMessages().getMessageForChat(chatId);
-  console.log("chatId: ", chatId, "messages: ", messages.length);
-  const { isDragging } = useDragAndDrop();
-  console.log("isDragging", isDragging);
 
   const [dateMap, setDateMap] = useState<Map<string, LocalMessage[]>>(
     new Map()
   );
-  console.log("dateMap", dateMap);
   useEffect(() => {
     const newMap = new Map<string, LocalMessage[]>();
     messages.forEach((message) => {

@@ -10,9 +10,9 @@ import { toast } from "sonner";
 import { useServicesContext } from "../ServicesProvider";
 import previewFileUploadHandler from "@/data/fileUploadHandler";
 import FileBubble from "./FileBubble";
-import { useParams } from "next/navigation";
 import { v4 as uuid } from "uuid";
 import useMessages from "@/data/useMessages";
+import { useDynamicChatId } from "@/hooks/useDynamicChatId";
 
 type MessageInputForm = {
   message: string;
@@ -20,8 +20,8 @@ type MessageInputForm = {
 
 export default function MessageInput() {
   const { messageService, fileService } = useServicesContext();
-  const params = useParams();
-  const chatId = params.chatId as string;
+  const chatId = useDynamicChatId();
+
   const messageInputStore = useMessageInputStore();
   const { messages } = useMessages();
 

@@ -1,12 +1,12 @@
+"use client";
 import CreateChatDialog from "./CreateChatDialog";
 import ChatItem from "./ChatItem";
 import { SizeVariant } from "@/types/sizeVariant";
 import useChats from "@/data/useChats";
-import { useParams } from "next/navigation";
+import { useDynamicChatId } from "@/hooks/useDynamicChatId";
 
 export default function ChatList({ variant }: { variant: SizeVariant }) {
-  const params = useParams();
-  const chatId = params.chatId as string;
+  const chatId = useDynamicChatId();
   const { chats } = useChats();
 
   return (

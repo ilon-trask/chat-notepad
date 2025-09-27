@@ -26,10 +26,11 @@ function adapterServerFromClient(
   return serverChange;
 }
 
-function adapterClientFromServer(change: RemoteChange): LocalChange {
+async function adapterClientFromServer(change: RemoteChange): Promise<LocalChange> {
+  const adapter = enetitiesAdapter[change.table as Labels];
   const newChange = {
     ...change,
-    data: { ...change.data } as any,
+    data: await adapter.toClient({ ...change.data, type: change.table as Labels }) as any,
     synced: false,
     createdAt: new Date(change.createdAt),
     editedAt: new Date(change.editedAt),
@@ -38,82 +39,6 @@ function adapterClientFromServer(change: RemoteChange): LocalChange {
 
   return newChange;
 }
-
-// export class Old {
-//   constructor(
-//     private localDBService: LocalDBService<Data>,
-//     private changeDBService: LocalDBService<LocalChange>,
-//     private changeService: ChangeService
-//   ) { }
-
-//   subscribeResolver() {
-//     convex.watchQuery(api.change.getAll).onUpdate(async () => {
-//       const res = await convex.query(api.change.getAll, {});
-//       console.log("changes: ", res);
-//       this.resolver(res);
-//     });
-//   }
-
-//   resolver(res: RemoteChange[]) {
-//     res.forEach(async (change) => {
-//       console.log("loop change:", change);
-//       this.applyChanges(adapterClientFromServer(change));
-//     });
-//   }
-
-//   private subscribeLocal(callback: (id: string, type: string) => void) {
-//     this.changeService.subscribe(async (id: string, type: string) => {
-//       if (type == "create") callback(id, type);
-//     });
-//   }
-
-//   async sendChangesHandler(id: string) {
-//     const change = await this.changeService.getOne(id);
-//     if (!change) throw new Error("Change not found");
-
-//     const remoteChange = adapterServerFromClient(change);
-//     const [error, res] = await tryCatch(
-//       convex.mutation(api.change.create, { args: remoteChange })
-//     );
-//     if (error) {
-//       if (error.message == "no such entity") {
-//         //delete the entry and change
-//         return;
-//       } else if (error.message == "older change was applied") {
-//         //delete the entry and change
-//       }
-//       throw error;
-//     }
-//   }
-
-//   subscribeSendChanges() {
-//     this.subscribeLocal(this.sendChangesHandler.bind(this));
-//   }
-
-//   async applyChanges(change: LocalChange) {
-//     const checkChange = await this.changeService.getOne(change.id);
-//     if (checkChange && checkChange.synced) return;
-
-//     switch (change.type) {
-//       case "create":
-//         this.localDBService.create({ ...change.data });
-//         break;
-//       case "update":
-//         this.localDBService.update(change.data.id, { ...change.data });
-//         break;
-//       case "delete":
-//         console.log("delete try: ", change.data.id);
-//         this.localDBService.delete(change.data.id);
-//         break;
-//     }
-
-//     if (checkChange) {
-//       await this.changeDBService.update(change.id, change);
-//     } else {
-//       await this.changeDBService.create(change);
-//     }
-//   }
-// }
 
 export class Resolver {
   constructor(
@@ -175,13 +100,10 @@ export class Resolver {
   async sendChangesHandler(id: string) {
     const change = await this.changeService.getOne(id);
     if (!change) throw new Error("Change not found");
-    console.log('change', change)
     const adapter = enetitiesAdapter[change.table as Labels];
     const remoteChange = adapterServerFromClient(change);
     const toServerChange = await adapter.toServer(remoteChange.data);
     remoteChange.data = toServerChange;
-    console.log('toServerChange', remoteChange);
-    console.log('adapter', adapter.constructor.name)
     const [error, res] = await tryCatch(
       convex.mutation(api.change.create, { args: remoteChange })
     );
@@ -193,11 +115,7 @@ export class Resolver {
       }
       throw error;
     }
-    console.log('from server', res.change)
-    const clientChange = adapterClientFromServer(res.change);
-    clientChange.data = await adapter.toClient({
-      ...clientChange.data, type: change.table, status: "pending"
-    });
+    const clientChange = await adapterClientFromServer(res.change);
     await this.applyChangesFromServer(clientChange);
   }
 
@@ -223,9 +141,8 @@ export class Resolver {
   }
   resolver(res: RemoteChange[]) {
     res.forEach(async (change) => {
-      const adapter = enetitiesAdapter[change.table as Labels];
-      const clientChange = adapterClientFromServer(change);
-      clientChange.data = await adapter.toClient({ ...clientChange.data, type: change.table });
+      ;
+      const clientChange = await adapterClientFromServer(change);
       this.applyChangesFromServer(clientChange);
     });
   }

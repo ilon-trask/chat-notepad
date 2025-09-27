@@ -1,14 +1,15 @@
+"use client";
 import React from "react";
 import ChatHeader from "./ChatHeader";
 import MessagesList from "./MessagesList";
 import MessageInput from "./MessageInput";
 import { cn } from "@/lib/utils";
 import { DragAndDropProvider } from "../DrapAndDropPrivider";
-import { useParams } from "next/navigation";
+import { useDynamicChatId } from "@/hooks/useDynamicChatId";
 
 function Chat() {
-  const params = useParams();
-  const chosenChatId = params.chatId as string;
+  const chosenChatId = useDynamicChatId();
+  console.log("chosenChatId", chosenChatId);
   return (
     <DragAndDropProvider className={cn("flex flex-col h-full")}>
       <ChatHeader />

@@ -1,5 +1,4 @@
-import { Labels, PLURALS } from "@/constants/labels";
-import { Id } from "@/convex/_generated/dataModel";
+import { Labels } from "@/constants/labels";
 import { Data, ServerData } from "@/types/data/data";
 
 export interface Entity {
@@ -22,5 +21,5 @@ export interface SyncEntity {
 
 export interface Adapter {
   toServer: (data: Partial<Data>) => Promise<Partial<ServerData>>;
-  toClient: (data: Partial<ServerData>) => Promise<Partial<Data>>;
+  toClient: (data: Partial<ServerData & { type: Labels }>) => Promise<Partial<Data>>;
 }
