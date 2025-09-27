@@ -1,5 +1,4 @@
 import { DefaultServer } from "./deafultServer";
-import { Id } from "@/convex/_generated/dataModel";
 import { PLURALS } from "@/constants/labels";
 import { Labels, FILE_LABEL } from "@/constants/labels";
 import { FileServer } from "./fileServer";
@@ -20,7 +19,7 @@ export class MessageServer extends DefaultServer implements ServerEntity {
       .filter((q) => q.eq(q.field("messageId"), id))
       .collect();
 
-    await Promise.all(files.map((file) => this.fileServer.delete(file._id)));
+    await Promise.all(files.map((file) => this.fileServer.delete(file.id)));
 
     return super.delete(id, table);
   }
