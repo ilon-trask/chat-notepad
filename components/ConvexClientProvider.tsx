@@ -4,10 +4,9 @@ import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ReactNode } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { ENV } from "@/lib/env";
 
-export const convex = new ConvexReactClient(
-  process.env.NEXT_PUBLIC_CONVEX_URL!
-);
+export const convex = new ConvexReactClient(ENV.NEXT_PUBLIC_CONVEX_URL!);
 
 export function ConvexClientProvider({
   children,

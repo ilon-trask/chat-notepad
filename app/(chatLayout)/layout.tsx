@@ -9,6 +9,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import useSyncIndexDbAndView from "@/data/useSyncIndexDbAndView";
 import useDynamicFavicon from "@/hooks/useDynamicFavicon";
 import useIsMobile from "@/hooks/useIsMobile";
 import useMaxMinPanelWidth from "@/hooks/useMaxMinPanelWidth";
@@ -27,6 +28,7 @@ function Layout({}: Readonly<{
 
   useDynamicFavicon();
   useSync();
+  useSyncIndexDbAndView();
 
   if (isMobile) {
     if (chatId) {

@@ -8,8 +8,6 @@ export const FILE_LABEL = "file" as const;
 export const CHANGE_LABEL = "change" as const;
 
 export const LABELS = [CHAT_LABEL, MESSAGE_LABEL, FILE_LABEL] as const;
-export const SYSTEM_LABELS = [FILE_LABEL] as const;
-export const ALL_LABELS = [...LABELS, ...SYSTEM_LABELS] as const;
 export const PLURALS = {
   chat: "chats",
   message: "messages",
@@ -18,7 +16,6 @@ export const PLURALS = {
 } as const;
 
 export type Labels = (typeof LABELS)[number];
-export type AllLabels = (typeof ALL_LABELS)[number];
 
 export type LocalDBServiceMethods = {
   [MESSAGE_LABEL]: {

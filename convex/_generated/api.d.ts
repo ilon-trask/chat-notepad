@@ -14,10 +14,16 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as change from "../change.js";
-import type * as chats from "../chats.js";
+import type * as data from "../data.js";
+import type * as entities_chatServer from "../entities/chatServer.js";
+import type * as entities_deafultServer from "../entities/deafultServer.js";
+import type * as entities_entities from "../entities/entities.js";
+import type * as entities_fileServer from "../entities/fileServer.js";
+import type * as entities_interface from "../entities/interface.js";
+import type * as entities_messageServer from "../entities/messageServer.js";
 import type * as files from "../files.js";
+import type * as helpers from "../helpers.js";
 import type * as http from "../http.js";
-import type * as messages from "../messages.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -29,10 +35,16 @@ import type * as messages from "../messages.js";
  */
 declare const fullApi: ApiFromModules<{
   change: typeof change;
-  chats: typeof chats;
+  data: typeof data;
+  "entities/chatServer": typeof entities_chatServer;
+  "entities/deafultServer": typeof entities_deafultServer;
+  "entities/entities": typeof entities_entities;
+  "entities/fileServer": typeof entities_fileServer;
+  "entities/interface": typeof entities_interface;
+  "entities/messageServer": typeof entities_messageServer;
   files: typeof files;
+  helpers: typeof helpers;
   http: typeof http;
-  messages: typeof messages;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

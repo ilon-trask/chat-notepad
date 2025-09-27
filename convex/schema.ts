@@ -14,10 +14,7 @@ export const MANDATORY_FIELDS = {
 };
 
 function addMandatoryFields<T>(schema: T): T & MandatoryFields {
-  return {
-    ...schema,
-    ...MANDATORY_FIELDS,
-  };
+  return { ...schema, ...MANDATORY_FIELDS };
 }
 
 export const messagesSchema = addMandatoryFields({
@@ -31,40 +28,25 @@ export const chatsSchema = addMandatoryFields({
 
 export const filesSchema = addMandatoryFields({
   name: v.string(),
-  storageId: v.string(),
+  storageId: v.id("_storage"),
   messageId: v.string(),
 });
 
-export const dataSchema = v.union(
-  v.object(messagesSchema),
-  v.object(chatsSchema),
-  v.object(filesSchema)
-);
-
 const changeObj = addMandatoryFields({
   table: v.string(),
+  index: v.int64(),
 });
 
 const createChangeSchema = <T>(obj: T) => {
-  return v.union(
-    v.object({
-      ...obj,
-      type: v.literal("create"),
-      data: dataSchema,
-    }),
-    v.object({
-      ...obj,
-      type: v.literal("update"),
-      data: dataSchema,
-      oldData: dataSchema,
-    }),
-    v.object({
-      ...obj,
-      type: v.literal("delete"),
-      data: v.object({ id: v.string() }),
-      oldData: dataSchema,
-    })
-  );
+  return v.object({
+    ...obj,
+    type: v.union(
+      v.literal("create"),
+      v.literal("update"),
+      v.literal("delete")
+    ),
+    data: v.record(v.string(), v.any()),
+  });
 };
 
 export const changeSchema = createChangeSchema(changeObj);
@@ -81,5 +63,7 @@ export default defineSchema({
     .index("by_my_id", ["id"]),
   changes: defineTable(createChangeSchema({ ...changeObj, userId: v.string() }))
     .index("by_my_id", ["id"])
-    .index("by_user_id", ["userId"]),
+    .index("by_user_id", ["userId"])
+    .index("by_index", ["index"])
+    .index("by_user_id_index", ["userId", "index"]),
 });

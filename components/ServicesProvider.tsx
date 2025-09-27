@@ -17,6 +17,8 @@ import { CHANGE_LABEL } from "@/constants/labels";
 import { ChangeService } from "@/data/changeService";
 import { LocalChange } from "@/types/change";
 import { DataService } from "@/data/dataService";
+import useUIStore from "@/data/UIStore";
+import { DataService as IDataService } from "@/types/dataService";
 
 type NullableServicesContextType = {
   [K in keyof ServicesContextType]: ServicesContextType[K] | null;
@@ -31,19 +33,20 @@ export default function useServices(): Return {
     fileService: null,
   });
 
+  const UIStore = useUIStore();
+
   useEffect(() => {
     const dataDB = new LocalDBService<Data>(DATA_LABEL);
     const changeDB = new LocalDBService<LocalChange>(CHANGE_LABEL);
     const changeService = new ChangeService(changeDB, dataDB);
-    const dataService = new DataService(dataDB, changeService);
-    const resolver = new Resolver(dataDB, changeDB, changeService);
+    const dataService = new DataService(dataDB, changeService, UIStore);
+    const resolver = new Resolver(dataDB, changeDB, changeService, UIStore);
     resolver.subscribeResolver();
     resolver.subscribeSendChanges();
-    // change services to data service
     setServices({
-      chatService: dataService as any,
-      fileService: dataService as any,
-      messageService: dataService as any,
+      chatService: dataService as IDataService<LocalChat>,
+      fileService: dataService as IDataService<LocalFileType>,
+      messageService: dataService as IDataService<LocalMessage>,
     });
   }, []);
 
@@ -51,9 +54,9 @@ export default function useServices(): Return {
 }
 
 interface ServicesContextType {
-  chatService: LocalDBService<LocalChat>;
-  messageService: LocalDBService<LocalMessage>;
-  fileService: LocalDBService<LocalFileType>;
+  chatService: IDataService<LocalChat>;
+  messageService: IDataService<LocalMessage>;
+  fileService: IDataService<LocalFileType>;
 }
 
 const ServiceContext = createContext<ServicesContextType | null>(null);

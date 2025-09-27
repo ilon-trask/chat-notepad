@@ -11,20 +11,17 @@ type Change = Omit<RemoteChange, "createdAt" | "editedAt" | "userId">;
 
 type CreateChange = Omit<Change, "type" | "oldData" | "data"> & {
   type: "create";
-  oldData: undefined;
   data: Data;
 };
 
 type UpdateChange = Omit<Change, "type" | "oldData" | "data"> & {
   type: "update";
-  oldData: Data;
-  data: Data;
+  data: Partial<Data> & { id: Data["id"] };
 };
 
 type DeleteChange = Omit<Change, "type" | "oldData" | "data"> & {
   type: "delete";
-  oldData: Data;
-  data: { id: string };
+  data: { id: Data["id"] };
 };
 
 export type LocalChange = (CreateChange | UpdateChange | DeleteChange) & {

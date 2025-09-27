@@ -1,8 +1,9 @@
 import { TODO } from "@/types/types";
 import { auth } from "@clerk/nextjs/server";
+import { ENV } from "./env";
 
 function myAuth(): typeof auth {
-  const isTest = process.env.NEXT_PUBLIC_APP_ENV === "test";
+  const isTest = ENV.NEXT_PUBLIC_APP_ENV === "test";
   if (isTest) {
     console.warn("test environment detected, using mock auth");
     //@ts-ignore

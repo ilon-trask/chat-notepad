@@ -33,7 +33,6 @@ export default function ChatItem({
   const isMobile = useIsMobile();
   const { chatService } = useServicesContext();
 
-
   return (
     <div data-testid="ChatItemGroup" className="relative group">
       <Link href={`/${id}`}>
@@ -83,6 +82,7 @@ export default function ChatItem({
         </DropdownMenuTrigger>
         <DropdownMenuContent data-testid="ChatDropdownMenu" align="end">
           <DropdownMenuItem
+            className="cursor-pointer"
             data-testid="ChatEditButton"
             onClick={() => {
               chatDialogStore.startEditing(id);
@@ -92,8 +92,8 @@ export default function ChatItem({
             <span>Edit</span>
           </DropdownMenuItem>
           <DropdownMenuItem
+            className="cursor-pointer text-destructive"
             data-testid="ChatDeleteButton"
-            className="text-destructive"
             onClick={() => {
               chatService.delete(id);
             }}

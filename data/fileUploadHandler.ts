@@ -27,7 +27,6 @@ export default function previewFileUploadHandler(
       createdAt: new Date(),
       editedAt: new Date(),
       name: file.name,
-      status: "pending",
       type: "file",
     });
 

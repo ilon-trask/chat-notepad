@@ -3,14 +3,19 @@ import { LocalDataService } from "@/types/dataService";
 import { LocalDBService } from "./localDB/localDBService";
 import { v4 as uuid } from "uuid";
 import { Data } from "@/types/data/data";
+import { Labels } from "@/constants/labels";
 
 export type IChangeService = LocalDataService<Data, LocalChange>;
 
 export class ChangeService implements IChangeService {
+  subscribers: Array<(id: string, type: ChangeTypes) => void>;
+
   constructor(
     private changeDBService: LocalDBService<LocalChange>,
     private dataDBServide: LocalDBService<Data>
-  ) {}
+  ) {
+    this.subscribers = [];
+  }
 
   async getAll() {
     const res = (await this.changeDBService.getAll()) as LocalChange[];
@@ -24,65 +29,64 @@ export class ChangeService implements IChangeService {
     return res as LocalChange | undefined;
   }
 
-  async create(data: Data, notify: boolean = true) {
-    const res = await this.changeDBService.create(
-      {
-        id: uuid(),
-        data,
-        type: "create",
-        createdAt: new Date(),
-        editedAt: new Date(),
-        oldData: undefined,
-        synced: true,
-        table: data.type,
-      },
-      notify
-    );
+  async create(data: Data) {
+    const changes = await this.changeDBService.getAll();
+    changes.sort((a, b) => Number(a.index - b.index));
+    const res = await this.changeDBService.create({
+      id: uuid(),
+      data,
+      type: "create",
+      createdAt: new Date(),
+      editedAt: new Date(),
+      synced: false,
+      table: data.type,
+      index: BigInt(changes.at(-1)?.index ?? -1) + BigInt(1),
+    });
+    this.notifySubscribers(res.id, res.type);
     return res;
   }
 
-  async update(
-    id: string,
-    data: Partial<Omit<Data, "id">>,
-    notify: boolean = true
-  ) {
-    const oldData = await this.dataDBServide.getOne(id);
-    if (!oldData) throw new Error("No Item with id " + id + " found");
-    const res = await this.changeDBService.create(
-      {
-        id: uuid(),
-        data: { ...oldData, ...data } as Data,
-        type: "update",
-        createdAt: new Date(),
-        editedAt: new Date(),
-        oldData,
-        synced: true,
-        table: oldData.type,
-      },
-      notify
-    );
+  async update(id: string, data: Partial<Omit<Data, "id">> & { type: Labels }) {
+    const changes = await this.changeDBService.getAll();
+    changes.sort((a, b) => Number(a.index - b.index));
+    const res = await this.changeDBService.create({
+      id: uuid(),
+      data: { id, ...data } as Partial<Data> & { id: string },
+      type: "update",
+      createdAt: new Date(),
+      editedAt: new Date(),
+      synced: false,
+      table: data.type,
+      index: BigInt(changes.at(-1)?.index ?? -1) + BigInt(1),
+    });
+    this.notifySubscribers(res.id, res.type);
     return res;
   }
 
-  async delete(id: string, notify: boolean = true) {
-    const oldData = await this.dataDBServide.getOne(id);
-    if (!oldData) throw new Error("No Item with id " + id + " found");
-    const res = await this.changeDBService.create(
-      {
-        id: uuid(),
-        data: { id },
-        type: "delete",
-        createdAt: new Date(),
-        editedAt: new Date(),
-        oldData,
-        table: oldData.type as string,
-        synced: true,
-      },
-      notify
-    );
+  async delete(id: string) {
+    const data = await this.dataDBServide.getOne(id);
+    if (!data) throw new Error("No Item with id " + id + " found");
+    const changes = await this.changeDBService.getAll();
+    changes.sort((a, b) => Number(a.index - b.index));
+    const res = await this.changeDBService.create({
+      id: uuid(),
+      data: { id },
+      type: "delete",
+      createdAt: new Date(),
+      editedAt: new Date(),
+      table: data.type,
+      synced: false,
+      index: BigInt(changes.at(-1)?.index ?? -1) + BigInt(1),
+    });
+    this.notifySubscribers(res.id, res.type);
     return true;
   }
+
   subscribe(callback: (id: string, type: ChangeTypes) => void) {
-    return this.changeDBService.subscribe(callback);
+    this.subscribers.push(callback);
+    return () => this.subscribers.filter((sub) => sub !== callback);
+  }
+  notifySubscribers(id: string, type: ChangeTypes) {
+    this.subscribers.forEach((sub) => sub(id, type));
   }
 }

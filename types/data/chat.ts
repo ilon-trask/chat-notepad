@@ -2,13 +2,14 @@ import { WithoutSystemFields } from "convex/server";
 import { CHAT_LABEL } from "../../constants/labels";
 import { Doc } from "../../convex/_generated/dataModel";
 
+export type ServerChat = WithoutSystemFields<Doc<"chats">>;
+
 export type LocalChat = Omit<
-  WithoutSystemFields<Doc<"chats">>,
+  ServerChat,
   "createdAt" | "editedAt" | "userId"
 > & {
   createdAt: Date;
   editedAt: Date;
-  status: "pending" | "server";
   type: typeof CHAT_LABEL;
 };
 

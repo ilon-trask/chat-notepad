@@ -5,11 +5,16 @@ import MessageItem from "./MessageItem";
 import { useDragAndDrop } from "../DrapAndDropPrivider";
 import useMessages from "@/data/useMessages";
 import { useParams } from "next/navigation";
+import useUIStore from "@/data/UIStore";
 
 export default function MessagesList() {
   const params = useParams();
   const chatId = params.chatId as string;
   const messages = useMessages().getMessageForChat(chatId);
+  // const UIStore = useUIStore();
+
+  // const messages = UIStore.getAll();
+
   console.log("chatId: ", chatId, "messages: ", messages.length);
   const { isDragging } = useDragAndDrop();
   console.log("isDragging", isDragging);
@@ -17,19 +22,23 @@ export default function MessagesList() {
   const [dateMap, setDateMap] = useState<Map<string, LocalMessage[]>>(
     new Map()
   );
-
-  useEffect(() => {
-    const newMap = new Map<string, LocalMessage[]>();
-    messages.forEach((message) => {
-      const date = message.createdAt.toLocaleDateString();
-      if (newMap.has(date)) {
-        newMap.set(date, [...(newMap.get(date) || []), message]);
-      } else {
-        newMap.set(date, [message]);
-      }
-    });
-    setDateMap(newMap);
-  }, [messages, chatId]);
+  console.log("dateMap", dateMap);
+  useEffect(
+    () => {
+      const newMap = new Map<string, LocalMessage[]>();
+      messages.forEach((message) => {
+        const date = message.createdAt.toLocaleDateString();
+        if (newMap.has(date)) {
+          newMap.set(date, [...(newMap.get(date) || []), message]);
+        } else {
+          newMap.set(date, [message]);
+        }
+      });
+      setDateMap(newMap);
+    },
+    [messages,chatId]
+    // [chatId]
+  );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

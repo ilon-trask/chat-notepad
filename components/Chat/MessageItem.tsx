@@ -9,9 +9,8 @@ import { Edit, Trash2 } from "lucide-react";
 import { Card } from "../ui/card";
 import { cn } from "@/lib/utils";
 import { Pre } from "../Typography";
-import { useEffect, useState } from "react";
-import { LocalFileType } from "@/types/data/file";
 import { useServicesContext } from "../ServicesProvider";
+import useFiles from "@/data/useFiles";
 
 export default function MessageItem({
   children,
@@ -24,7 +23,7 @@ export default function MessageItem({
   createdAt: Date;
 }) {
   const messageInputStore = useMessageInputStore();
-  const { fileService, messageService } = useServicesContext();
+  const { messageService } = useServicesContext();
 
   const handleEdit = () => {
     //timeout to prevent menu stealing focus form message input
@@ -33,26 +32,9 @@ export default function MessageItem({
     }, 200);
   };
 
-  const [files, setFiles] = useState<LocalFileType[]>([]);
+  const files = useFiles().getFilesByMessageId(id);
 
-  useEffect(() => {
-    (async () => {
-      const newFiels = (await fileService.getAll()).filter(
-        (el) => el.messageId == id
-      );
-      if (
-        newFiels
-          .map((el) => el.name)
-          .sort()
-          .toString() !=
-        files
-          .map((el) => el.name)
-          .sort()
-          .toString()
-      )
-        setFiles(newFiels);
-    })();
-  });
+  console.log("messageId", id, "files", files);
 
   return (
     <ContextMenu>

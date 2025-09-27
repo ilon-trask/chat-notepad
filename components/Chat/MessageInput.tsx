@@ -75,12 +75,8 @@ export default function MessageInput() {
         );
 
       messageService.update(messageInputStore.messageId, {
-        chatId,
         type: "message",
         content: data.message,
-        editedAt: new Date(),
-        createdAt: message.createdAt,
-        status: "pending",
       });
       messageInputStore.cancelEditing();
     } else {
@@ -91,7 +87,6 @@ export default function MessageInput() {
         chatId,
         createdAt: new Date(),
         editedAt: new Date(),
-        status: "pending",
       });
       await Promise.all(
         messageInputStore.fileUpload.map(async (el) => {

@@ -79,7 +79,6 @@ export default function MenuSheet() {
               <Switch
                 checked={settings.privateMode}
                 onCheckedChange={() => {
-                  console.log("onChange");
                   setSettings({
                     ...settings,
                     privateMode: !settings.privateMode,

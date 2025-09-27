@@ -1,16 +1,12 @@
 import { useMemo } from "react";
-import { useServicesContext } from "@/components/ServicesProvider";
-import { useLiveQuery } from "dexie-react-hooks";
+import useUIStore from "./UIStore";
 
 function useChats() {
-  const { chatService } = useServicesContext();
+  const UIStore = useUIStore();
 
-  const chats =
-    useLiveQuery(async () =>
-      (await chatService.getAll())
-        .filter((el) => el.type == "chat")
-        .sort((a, b) => a.createdAt.valueOf() - b.createdAt.valueOf())
-    ) ?? [];
+  const chats = UIStore.getAll()
+    .filter((el) => el.type == "chat")
+    .sort((a, b) => a.createdAt.valueOf() - b.createdAt.valueOf());
 
   const getChatById = (chatId: string) => {
     return useMemo(() => {
