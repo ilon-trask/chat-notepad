@@ -52,7 +52,7 @@ export default function MessageInput() {
       );
       files.forEach((file) => {
         if (!messageInputStore.fileUpload.find((el) => el.id === file.id)) {
-          fileService.delete(file.id);
+          fileService.delete(file.id, file.type);
         }
       });
 

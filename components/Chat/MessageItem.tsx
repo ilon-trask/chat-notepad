@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { Pre } from "../Typography";
 import { useServicesContext } from "../ServicesProvider";
 import useFiles from "@/data/useFiles";
+import { MESSAGE_LABEL } from "@/constants/labels";
 
 export default function MessageItem({
   children,
@@ -73,7 +74,7 @@ export default function MessageItem({
           data-testid="MessageDeleteButton"
           className="text-destructive"
           onClick={() => {
-            messageService.delete(id);
+            messageService.delete(id, MESSAGE_LABEL);
           }}
         >
           <Trash2 className="mr-2 h-4 w-4 text-destructive" />

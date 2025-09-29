@@ -46,8 +46,8 @@ export class DataService implements IDataService<Data> {
     return optimistic;
   }
 
-  async delete(id: string) {
-    await this.changeService.delete(id);
+  async delete(id: string, type: Labels) {
+    await this.changeService.delete(id, type);
     const optimistic = this.UIStore.delete(id);
     return optimistic;
   }

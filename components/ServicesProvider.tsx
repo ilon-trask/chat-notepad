@@ -19,6 +19,7 @@ import { LocalChange } from "@/types/change";
 import { DataService } from "@/data/dataService";
 import useUIStore from "@/data/UIStore";
 import { DataService as IDataService } from "@/types/dataService";
+import isOnline from "@/helpers/isOnline";
 
 type NullableServicesContextType = {
   [K in keyof ServicesContextType]: ServicesContextType[K] | null;
@@ -41,13 +42,36 @@ export default function useServices(): Return {
     const changeService = new ChangeService(changeDB, dataDB);
     const dataService = new DataService(dataDB, changeService, UIStore);
     const resolver = new Resolver(dataDB, changeDB, changeService, UIStore);
-    resolver.subscribeResolver();
-    resolver.subscribeSendChanges();
+
     setServices({
       chatService: dataService as IDataService<LocalChat>,
       fileService: dataService as IDataService<LocalFileType>,
       messageService: dataService as IDataService<LocalMessage>,
     });
+
+    const onlineFunc = () => {
+      resolver.subscribeResolver();
+      resolver.subscribeSendChanges();
+      resolver.subscribeOfflineResolver();
+    };
+
+    if (isOnline()) {
+      onlineFunc();
+    } else {
+    }
+
+    const offlineFunc = () => {
+      console.log("offline");
+    };
+
+    const unsub = resolver.loadOfflineUIChanges();
+    window.addEventListener("online", onlineFunc);
+    window.addEventListener("offline", offlineFunc);
+    return () => {
+      window.removeEventListener("online", onlineFunc);
+      window.removeEventListener("offline", offlineFunc);
+      unsub();
+    };
   }, []);
 
   return services;

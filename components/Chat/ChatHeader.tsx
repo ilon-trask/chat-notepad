@@ -4,12 +4,11 @@ import useIsMobile from "@/hooks/useIsMobile";
 import { Button } from "../ui/button";
 import { ArrowLeft } from "lucide-react";
 import useChats from "@/data/useChats";
-import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { useDynamicChatId } from "@/hooks/useDynamicChatId";
 
 export default function ChatHeader() {
-  const params = useParams();
-  const chatId = params.chatId as string;
+  const chatId = useDynamicChatId();
   const router = useRouter();
   const chat = useChats().getChatById(chatId);
   const isMobile = useIsMobile();

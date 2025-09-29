@@ -9,12 +9,10 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import useSyncIndexDbAndView from "@/data/useSyncIndexDbAndView";
+import { useDynamicChatId } from "@/hooks/useDynamicChatId";
 import useDynamicFavicon from "@/hooks/useDynamicFavicon";
 import useIsMobile from "@/hooks/useIsMobile";
 import useMaxMinPanelWidth from "@/hooks/useMaxMinPanelWidth";
-import useSync from "@/hooks/useSyncOnConnection";
-import { useParams } from "next/navigation";
 import React, { useState } from "react";
 
 function Layout({}: Readonly<{
@@ -23,12 +21,9 @@ function Layout({}: Readonly<{
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { maxSize, minSize } = useMaxMinPanelWidth();
   const isMobile = useIsMobile();
-  const params = useParams();
-  const chatId = params.chatId as string;
+  const chatId = useDynamicChatId();
 
   useDynamicFavicon();
-  useSync();
-  useSyncIndexDbAndView();
 
   if (isMobile) {
     if (chatId) {

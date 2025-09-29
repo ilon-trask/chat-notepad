@@ -7,7 +7,7 @@ export type DataService<T extends DBRecord, R = T> = {
   getAll: () => Promise<R[]>;
   getOne: (id: T["id"]) => Promise<R | undefined>;
   create: (data: T) => Promise<R>;
-  delete: (id: T["id"]) => Promise<boolean>;
+  delete: (id: T["id"], type: Labels) => Promise<boolean>;
   update: (
     id: T["id"],
     data: Partial<Omit<T, "id">> & { type: Labels }

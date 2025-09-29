@@ -63,9 +63,7 @@ export class ChangeService implements IChangeService {
     return res;
   }
 
-  async delete(id: string) {
-    const data = await this.dataDBServide.getOne(id);
-    if (!data) throw new Error("No Item with id " + id + " found");
+  async delete(id: string, type: Labels) {
     const changes = await this.changeDBService.getAll();
     changes.sort((a, b) => Number(a.index - b.index));
     const res = await this.changeDBService.create({
@@ -74,7 +72,7 @@ export class ChangeService implements IChangeService {
       type: "delete",
       createdAt: new Date(),
       editedAt: new Date(),
-      table: data.type,
+      table: type,
       synced: false,
       index: BigInt(changes.at(-1)?.index ?? -1) + BigInt(1),
     });

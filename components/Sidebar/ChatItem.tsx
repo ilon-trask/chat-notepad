@@ -12,6 +12,7 @@ import { SizeVariant } from "@/types/sizeVariant";
 import { Muted, Small } from "../Typography";
 import useIsMobile from "@/hooks/useIsMobile";
 import { useServicesContext } from "../ServicesProvider";
+import { CHAT_LABEL } from "@/constants/labels";
 
 export default function ChatItem({
   type = "button",
@@ -98,7 +99,7 @@ export default function ChatItem({
             className="cursor-pointer text-destructive"
             data-testid="ChatDeleteButton"
             onClick={() => {
-              chatService.delete(id);
+              chatService.delete(id, CHAT_LABEL);
             }}
           >
             <Trash2 className="mr-2 h-4 w-4 text-destructive" />

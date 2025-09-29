@@ -1,8 +1,8 @@
 import previewFileUploadHandler from "@/data/fileUploadHandler";
+import { useDynamicChatId } from "@/hooks/useDynamicChatId";
 import useIsDragging from "@/hooks/useIsDragging";
 import { cn } from "@/lib/utils";
 import { useMessageInputStore } from "@/store/messageInputStore";
-import { useParams } from "next/navigation";
 import React, {
   createContext,
   useContext,
@@ -28,9 +28,8 @@ export function DragAndDropProvider({
   children,
   className,
 }: DragAndDropProviderProps) {
-  const params = useParams();
-  const chosenChatId = params.chatId as string;
-  
+  const chosenChatId = useDynamicChatId();
+
   const dragZoneRef = useRef<HTMLDivElement>(null);
 
   const messageInputStore = useMessageInputStore();
@@ -47,8 +46,7 @@ export function DragAndDropProvider({
   const value = { isDragging };
 
   const RenderDropZoneContent = () => {
-    const params = useParams();
-    const chatId = params.chatId as string;
+    const chatId = useDynamicChatId();
 
     if (isDragging && chatId) {
       return (

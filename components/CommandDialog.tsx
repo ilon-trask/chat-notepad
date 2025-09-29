@@ -14,14 +14,12 @@ import { useMessageInputStore } from "@/store/messageInputStore";
 import { useEffect } from "react";
 import { useServicesContext } from "./ServicesProvider";
 import useChats from "@/data/useChats";
-import { useParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useDynamicChatId } from "@/hooks/useDynamicChatId";
+import { CHAT_LABEL } from "@/constants/labels";
 
 export default function CommandMenu() {
   const commandStore = useCommandStore();
-  const params = useParams();
-  const chatId = params.chatId as string;
-  const router = useRouter();
+  const chatId = useDynamicChatId();
   const chatDialogStore = useChatDialogStore();
   const { chatService } = useServicesContext();
   const messageInputStore = useMessageInputStore();
@@ -68,7 +66,7 @@ export default function CommandMenu() {
               </CommandItem>
               <CommandItem
                 onSelect={() => {
-                  chatService.delete(chatId);
+                  chatService.delete(chatId, CHAT_LABEL);
                   commandStore.setIsOpen(false);
                 }}
               >
@@ -83,7 +81,7 @@ export default function CommandMenu() {
             <CommandItem
               key={el.id}
               onSelect={() => {
-                router.push(`/${el.id}`);
+                window.history.pushState({}, "", `/${el.id}`);
                 commandStore.setIsOpen(false);
                 messageInputStore.startFocus();
               }}
