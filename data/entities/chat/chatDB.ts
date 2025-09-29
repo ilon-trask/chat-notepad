@@ -23,6 +23,6 @@ export class ChatDB extends LocalDBService<LocalChat> implements Entity {
 
     await Promise.all(messages.map((msg) => this.messageDB.delete(msg.id)));
 
-    return super.delete(id);
+    return await super.delete(id);
   }
 }

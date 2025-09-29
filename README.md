@@ -7,12 +7,17 @@
 [x] - should get changes to state when return in offline
 [x] - should get up to date on first load online
 [] - work flow from first visit to use
+[] - revalidate data if it's old
+[] - revalidate data button
+[] - show errors of mutations as toasts
 
 ### nice to have
 
+[] - storage availablility check
 [] - use indexedDb to store input state (when user returns to application state should presist)
-[x] - redirect from non-existing chats
+[] - redirect from non-existing chats
 [] - figure out non-image file handling
+[] - offline mode button
 
 ## Issues
 

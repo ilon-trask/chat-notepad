@@ -66,7 +66,6 @@ export class Resolver {
         const changes = await this.changeDBService.getAll();
         const newChanges = changes.filter((el) => !el.synced);
         newChanges.sort((a, b) => Number(BigInt(a.index) - BigInt(b.index)));
-        console.log("new changes", newChanges);
         newChanges.forEach((change) => {
           this.applyChangesToUI(change);
         });
@@ -76,17 +75,6 @@ export class Resolver {
       },
     });
     return sub.unsubscribe;
-    // useLiveQuery(async () => {
-    //   const data = await this.localDBService.getAll();
-    //   this.UIStore.set(data);
-    //   if (isOnline()) return;
-    //   const changes = await this.changeDBService.getAll();
-    //   const newChanges = changes.filter((el) => !el.synced);
-    //   console.log("new changes", newChanges);
-    //   newChanges.forEach((change) => {
-    //     this.applyChangesToUI(change);
-    //   });
-    // });
   }
 
   applyChangesToUI(change: LocalChange) {
@@ -111,16 +99,15 @@ export class Resolver {
     console.log("apply change", change);
     switch (change.type) {
       case "create":
-        db.create({ ...change.data });
+        await db.create({ ...change.data });
         break;
       case "update":
-        db.update(change.data.id, { ...change.data });
+        await db.update(change.data.id, { ...change.data });
         break;
       case "delete":
-        db.delete(change.data.id);
+        await db.delete(change.data.id);
         break;
     }
-
     if (checkChange) {
       await this.changeDBService.update(change.id, { ...change, synced: true });
     } else {
@@ -129,7 +116,6 @@ export class Resolver {
   }
 
   async sendChangesHandler(change: typeof changeSchema.type) {
-    if (!isOnline()) return;
     const [error, res] = await tryCatch(
       convex.mutation(api.change.create, { args: change })
     );
@@ -141,36 +127,43 @@ export class Resolver {
       }
       throw error;
     }
-    this.resolver([res.change]);
   }
 
   subscribeSendChanges() {
-    this.subscribeLocal(async (id: string) => {
+    const unsub = this.subscribeLocal(async (id: string) => {
       const change = await this.changeService.getOne(id);
       if (!change) throw new Error("Change not found");
       const remoteChange = await adapterServerFromClient(change);
       this.sendChangesHandler.call(this, remoteChange);
     });
+    return unsub;
   }
 
   private subscribeLocal(callback: (id: string, type: string) => void) {
-    this.changeService.subscribe(async (id: string, type: string) => {
-      callback(id, type);
+    return this.changeService.subscribe(callback);
+  }
+
+  async subscribeResolver(): Promise<() => void> {
+    const changes = await this.changeService.getAll();
+    changes.sort((a, b) => Number(BigInt(a.index) - BigInt(b.index)));
+    console.log("changes", changes);
+    let index = changes.at(-1)?.index ?? BigInt(0);
+    return await new Promise((resolver, rej) => {
+      const unsub = convex
+        .watchQuery(api.change.getAfter, { index })
+        .onUpdate(async () => {
+          const changes = await this.changeService.getAll();
+          changes.sort((a, b) => Number(BigInt(a.index) - BigInt(b.index)));
+          index = changes.at(-1)?.index ?? BigInt(0);
+          const res = await convex.query(api.change.getAfter, { index });
+          res.sort((a, b) => Number(a.index - b.index));
+          index = res.at(-1)?.index ?? index;
+          await this.resolver(res);
+          resolver(unsub);
+        });
     });
   }
 
-  async subscribeResolver() {
-    if (!isOnline()) return;
-    const change = await this.changeService.getAll();
-    change.sort((a, b) => Number(BigInt(a.index) - BigInt(b.index)));
-    let index = change.at(-1)?.index ?? BigInt(0);
-    convex.watchQuery(api.change.getAfter, { index }).onUpdate(async () => {
-      const res = await convex.query(api.change.getAfter, { index });
-      res.sort((a, b) => Number(a.index - b.index));
-      index = res.at(-1)?.index ?? BigInt(0);
-      this.resolver(res);
-    });
-  }
   async subscribeOfflineResolver() {
     const changes = await this.changeService.getAll();
     const filteredChanges = changes.filter((el) => !el.synced);
@@ -182,10 +175,11 @@ export class Resolver {
       await this.sendChangesHandler(change);
     }
   }
-  resolver(res: RemoteChange[]) {
-    res.forEach(async (change) => {
+
+  async resolver(res: RemoteChange[]) {
+    for (const change of res) {
       const clientChange = await adapterClientFromServer(change);
-      this.applyChangesFromServer(clientChange);
-    });
+      await this.applyChangesFromServer(clientChange);
+    }
   }
 }

@@ -48,11 +48,11 @@ export default function useServices(): Return {
       fileService: dataService as IDataService<LocalFileType>,
       messageService: dataService as IDataService<LocalMessage>,
     });
-
-    const onlineFunc = () => {
-      resolver.subscribeResolver();
-      resolver.subscribeSendChanges();
-      resolver.subscribeOfflineResolver();
+    let unsubs: Array<() => void> = [];
+    const onlineFunc = async () => {
+      unsubs.push(await resolver.subscribeResolver());
+      unsubs.push(resolver.subscribeSendChanges());
+      await resolver.subscribeOfflineResolver();
     };
 
     if (isOnline()) {
@@ -62,6 +62,8 @@ export default function useServices(): Return {
 
     const offlineFunc = () => {
       console.log("offline");
+      unsubs.forEach((unsub) => unsub());
+      unsubs = [];
     };
 
     const unsub = resolver.loadOfflineUIChanges();

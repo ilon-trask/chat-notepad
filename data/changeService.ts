@@ -82,7 +82,7 @@ export class ChangeService implements IChangeService {
 
   subscribe(callback: (id: string, type: ChangeTypes) => void) {
     this.subscribers.push(callback);
-    return () => this.subscribers.filter((sub) => sub !== callback);
+    return () => this.subscribers = this.subscribers.filter((sub) => sub !== callback);
   }
   notifySubscribers(id: string, type: ChangeTypes) {
     this.subscribers.forEach((sub) => sub(id, type));

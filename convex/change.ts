@@ -37,6 +37,13 @@ export const create = mutation({
     const user = await ctx.auth.getUserIdentity();
     if (!user) throw new Error("Not logged in");
 
+    const checkChange = await ctx.db
+      .query(PLURALS[CHANGE_LABEL])
+      .withIndex("by_my_id", (q) => q.eq("id", args.id))
+      .collect();
+
+    if (checkChange.length > 0) throw new Error("Change already exists");
+
     async function performChange(table: Labels) {
       const entityServer = new entitiesServer[table](ctx);
       switch (args.type) {
@@ -69,7 +76,7 @@ export const create = mutation({
     const newChangeId = await ctx.db.insert(PLURALS[CHANGE_LABEL], {
       ...args,
       userId: user.subject,
-      index: lastChange ? lastChange.index + BigInt(1) : BigInt(0),
+      index: lastChange ? lastChange.index + BigInt(1) : BigInt(1),
     });
 
     await performChange(args.table as any);

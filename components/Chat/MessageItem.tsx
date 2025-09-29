@@ -35,8 +35,6 @@ export default function MessageItem({
 
   const files = useFiles().getFilesByMessageId(id);
 
-  console.log("messageId", id, "files", files);
-
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
