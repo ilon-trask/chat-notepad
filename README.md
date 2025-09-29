@@ -6,11 +6,13 @@
 [x] - should sync when go online
 [x] - should get changes to state when return in offline
 [x] - should get up to date on first load online
+[] - work flow from first visit to use
 
 ### nice to have
 
 [] - use indexedDb to store input state (when user returns to application state should presist)
 [] - redirect from non-existing chats
+[] - figure out non-image file handling
 
 ## Issues
 

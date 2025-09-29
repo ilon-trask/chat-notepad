@@ -8,10 +8,11 @@ const revision = crypto.randomUUID();
 
 const withSerwist = withSerwistInit({
   cacheOnNavigation: true,
+  reloadOnOnline: false,
   swSrc: "app/sw.ts",
   swDest: "public/sw.js",
   additionalPrecacheEntries: [{ url: "/~offline", revision }],
-  disable: process.env.NODE_ENV !== "production"
+  disable: process.env.NODE_ENV !== "production",
 });
 
 /** @type {import("next").NextConfig} */
