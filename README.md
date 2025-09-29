@@ -11,7 +11,7 @@
 ### nice to have
 
 [] - use indexedDb to store input state (when user returns to application state should presist)
-[] - redirect from non-existing chats
+[x] - redirect from non-existing chats
 [] - figure out non-image file handling
 
 ## Issues

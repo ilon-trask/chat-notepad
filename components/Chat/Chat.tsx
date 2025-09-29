@@ -9,7 +9,6 @@ import { useDynamicChatId } from "@/hooks/useDynamicChatId";
 
 function Chat() {
   const chosenChatId = useDynamicChatId();
-  console.log("chosenChatId", chosenChatId);
   return (
     <DragAndDropProvider className={cn("flex flex-col h-full")}>
       <ChatHeader />
