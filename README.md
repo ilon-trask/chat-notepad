@@ -10,6 +10,7 @@
 [] - revalidate data if it's old
 [] - revalidate data button
 [] - show errors of mutations as toasts
+[] - remove loading on start
 
 ### nice to have
 
