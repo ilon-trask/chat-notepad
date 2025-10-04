@@ -76,11 +76,9 @@ export default function useServices(): Return {
 
     if (isOnline()) {
       onlineFunc();
-    } else {
-    }
+    } 
 
     const offlineFunc = () => {
-      console.log("offline");
       unsubs.forEach((unsub) => unsub());
       unsubs = [];
     };

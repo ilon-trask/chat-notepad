@@ -1,5 +1,13 @@
 "use client";
-import { Menu, Moon, Sun, Monitor, Check, Search } from "lucide-react";
+import {
+  Menu,
+  Moon,
+  Sun,
+  Monitor,
+  Check,
+  Search,
+  RefreshCw,
+} from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -17,12 +25,18 @@ import {
 import { Button } from "../ui/button";
 import { useTheme } from "next-themes";
 import { Muted, Large } from "../Typography";
-import { Switch } from "../ui/switch";
-import useSettings from "@/hooks/useSettings";
+import { LocalDBService } from "@/data/localDB/localDBService";
+import { DATA_LABEL } from "@/data/localDB/createLocalDB";
+import { Data } from "@/types/data/data";
+import { LocalChange } from "@/types/change";
+import { CHANGE_LABEL } from "@/constants/labels";
+import { useRouter } from "next/navigation";
+import useUIStore from "@/data/UIStore";
 
 export default function MenuSheet() {
   const { setTheme, theme } = useTheme();
-  const { settings, setSettings } = useSettings();
+  const router = useRouter();
+  const UIstore = useUIStore();
   return (
     <Sheet>
       <SheetTrigger>
@@ -75,6 +89,31 @@ export default function MenuSheet() {
           </div>
 
           <div className="py-4">
+            <Large className="mb-2">Data</Large>
+            <Muted className="mb-2">
+              Revalidate local data with the server
+            </Muted>
+            <Button
+              variant="outline"
+              className="w-full justify-between"
+              onClick={async () => {
+                console.log("refresh");
+                const dataDb = new LocalDBService<Data>(DATA_LABEL);
+                const changeDb = new LocalDBService<LocalChange>(CHANGE_LABEL);
+                await dataDb.clearAll();
+                await changeDb.clearAll();
+                UIstore.set([]);
+                window.location.reload();
+              }}
+            >
+              <div className="flex items-center">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Revalidate Data
+              </div>
+            </Button>
+          </div>
+
+          {/* <div className="py-4">
             <div className="flex items-center gap-4">
               <Switch
                 checked={settings.privateMode}
@@ -92,7 +131,7 @@ export default function MenuSheet() {
                 </Muted>
               </div>
             </div>
-          </div>
+          </div> */}
 
           <div className="py-4">
             <Large className="mb-2">Keyboard Shortcuts</Large>
