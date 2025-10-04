@@ -13,6 +13,7 @@ export default function MessagesList() {
   const [dateMap, setDateMap] = useState<Map<string, LocalMessage[]>>(
     new Map()
   );
+  
   useEffect(() => {
     const newMap = new Map<string, LocalMessage[]>();
     messages.forEach((message) => {

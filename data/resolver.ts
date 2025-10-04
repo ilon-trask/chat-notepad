@@ -120,11 +120,15 @@ export class Resolver {
     );
     console.log("recieved", res);
     if (error) {
+      this.changeDBService.delete(change.id);
+      const data = await this.localDBService.getAll();
+      this.UIStore.set(data);
+
       if (error.message == "no such entity") {
         toast.error("error: no such entity");
-        this.changeDBService.delete(change.id);
         return;
       }
+
       throw error;
     }
     this.applyChangesFromServer(await adapterClientFromServer(res.change));
