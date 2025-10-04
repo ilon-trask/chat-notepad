@@ -9,7 +9,7 @@
 [] - work flow from first visit to use
 [] - revalidate data if it's old
 [] - revalidate data button
-[] - show errors of mutations as toasts
+[x] - show errors of mutations as toasts
 [] - logout logic
 
 ### nice to have
@@ -25,4 +25,4 @@
 
 ## Issues
 
-- up to date login should recive data from server not just changes
+- up to date operation should recive data from server not just changes

@@ -129,7 +129,9 @@ export class Resolver {
         return;
       }
 
-      throw error;
+      toast.error("erro: change wan't applied");
+      console.error(error);
+      return;
     }
     this.applyChangesFromServer(await adapterClientFromServer(res.change));
     console.log("update index", res.change.index);
