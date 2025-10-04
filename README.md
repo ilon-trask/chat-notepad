@@ -10,7 +10,7 @@
 [] - revalidate data if it's old
 [] - revalidate data button
 [x] - show errors of mutations as toasts
-[] - logout logic
+[x] - logout logic
 
 ### nice to have
 

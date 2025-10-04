@@ -55,14 +55,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  async function redirectGuestToSignIn() {
-    const { redirectToSignIn, userId } = await myAuth();
-
-    if (!userId) {
-      return redirectToSignIn();
-    }
-  }
-
   const rest = await myAuth();
   const token = await rest.getToken({ template: "convex" });
 
@@ -85,7 +77,6 @@ export default async function RootLayout({
             orgRole={rest.orgRole as string}
             token={token as string}
           >
-            {redirectGuestToSignIn()}
             <ServiceProvider>
               <ThemeProvider
                 attribute="class"

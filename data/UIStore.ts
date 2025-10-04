@@ -4,12 +4,16 @@ import { Data } from "@/types/data/data";
 
 interface UI extends SyncEntity {
   data: Data[];
+  reset: () => void;
 }
 
 const useUIStore = create<UI>()((set, get) => ({
   data: [],
   set: (data: Data[]) => {
     set({ data });
+  },
+  reset: () => {
+    set({ data: [] });
   },
   create: (data: Data) => {
     set((prev) => ({ ...prev, data: [...prev.data, data] }));

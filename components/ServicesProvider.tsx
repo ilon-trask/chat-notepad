@@ -20,12 +20,15 @@ import { DataService } from "@/data/dataService";
 import useUIStore from "@/data/UIStore";
 import { DataService as IDataService } from "@/types/dataService";
 import isOnline from "@/helpers/isOnline";
+import { useClerk } from "@clerk/nextjs";
 
 type NullableServicesContextType = {
   [K in keyof ServicesContextType]: ServicesContextType[K] | null;
 };
 
 type Return = { services: NullableServicesContextType; loading: boolean };
+const dataDB = new LocalDBService<Data>(DATA_LABEL);
+const changeDB = new LocalDBService<LocalChange>(CHANGE_LABEL);
 
 export default function useServices(): Return {
   const [services, setServices] = useState<NullableServicesContextType>({
@@ -38,9 +41,17 @@ export default function useServices(): Return {
 
   const UIStore = useUIStore();
 
+  const clerk = useClerk();
+
   useEffect(() => {
-    const dataDB = new LocalDBService<Data>(DATA_LABEL);
-    const changeDB = new LocalDBService<LocalChange>(CHANGE_LABEL);
+    if (!clerk.isSignedIn && clerk.loaded) {
+      Promise.all([dataDB.clearAll(), changeDB.clearAll()]).catch(() => {});
+      UIStore.reset();
+      clerk.redirectToSignIn();
+    }
+  }, [clerk.isSignedIn, clerk.loaded]);
+  
+  useEffect(() => {
     const changeService = new ChangeService(changeDB, dataDB);
     const dataService = new DataService(dataDB, changeService, UIStore);
     const resolver = new Resolver(dataDB, changeDB, changeService, UIStore);

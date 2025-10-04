@@ -50,4 +50,9 @@ export class LocalDBService<T extends Data | LocalChange>
     });
     return data as T;
   }
+
+  async clearAll() {
+    //@ts-ignore
+    await this._db[this.label].clear();
+  }
 }
