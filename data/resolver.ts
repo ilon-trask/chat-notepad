@@ -49,32 +49,29 @@ async function adapterClientFromServer(
 }
 
 export class Resolver {
+  index: bigint;
   constructor(
     private localDBService: LocalDBService<Data>,
     private changeDBService: LocalDBService<LocalChange>,
     private changeService: ChangeService,
     private UIStore: SyncEntity
-  ) {}
+  ) {
+    this.index = BigInt(0);
+    this.awaitedChanges = new Set();
+  }
 
-  loadOfflineUIChanges() {
-    console.log("load UI");
-    const obs = liveQuery(() => this.localDBService.getAll());
-    const sub = obs.subscribe({
-      next: async (data) => {
-        this.UIStore.set(data);
-        if (isOnline()) return;
-        const changes = await this.changeDBService.getAll();
-        const newChanges = changes.filter((el) => !el.synced);
-        newChanges.sort((a, b) => Number(BigInt(a.index) - BigInt(b.index)));
-        newChanges.forEach((change) => {
-          this.applyChangesToUI(change);
-        });
-      },
-      error: (err) => {
-        console.log("error", err);
-      },
+  async loadUI(doneUpdate: () => void) {
+    console.log("loadUI");
+    const data = await this.localDBService.getAll();
+    this.UIStore.set(data);
+    doneUpdate();
+    if (isOnline()) return;
+    const changes = await this.changeDBService.getAll();
+    const newChanges = changes.filter((el) => !el.synced);
+    newChanges.sort((a, b) => Number(BigInt(a.index) - BigInt(b.index)));
+    newChanges.forEach((change) => {
+      this.applyChangesToUI(change);
     });
-    return sub.unsubscribe;
   }
 
   applyChangesToUI(change: LocalChange) {
@@ -114,11 +111,14 @@ export class Resolver {
       await this.changeDBService.create({ ...change, synced: true });
     }
   }
-
+  awaitedChanges: Set<string>;
   async sendChangesHandler(change: typeof changeSchema.type) {
+    console.log("send");
+    this.awaitedChanges.add(change.id);
     const [error, res] = await tryCatch(
       convex.mutation(api.change.create, { args: change })
     );
+    console.log("recieved", res);
     if (error) {
       if (error.message == "no such entity") {
         toast.error("error: no such entity");
@@ -127,6 +127,10 @@ export class Resolver {
       }
       throw error;
     }
+    this.applyChangesFromServer(await adapterClientFromServer(res.change));
+    console.log("update index", res.change.index);
+    this.awaitedChanges.delete(change.id);
+    if (this.index < res.change.index) this.index = res.change.index;
   }
 
   subscribeSendChanges() {
@@ -143,21 +147,35 @@ export class Resolver {
     return this.changeService.subscribe(callback);
   }
 
-  async subscribeResolver(): Promise<() => void> {
-    const changes = await this.changeService.getAll();
-    changes.sort((a, b) => Number(BigInt(a.index) - BigInt(b.index)));
+  async upToDateChanges() {
+    let changes = await this.changeService.getAll();
+    console.log("changes before", changes);
+    changes = changes.filter((el) => el.synced);
     console.log("changes", changes);
-    let index = changes.at(-1)?.index ?? BigInt(0);
+    changes.sort((a, b) => Number(BigInt(a.index) - BigInt(b.index)));
+    this.index = changes.at(-1)?.index ?? BigInt(0);
+    const res = await convex.query(api.change.getAfter, { index: this.index });
+    res.sort((a, b) => Number(a.index - b.index));
+    this.index = res.at(-1)?.index ?? this.index;
+    console.log("up to date", this.index, "data:", res);
+    await this.resolver(res);
+  }
+
+  async subscribeResolver(): Promise<() => void> {
     return await new Promise((resolver, rej) => {
       const unsub = convex
-        .watchQuery(api.change.getAfter, { index })
+        .watchQuery(api.change.getAfter, { index: this.index })
         .onUpdate(async () => {
-          const changes = await this.changeService.getAll();
-          changes.sort((a, b) => Number(BigInt(a.index) - BigInt(b.index)));
-          index = changes.at(-1)?.index ?? BigInt(0);
-          const res = await convex.query(api.change.getAfter, { index });
+          let changes = await this.changeService.getAll();
+          let res = await convex.query(api.change.getAfter, {
+            index: this.index,
+          });
+          res = res.filter(
+            (el) => !this.awaitedChanges.has(el.id) && this.index < el.index
+          );
+          console.log("index", this.index, "res", res);
           res.sort((a, b) => Number(a.index - b.index));
-          index = res.at(-1)?.index ?? index;
+          this.index = res.at(-1)?.index ?? this.index;
           await this.resolver(res);
           resolver(unsub);
         });
@@ -180,6 +198,8 @@ export class Resolver {
     for (const change of res) {
       const clientChange = await adapterClientFromServer(change);
       await this.applyChangesFromServer(clientChange);
+      //memory leaks
+      this.applyChangesToUI(clientChange);
     }
   }
 }

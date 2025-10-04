@@ -21,6 +21,4 @@ db.version(DB_VERSION).stores({
   [CHANGE_LABEL]: FIELDS,
 });
 
-export function createLocalDB(): DB {
-  return db;
-}
+export default db;

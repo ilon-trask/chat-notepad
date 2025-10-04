@@ -25,14 +25,16 @@ type NullableServicesContextType = {
   [K in keyof ServicesContextType]: ServicesContextType[K] | null;
 };
 
-type Return = NullableServicesContextType;
+type Return = { services: NullableServicesContextType; loading: boolean };
 
 export default function useServices(): Return {
-  const [services, setServices] = useState<Return>({
+  const [services, setServices] = useState<NullableServicesContextType>({
     chatService: null,
     messageService: null,
     fileService: null,
   });
+
+  const [loading, setLoading] = useState(true);
 
   const UIStore = useUIStore();
 
@@ -48,12 +50,17 @@ export default function useServices(): Return {
       fileService: dataService as IDataService<LocalFileType>,
       messageService: dataService as IDataService<LocalMessage>,
     });
+
     let unsubs: Array<() => void> = [];
     const onlineFunc = async () => {
+      await resolver.upToDateChanges();
       unsubs.push(await resolver.subscribeResolver());
       unsubs.push(resolver.subscribeSendChanges());
       await resolver.subscribeOfflineResolver();
+      // resolver.loadUI(() => {});
     };
+
+    if (UIStore.data.length == 0) resolver.loadUI(() => setLoading(false));
 
     if (isOnline()) {
       onlineFunc();
@@ -66,17 +73,15 @@ export default function useServices(): Return {
       unsubs = [];
     };
 
-    const unsub = resolver.loadOfflineUIChanges();
     window.addEventListener("online", onlineFunc);
     window.addEventListener("offline", offlineFunc);
     return () => {
       window.removeEventListener("online", onlineFunc);
       window.removeEventListener("offline", offlineFunc);
-      unsub();
     };
   }, []);
 
-  return services;
+  return { services: services, loading: loading };
 }
 
 interface ServicesContextType {
@@ -92,10 +97,9 @@ interface ServiceProviderProps {
 }
 
 export const ServiceProvider = ({ children }: ServiceProviderProps) => {
-  const services = useServices();
+  const { services, loading } = useServices();
 
-  if (Object.values(services).some((service) => !service))
-    return <div>Loading services...</div>;
+  if (loading) return <div>Loading services...</div>;
 
   return (
     <ServiceContext.Provider value={services as ServicesContextType}>

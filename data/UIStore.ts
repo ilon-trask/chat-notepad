@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Entity, SyncEntity } from "./entities/interface";
+import { SyncEntity } from "./entities/interface";
 import { Data } from "@/types/data/data";
 
 interface UI extends SyncEntity {

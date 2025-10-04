@@ -1,5 +1,5 @@
 import { DataService } from "@/types/dataService";
-import { createLocalDB, DATA_LABEL, DB } from "./createLocalDB";
+import db, { DATA_LABEL, DB } from "./createLocalDB";
 import { LocalChange } from "@/types/change";
 import { CHANGE_LABEL } from "@/constants/labels";
 import { Data } from "@/types/data/data";
@@ -7,11 +7,10 @@ import { Data } from "@/types/data/data";
 export class LocalDBService<T extends Data | LocalChange>
   implements DataService<T>
 {
-  private _db: DB;
+  private _db: DB = db;
   label: typeof DATA_LABEL | typeof CHANGE_LABEL;
 
   constructor(label: typeof DATA_LABEL | typeof CHANGE_LABEL) {
-    this._db = createLocalDB();
     this.label = label;
   }
 

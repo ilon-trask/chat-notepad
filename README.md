@@ -10,17 +10,19 @@
 [] - revalidate data if it's old
 [] - revalidate data button
 [] - show errors of mutations as toasts
-[] - remove loading on start
+[] - logout logic
 
 ### nice to have
 
 [] - storage availablility check
 [] - use indexedDb to store input state (when user returns to application state should presist)
-[] - redirect from non-existing chats
+[x] - redirect from non-existing chats
 [] - figure out non-image file handling
 [] - offline mode button
+[] - implement ctrl+z
+[] - don't scroll on message delete
+[] - minimize loading on start
 
 ## Issues
 
-- when message with files is created, it flushes messages without files
-- conflict of index
+- up to date login should recive data from server not just changes
