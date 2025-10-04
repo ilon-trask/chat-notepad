@@ -100,6 +100,7 @@ export class Resolver {
         break;
       case "update":
         await db.update(change.data.id, { ...change.data });
+        this.applyChangesToUI(change);
         break;
       case "delete":
         await db.delete(change.data.id);
@@ -111,6 +112,7 @@ export class Resolver {
       await this.changeDBService.create({ ...change, synced: true });
     }
   }
+
   awaitedChanges: Set<string>;
   async sendChangesHandler(change: typeof changeSchema.type) {
     console.log("send");
