@@ -6,7 +6,7 @@ export type ServerChat = WithoutSystemFields<Doc<"chats">>;
 
 export type LocalChat = Omit<
   ServerChat,
-  "createdAt" | "editedAt" | "userId"
+  "createdAt" | "editedAt" | "userId"| "userId"
 > & {
   createdAt: Date;
   editedAt: Date;

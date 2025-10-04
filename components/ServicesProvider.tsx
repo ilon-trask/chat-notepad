@@ -50,7 +50,7 @@ export default function useServices(): Return {
       clerk.redirectToSignIn();
     }
   }, [clerk.isSignedIn, clerk.loaded]);
-  
+
   useEffect(() => {
     const changeService = new ChangeService(changeDB, dataDB);
     const dataService = new DataService(dataDB, changeService, UIStore);
@@ -64,11 +64,12 @@ export default function useServices(): Return {
 
     let unsubs: Array<() => void> = [];
     const onlineFunc = async () => {
+      const data = await dataDB.getAll();
+      if (!data.length) await resolver.firstUpToDate();
       await resolver.upToDateChanges();
       unsubs.push(await resolver.subscribeResolver());
       unsubs.push(resolver.subscribeSendChanges());
       await resolver.subscribeOfflineResolver();
-      // resolver.loadUI(() => {});
     };
 
     if (UIStore.data.length == 0) resolver.loadUI(() => setLoading(false));

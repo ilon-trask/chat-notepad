@@ -11,7 +11,6 @@ import { toast } from "sonner";
 import { enetitiesAdapter, entities } from "./entities/entities";
 import { Labels } from "@/constants/labels";
 import isOnline from "@/helpers/isOnline";
-import { liveQuery } from "dexie";
 
 async function adapterServerFromClient(
   change: LocalChange
@@ -30,7 +29,8 @@ async function adapterServerFromClient(
 }
 
 async function adapterClientFromServer(
-  change: RemoteChange
+  change: RemoteChange,
+  synced?: boolean
 ): Promise<LocalChange> {
   const adapter = enetitiesAdapter[change.table as Labels];
   const newChange = {
@@ -39,7 +39,7 @@ async function adapterClientFromServer(
       ...change.data,
       type: change.table as Labels,
     })) as any,
-    synced: false,
+    synced: synced ?? false,
     createdAt: new Date(change.createdAt),
     editedAt: new Date(change.editedAt),
     type: change.type,
@@ -155,18 +155,38 @@ export class Resolver {
     return this.changeService.subscribe(callback);
   }
 
+  async firstUpToDate() {
+    const serverData = await convex.query(api.data.getAll);
+    const serverChanges = await convex.query(api.change.getAfter, {
+      index: BigInt(0),
+    });
+    const data = await Promise.all(
+      serverData.map(async (el) => {
+        const adapter = enetitiesAdapter[el.type as Labels];
+        return await adapter.toClient(el);
+      })
+    );
+    this.localDBService.set(data as any);
+    this.UIStore.set(data as any);
+    this.changeDBService.set(
+      await Promise.all(
+        serverChanges.map((el) => adapterClientFromServer(el, true))
+      )
+    );
+    this.index = serverChanges.at(-1)?.index ?? BigInt(0);
+  }
+
   async upToDateChanges() {
     let changes = await this.changeService.getAll();
-    console.log("changes before", changes);
     changes = changes.filter((el) => el.synced);
-    console.log("changes", changes);
     changes.sort((a, b) => Number(BigInt(a.index) - BigInt(b.index)));
     this.index = changes.at(-1)?.index ?? BigInt(0);
-    const res = await convex.query(api.change.getAfter, { index: this.index });
-    res.sort((a, b) => Number(a.index - b.index));
-    this.index = res.at(-1)?.index ?? this.index;
-    console.log("up to date", this.index, "data:", res);
-    await this.resolver(res);
+    const serverChanges = await convex.query(api.change.getAfter, {
+      index: this.index,
+    });
+    this.index = serverChanges.at(-1)?.index ?? this.index;
+    console.log("up to date", this.index, "data:", serverChanges);
+    await this.resolver(serverChanges);
   }
 
   async subscribeResolver(): Promise<() => void> {
@@ -174,7 +194,6 @@ export class Resolver {
       const unsub = convex
         .watchQuery(api.change.getAfter, { index: this.index })
         .onUpdate(async () => {
-          let changes = await this.changeService.getAll();
           let res = await convex.query(api.change.getAfter, {
             index: this.index,
           });
@@ -182,7 +201,6 @@ export class Resolver {
             (el) => !this.awaitedChanges.has(el.id) && this.index < el.index
           );
           console.log("index", this.index, "res", res);
-          res.sort((a, b) => Number(a.index - b.index));
           this.index = res.at(-1)?.index ?? this.index;
           await this.resolver(res);
           resolver(unsub);

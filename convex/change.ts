@@ -27,6 +27,7 @@ export const getAfter = query({
       .withIndex("by_user_id", (q) => q.eq("userId", user.subject))
       .filter((q) => q.gt(q.field("index"), args.index))
       .collect();
+    changes.sort((a, b) => Number(a.index - b.index));
     return changes;
   },
 });
@@ -49,7 +50,7 @@ export const create = mutation({
       switch (args.type) {
         case "create":
           const created = await entityServer.create(
-            args.data as ServerData,
+            { ...args.data, userId: user?.subject! } as ServerData,
             table
           );
           return created;

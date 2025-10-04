@@ -11,6 +11,14 @@ export class DefaultServer implements ServerEntity {
   create(data: ServerData, table: Labels) {
     return this.ctx.db.insert(PLURALS[table], data);
   }
+  async getAll(table: Labels) {
+    const user = await this.ctx.auth.getUserIdentity();
+    if (!user) throw new Error("Not logged in");
+    return this.ctx.db
+      .query(PLURALS[table])
+      .withIndex("by_user_id", (q) => q.eq("userId", user.subject))
+      .collect();
+  }
   async delete(id: string, table: Labels) {
     const entity = await this.ctx.db
       .query(PLURALS[table])

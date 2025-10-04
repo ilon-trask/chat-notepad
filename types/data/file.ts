@@ -6,7 +6,7 @@ export type ServerFile = WithoutSystemFields<Doc<"files">>;
 
 export type LocalFileType = Omit<
   ServerFile,
-  "storageId" | "editedAt" | "createdAt"
+  "storageId" | "editedAt" | "createdAt" | "userId"
 > & {
   file: Blob;
   editedAt: Date;

@@ -1,5 +1,5 @@
 import { DefaultServer } from "./deafultServer";
-import { PLURALS } from "@/constants/labels";
+import { MESSAGE_LABEL, PLURALS } from "@/constants/labels";
 import { Labels, FILE_LABEL } from "@/constants/labels";
 import { FileServer } from "./fileServer";
 import { MutationCtx } from "@/convex/_generated/server";
@@ -22,5 +22,9 @@ export class MessageServer extends DefaultServer implements ServerEntity {
     await Promise.all(files.map((file) => this.fileServer.delete(file.id)));
 
     return super.delete(id, table);
+  }
+  async getAll() {
+    const res = await super.getAll(MESSAGE_LABEL);
+    return res;
   }
 }

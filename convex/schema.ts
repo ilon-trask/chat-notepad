@@ -52,15 +52,17 @@ const createChangeSchema = <T>(obj: T) => {
 export const changeSchema = createChangeSchema(changeObj);
 
 export default defineSchema({
-  messages: defineTable(messagesSchema)
+  messages: defineTable({ ...messagesSchema, userId: v.string() })
     .index("by_chat", ["chatId"])
-    .index("by_my_id", ["id"]),
+    .index("by_my_id", ["id"])
+    .index("by_user_id", ["userId"]),
   chats: defineTable({ ...chatsSchema, userId: v.string() })
-    .index("by_user", ["userId"])
-    .index("by_my_id", ["id"]),
-  files: defineTable(filesSchema)
+    .index("by_my_id", ["id"])
+    .index("by_user_id", ["userId"]),
+  files: defineTable({ ...filesSchema, userId: v.string() })
     .index("by_message", ["messageId"])
-    .index("by_my_id", ["id"]),
+    .index("by_my_id", ["id"])
+    .index("by_user_id", ["userId"]),
   changes: defineTable(createChangeSchema({ ...changeObj, userId: v.string() }))
     .index("by_my_id", ["id"])
     .index("by_user_id", ["userId"])

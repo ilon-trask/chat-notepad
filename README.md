@@ -7,7 +7,6 @@
 [x] - should get changes to state when return in offline
 [x] - should get up to date on first load online
 [] - work flow from first visit to use
-[] - revalidate data if it's old
 [] - revalidate data button
 [x] - show errors of mutations as toasts
 [x] - logout logic
@@ -24,5 +23,3 @@
 [] - minimize loading on start
 
 ## Issues
-
-- up to date operation should recive data from server not just changes

@@ -18,14 +18,6 @@ export class ChatServer extends DefaultServer implements ServerEntity {
     this.ctx = ctx;
   }
 
-  async create(data: ServerData, table: Labels) {
-    let user = await this.ctx.auth.getUserIdentity();
-    user = userCheck(user);
-    let chat = { ...data, userId: user.subject } as ServerChat;
-    const res = await super.create(chat, table);
-    return res;
-  }
-
   async delete(id: string) {
     const messages = await this.ctx.db
       .query(PLURALS[MESSAGE_LABEL])
@@ -33,9 +25,13 @@ export class ChatServer extends DefaultServer implements ServerEntity {
       .collect();
 
     await Promise.all(
-      messages.map((msg) => this.messageServer.delete(msg.id, MESSAGE_LABEL,))
+      messages.map((msg) => this.messageServer.delete(msg.id, MESSAGE_LABEL))
     );
 
     return super.delete(id, CHAT_LABEL);
+  }
+  async getAll() {
+    const res = await super.getAll(CHAT_LABEL);
+    return res;
   }
 }

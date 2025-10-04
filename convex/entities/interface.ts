@@ -11,7 +11,7 @@ export interface ServerEntity<K extends Labels = Labels> {
         id: Id<(typeof PLURALS)[K]>,
         table: Labels
     ) => Promise<ServerData | null>;
-    // getAll: (table: Labels) => Promise<ServerData[]>;
+    getAll: (table: Labels) => Promise<ServerData[]>;
     update: (
         id: Id<(typeof PLURALS)[K]>,
         data: Partial<ServerData>,

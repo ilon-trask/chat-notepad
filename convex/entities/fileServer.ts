@@ -20,4 +20,8 @@ export class FileServer extends DefaultServer implements ServerEntity {
     this.ctx.storage.delete(file.storageId as Id<"_storage">);
     return super.delete(id, FILE_LABEL);
   }
+   async getAll() {
+      const res = await super.getAll(FILE_LABEL);
+      return res;
+    }
 }
