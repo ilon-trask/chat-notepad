@@ -30,12 +30,10 @@ import { DATA_LABEL } from "@/data/localDB/createLocalDB";
 import { Data } from "@/types/data/data";
 import { LocalChange } from "@/types/change";
 import { CHANGE_LABEL } from "@/constants/labels";
-import { useRouter } from "next/navigation";
 import useUIStore from "@/data/UIStore";
 
 export default function MenuSheet() {
   const { setTheme, theme } = useTheme();
-  const router = useRouter();
   const UIstore = useUIStore();
   return (
     <Sheet>

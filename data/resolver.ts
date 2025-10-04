@@ -65,7 +65,6 @@ export class Resolver {
     const data = await this.localDBService.getAll();
     this.UIStore.set(data);
     doneUpdate();
-    if (isOnline()) return;
     const changes = await this.changeDBService.getAll();
     const newChanges = changes.filter((el) => !el.synced);
     newChanges.sort((a, b) => Number(BigInt(a.index) - BigInt(b.index)));

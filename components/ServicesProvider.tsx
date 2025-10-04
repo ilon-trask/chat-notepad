@@ -43,13 +43,7 @@ export default function useServices(): Return {
 
   const clerk = useClerk();
 
-  useEffect(() => {
-    if (!clerk.isSignedIn && clerk.loaded) {
-      Promise.all([dataDB.clearAll(), changeDB.clearAll()]).catch(() => {});
-      UIStore.reset();
-      clerk.redirectToSignIn();
-    }
-  }, [clerk.isSignedIn, clerk.loaded]);
+  useEffect(() => {}, [clerk.isSignedIn, clerk.loaded]);
 
   useEffect(() => {
     const changeService = new ChangeService(changeDB, dataDB);
@@ -64,6 +58,8 @@ export default function useServices(): Return {
 
     let unsubs: Array<() => void> = [];
     const onlineFunc = async () => {
+      console.log("first:", !clerk.isSignedIn, "second:", !clerk.loaded);
+      if (!clerk.isSignedIn || !clerk.loaded) return;
       const data = await dataDB.getAll();
       if (!data.length) await resolver.firstUpToDate();
       await resolver.upToDateChanges();
@@ -72,13 +68,19 @@ export default function useServices(): Return {
       await resolver.subscribeOfflineResolver();
     };
 
+    if (!clerk.isSignedIn && clerk.loaded) {
+      unsubs.forEach((unsub) => unsub());
+    }
+
     if (UIStore.data.length == 0) resolver.loadUI(() => setLoading(false));
 
     if (isOnline()) {
+      console.log("online function");
       onlineFunc();
-    } 
+    }
 
     const offlineFunc = () => {
+      console.log("offline");
       unsubs.forEach((unsub) => unsub());
       unsubs = [];
     };
@@ -89,7 +91,7 @@ export default function useServices(): Return {
       window.removeEventListener("online", onlineFunc);
       window.removeEventListener("offline", offlineFunc);
     };
-  }, []);
+  }, [clerk.isSignedIn, clerk.loaded]);
 
   return { services: services, loading: loading };
 }

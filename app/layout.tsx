@@ -5,7 +5,6 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { ServiceProvider } from "@/components/ServicesProvider";
 import { ClerkProvider } from "@clerk/nextjs";
-import myAuth from "@/lib/myAuth";
 import { Toaster } from "@/components/ui/sonner";
 import CommandMenu from "@/components/CommandDialog";
 
@@ -55,9 +54,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const rest = await myAuth();
-  const token = await rest.getToken({ template: "convex" });
-
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
@@ -72,11 +68,7 @@ export default async function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen`}
         >
-          <ConvexClientProvider
-            orgId={rest.orgId as string}
-            orgRole={rest.orgRole as string}
-            token={token as string}
-          >
+          <ConvexClientProvider>
             <ServiceProvider>
               <ThemeProvider
                 attribute="class"

@@ -7,7 +7,6 @@ import withSerwistInit from "@serwist/next";
 const revision = crypto.randomUUID();
 
 const withSerwist = withSerwistInit({
-  cacheOnNavigation: true,
   reloadOnOnline: false,
   swSrc: "app/sw.ts",
   swDest: "public/sw.js",
