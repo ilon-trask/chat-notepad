@@ -1,20 +1,20 @@
+"use client";
 import React from "react";
 import ChatHeader from "./ChatHeader";
 import MessagesList from "./MessagesList";
 import MessageInput from "./MessageInput";
-import { useChatStore } from "@/store/chatStore";
 import { cn } from "@/lib/utils";
-import DragDropZone from "./DragDropZone";
+import { DragAndDropProvider } from "../DrapAndDropPrivider";
+import { useDynamicChatId } from "@/hooks/useDynamicChatId";
 
 function Chat() {
-  const { chosenChatId } = useChatStore();
-
+  const chosenChatId = useDynamicChatId();
   return (
-    <DragDropZone className={cn("flex flex-col h-full")}>
+    <DragAndDropProvider className={cn("flex flex-col h-full")}>
       <ChatHeader />
       <MessagesList />
       {chosenChatId && <MessageInput />}
-    </DragDropZone>
+    </DragAndDropProvider>
   );
 }
 

@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/sonner";
-import { TOAST_DURATION } from "@/helpers/confirmableDelete";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import CommandMenu from "@/components/CommandDialog";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { ServiceProvider } from "@/components/ServicesProvider";
 import { ClerkProvider } from "@clerk/nextjs";
-import { auth } from "@clerk/nextjs/server";
+import { Toaster } from "@/components/ui/sonner";
+import CommandMenu from "@/components/CommandDialog";
+
+const TOAST_DURATION = 2000;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,24 +20,40 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const APP_NAME = "Chat note";
+const APP_DESCRIPTION = "Take notes in chat";
+
 export const metadata: Metadata = {
-  title: "Chat note",
-  description: "Take notes in chat",
+  applicationName: APP_NAME,
+  title: {
+    default: APP_NAME,
+    template: "%s - NJS App",
+  },
+  description: APP_DESCRIPTION,
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: APP_NAME,
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    shortcut: "/favicon.ico",
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
 };
 
-export default function RootLayout({
+export const viewport: Viewport = {
+  themeColor: "#FFFFFF",
+};
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  async function redirectGuestToSignIn() {
-    const { redirectToSignIn, userId } = await auth();
-
-    if (!userId) {
-      return redirectToSignIn();
-    }
-  }
-
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
@@ -45,7 +61,7 @@ export default function RootLayout({
           <link rel="manifest" href="/manifest.json" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <meta name="theme-color" content="#000000" />
-          <link rel="apple-touch-icon" href="/logo.svg" />
+          <link rel="apple-touch-icon" href="/logo-white.svg" />
           <meta name="apple-mobile-web-app-status-bar" content="#000000" />
           <link rel="icon" href="/logo-white.svg" type="image/svg+xml" />
         </head>
@@ -53,7 +69,6 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen`}
         >
           <ConvexClientProvider>
-            {redirectGuestToSignIn()}
             <ServiceProvider>
               <ThemeProvider
                 attribute="class"

@@ -1,43 +1,22 @@
-const runtimeCaching = [
-  {
-    urlPattern: /^https:\/\/chat-notepade\.vercel\.app\/.*$/,
-    handler: 'NetworkFirst',
-    options: {
-      cacheName: 'api-cache',
-      expiration: {
-        maxEntries: 50,
-        maxAgeSeconds: 300,
-      },
-    },
-  },
-];
+// @ts-check
+import withSerwistInit from "@serwist/next";
 
-const withPWA = require("next-pwa")({
-  dest: "public",
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === "development",
-  runtimeCaching: [
-    {
-      urlPattern: /^https?.*/,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'offlineCache',
-        expiration: {
-          maxEntries: 200,
-        },
-      },
-    },
-    {
-      urlPattern: ({ url }: any) => url.pathname === '/_offline',
-      handler: 'NetworkOnly',
-    },
-  ],
+// You may want to use a more robust revision to cache
+// files more efficiently.
+// A viable option is `git rev-parse HEAD`.
+const revision = crypto.randomUUID();
+
+const withSerwist = withSerwistInit({
+  reloadOnOnline: false,
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
+  additionalPrecacheEntries: [{ url: "/~offline", revision }],
+  disable: process.env.NODE_ENV !== "production",
 });
 
-/** @type {import('next').NextConfig} */
+/** @type {import("next").NextConfig} */
 const nextConfig = {
-  // your existing next config
+  reactStrictMode: true,
 };
 
-module.exports = withPWA(nextConfig);
+export default withSerwist(nextConfig);

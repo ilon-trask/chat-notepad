@@ -1,5 +1,5 @@
+"use client";
 import { useChatDialogStore } from "@/store/chatDialogStore";
-import { useChatStore } from "@/store/chatStore";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -13,8 +13,10 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Plus } from "lucide-react";
-import { SizeVariant } from "@/types/sizeVariant.types";
+import { SizeVariant } from "@/types/sizeVariant";
 import { useServicesContext } from "../ServicesProvider";
+import useChats from "@/data/useChats";
+import { v4 as uuid } from "uuid";
 
 type ChatFormData = {
   name: string;
@@ -26,22 +28,29 @@ export default function CreateChatDialog({
   variant: SizeVariant;
 }) {
   const { chatService } = useServicesContext();
-  const chatStore = useChatStore();
   const chatDialogStore = useChatDialogStore();
 
-  const chat = chatStore.getChatById(chatDialogStore.chatId);
+  const chat = useChats().getChatById(chatDialogStore.chatId);
 
   const { register, handleSubmit, setValue } = useForm<ChatFormData>();
 
   const onSubmit = async (data: ChatFormData) => {
     if (chatDialogStore.isUpdate) {
-      chatService.updateChat({
-        id: chatDialogStore.chatId,
-        name: data.name,
-      });
+      if (!chat)
+        throw new Error(
+          `Can't update chat: chat with id="${chatDialogStore.chatId}" does not exist`
+        );
+
+      chatService.update(chat.id, { name: data.name, type: "chat" });
     } else {
-      const newChat = await chatService.createChat(data.name);
-      chatStore.setChosenChatId(newChat.id);
+      const newChat = await chatService.create({
+        id: uuid(),
+        name: data.name,
+        type: "chat",
+        editedAt: new Date(),
+        createdAt: new Date(),
+      });
+      window.history.pushState({}, "", `/${newChat.id}`);
     }
     chatDialogStore.setIsOpen(false);
   };

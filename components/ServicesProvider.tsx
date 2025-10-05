@@ -1,16 +1,105 @@
 "use client";
-import React, { createContext, useContext, ReactNode } from "react";
+import { DATA_LABEL } from "@/data/localDB/createLocalDB";
+import { LocalDBService } from "@/data/localDB/localDBService";
+import { LocalChat } from "@/types/data/chat";
+import { Data } from "@/types/data/data";
+import { LocalFileType } from "@/types/data/file";
+import { LocalMessage } from "@/types/data/message";
+import React, {
+  createContext,
+  useContext,
+  ReactNode,
+  useEffect,
+  useState,
+} from "react";
+import { Resolver } from "../data/resolver";
+import { CHANGE_LABEL } from "@/constants/labels";
+import { ChangeService } from "@/data/changeService";
+import { LocalChange } from "@/types/change";
+import { DataService } from "@/data/dataService";
+import useUIStore from "@/data/UIStore";
+import { DataService as IDataService } from "@/types/dataService";
+import isOnline from "@/helpers/isOnline";
+import { useClerk } from "@clerk/nextjs";
 
-import useServices from "@/data/useServcies";
-import ChatService from "@/data/chatService";
-import MessageService from "@/data/messageService";
-import { useConvexAuth } from "convex/react";
-import DeleteService from "@/data/deleteService";
+type NullableServicesContextType = {
+  [K in keyof ServicesContextType]: ServicesContextType[K] | null;
+};
+
+type Return = { services: NullableServicesContextType; loading: boolean };
+const dataDB = new LocalDBService<Data>(DATA_LABEL);
+const changeDB = new LocalDBService<LocalChange>(CHANGE_LABEL);
+
+export default function useServices(): Return {
+  const [services, setServices] = useState<NullableServicesContextType>({
+    chatService: null,
+    messageService: null,
+    fileService: null,
+  });
+
+  const [loading, setLoading] = useState(true);
+
+  const UIStore = useUIStore();
+
+  const clerk = useClerk();
+
+  useEffect(() => {}, [clerk.isSignedIn, clerk.loaded]);
+
+  useEffect(() => {
+    const changeService = new ChangeService(changeDB, dataDB);
+    const dataService = new DataService(dataDB, changeService, UIStore);
+    const resolver = new Resolver(dataDB, changeDB, changeService, UIStore);
+
+    setServices({
+      chatService: dataService as IDataService<LocalChat>,
+      fileService: dataService as IDataService<LocalFileType>,
+      messageService: dataService as IDataService<LocalMessage>,
+    });
+
+    let unsubs: Array<() => void> = [];
+    const onlineFunc = async () => {
+      console.log("first:", !clerk.isSignedIn, "second:", !clerk.loaded);
+      if (!clerk.isSignedIn || !clerk.loaded) return;
+      const data = await dataDB.getAll();
+      if (!data.length) await resolver.firstUpToDate();
+      await resolver.upToDateChanges();
+      unsubs.push(await resolver.subscribeResolver());
+      unsubs.push(resolver.subscribeSendChanges());
+      await resolver.subscribeOfflineResolver();
+    };
+
+    if (!clerk.isSignedIn && clerk.loaded) {
+      unsubs.forEach((unsub) => unsub());
+    }
+
+    if (UIStore.data.length == 0) resolver.loadUI(() => setLoading(false));
+
+    if (isOnline()) {
+      console.log("online function");
+      onlineFunc();
+    }
+
+    const offlineFunc = () => {
+      console.log("offline");
+      unsubs.forEach((unsub) => unsub());
+      unsubs = [];
+    };
+
+    window.addEventListener("online", onlineFunc);
+    window.addEventListener("offline", offlineFunc);
+    return () => {
+      window.removeEventListener("online", onlineFunc);
+      window.removeEventListener("offline", offlineFunc);
+    };
+  }, [clerk.isSignedIn, clerk.loaded]);
+
+  return { services: services, loading: loading };
+}
 
 interface ServicesContextType {
-  chatService: ChatService;
-  messageService: MessageService;
-  deleteService: DeleteService;
+  chatService: IDataService<LocalChat>;
+  messageService: IDataService<LocalMessage>;
+  fileService: IDataService<LocalFileType>;
 }
 
 const ServiceContext = createContext<ServicesContextType | null>(null);
@@ -20,20 +109,12 @@ interface ServiceProviderProps {
 }
 
 export const ServiceProvider = ({ children }: ServiceProviderProps) => {
-  const { chatService, messageService, deleteService } = useServices();
-  const { isLoading } = useConvexAuth();
+  const { services, loading } = useServices();
 
-  if (!chatService || !messageService || !deleteService || isLoading)
-    return <div>Loading services...</div>;
+  if (loading) return <div>Loading services...</div>;
 
   return (
-    <ServiceContext.Provider
-      value={{
-        chatService,
-        messageService,
-        deleteService,
-      }}
-    >
+    <ServiceContext.Provider value={services as ServicesContextType}>
       {children}
     </ServiceContext.Provider>
   );

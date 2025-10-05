@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import ChatList from "./ChatList";
-import { SizeVariant } from "@/types/sizeVariant.types";
+import { SizeVariant } from "@/types/sizeVariant";
 import SidebarHeader from "./SidebarHeader";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 

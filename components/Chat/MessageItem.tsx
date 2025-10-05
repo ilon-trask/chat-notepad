@@ -1,5 +1,4 @@
 import { useMessageInputStore } from "@/store/messageInputStore";
-import { useMessageStore } from "@/store/messageStore";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -8,11 +7,11 @@ import {
 } from "../ui/context-menu";
 import { Edit, Trash2 } from "lucide-react";
 import { Card } from "../ui/card";
-import confirmableDelete from "@/helpers/confirmableDelete";
 import { cn } from "@/lib/utils";
-import { Message } from "@/types/message.types";
 import { Pre } from "../Typography";
 import { useServicesContext } from "../ServicesProvider";
+import useFiles from "@/data/useFiles";
+import { MESSAGE_LABEL } from "@/constants/labels";
 
 export default function MessageItem({
   children,
@@ -24,16 +23,17 @@ export default function MessageItem({
   id: string;
   createdAt: Date;
 }) {
-  const { messageService } = useServicesContext();
-  const messageStore = useMessageStore();
   const messageInputStore = useMessageInputStore();
+  const { messageService } = useServicesContext();
 
   const handleEdit = () => {
     //timeout to prevent menu stealing focus form message input
     setTimeout(() => {
-      messageInputStore.startEditing(id, children as string);
+      messageInputStore.startEditing(id, children as string, files);
     }, 200);
   };
+
+  const files = useFiles().getFilesByMessageId(id);
 
   return (
     <ContextMenu>
@@ -46,6 +46,13 @@ export default function MessageItem({
           {...props}
         >
           <div className="flex flex-col">
+            {files.map((el) => (
+              <img
+                alt=""
+                key={el.id}
+                src={(() => URL.createObjectURL(el.file))()}
+              />
+            ))}
             <Pre className="break-words">{children}</Pre>
             <div className="text-xs text-gray-500 text-right text-[10px] mt-1 self-end">
               {new Date(createdAt).toLocaleTimeString([], {
@@ -65,14 +72,7 @@ export default function MessageItem({
           data-testid="MessageDeleteButton"
           className="text-destructive"
           onClick={() => {
-            confirmableDelete<Message>({
-              getEntity: () => messageStore.getMessageById(id),
-              onDelete: () => messageService.deleteMessage(id),
-              onStoreDelete: () => messageStore.deleteMessage(id),
-              onReverseDelete: (message: Message) =>
-                messageStore.addMessage(message),
-              name: "Message",
-            });
+            messageService.delete(id, MESSAGE_LABEL);
           }}
         >
           <Trash2 className="mr-2 h-4 w-4 text-destructive" />

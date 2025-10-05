@@ -1,4 +1,4 @@
-import { FileType } from "@/types/file.types";
+import { LocalFileType } from "@/types/data/file";
 import { create } from "zustand";
 
 export type MessageInputStore = {
@@ -10,10 +10,16 @@ export type MessageInputStore = {
   setIsUpdate: (isUpdate: boolean) => void;
   messageId: string;
   setMessageId: (messageId: string) => void;
-  startEditing: (messageId: string, messageText: string) => void;
+  startEditing: (
+    messageId: string,
+    messageText: string,
+    files: LocalFileType[]
+  ) => void;
   cancelEditing: () => void;
-  fileUpload: FileType[];
-  setFileUpload: (file: FileType[]) => void;
+  fileUpload: LocalFileType[];
+  setFileUpload: (file: LocalFileType[]) => void;
+  addFileUpload: (file: LocalFileType) => void;
+  removeFileUpload: (id: string) => void;
 };
 
 export const useMessageInputStore = create<MessageInputStore>((set) => ({
@@ -25,11 +31,16 @@ export const useMessageInputStore = create<MessageInputStore>((set) => ({
   setMessage: (message: string) => set({ message }),
   setIsUpdate: (isUpdate: boolean) => set({ isUpdate }),
   setMessageId: (messageId: string) => set({ messageId }),
-  startEditing: (messageId: string, messageText: string) =>
+  startEditing: (
+    messageId: string,
+    messageText: string,
+    files: LocalFileType[]
+  ) =>
     set({
       messageId,
       message: messageText,
       isUpdate: true,
+      fileUpload: files,
     }),
   cancelEditing: () =>
     set({
@@ -38,5 +49,11 @@ export const useMessageInputStore = create<MessageInputStore>((set) => ({
       isUpdate: false,
     }),
   fileUpload: [],
-  setFileUpload: (file: FileType[]) => set({ fileUpload: file }),
+  setFileUpload: (file: LocalFileType[]) => set({ fileUpload: file }),
+  addFileUpload: (file: LocalFileType) =>
+    set((state) => ({ fileUpload: [...state.fileUpload, file] })),
+  removeFileUpload: (id: string) =>
+    set((state) => ({
+      fileUpload: state.fileUpload.filter((el) => el.id !== id),
+    })),
 }));

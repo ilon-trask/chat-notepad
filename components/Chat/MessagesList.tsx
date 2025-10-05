@@ -1,25 +1,21 @@
+"use client";
 import React, { useEffect, useRef, useState } from "react";
-import { useMessageStore } from "@/store/messageStore";
-import { useChatStore } from "@/store/chatStore";
-import { type Message } from "@/types/message.types";
+import { type LocalMessage } from "@/types/data/message";
 import { Badge } from "../ui/badge";
 import MessageItem from "./MessageItem";
-import { useServicesContext } from "../ServicesProvider";
+import useMessages from "@/data/useMessages";
+import { useDynamicChatId } from "@/hooks/useDynamicChatId";
 
 export default function MessagesList() {
-  const { messageService } = useServicesContext();
-  const messageStore = useMessageStore();
-  const chatId = useChatStore().chosenChatId;
+  const chatId = useDynamicChatId();
+  const messages = useMessages().getMessageForChat(chatId);
 
+  const [dateMap, setDateMap] = useState<Map<string, LocalMessage[]>>(
+    new Map()
+  );
+  
   useEffect(() => {
-    messageService.getAllMessages();
-  }, []);
-
-  const [dateMap, setDateMap] = useState<Map<string, Message[]>>(new Map());
-
-  useEffect(() => {
-    const newMap = new Map<string, Message[]>();
-    const messages = messageStore.getMessages(chatId);
+    const newMap = new Map<string, LocalMessage[]>();
     messages.forEach((message) => {
       const date = message.createdAt.toLocaleDateString();
       if (newMap.has(date)) {
@@ -29,7 +25,7 @@ export default function MessagesList() {
       }
     });
     setDateMap(newMap);
-  }, [messageStore, chatId]);
+  }, [messages, chatId]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

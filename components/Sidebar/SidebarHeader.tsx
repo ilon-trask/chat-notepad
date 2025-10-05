@@ -1,6 +1,6 @@
 import { Search } from "lucide-react";
 import { Input } from "../ui/input";
-import { SizeVariant } from "@/types/sizeVariant.types";
+import { SizeVariant } from "@/types/sizeVariant";
 import MenuSheet from "./MenuSheet";
 import useCommandStore from "@/store/commandStore";
 
