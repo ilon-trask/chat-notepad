@@ -1,6 +1,6 @@
 "use client";
 import { Paperclip, Send, X } from "lucide-react";
-import React, { KeyboardEvent, useEffect } from "react";
+import React, { ClipboardEvent, KeyboardEvent, useEffect, useRef } from "react";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { useForm } from "react-hook-form";
@@ -40,6 +40,35 @@ export default function MessageInput() {
     setValue,
     setFocus,
   ]);
+
+  const pasteHandler = (e: ClipboardEvent<HTMLTextAreaElement>) => {
+    console.log("pasteHandler", e.clipboardData);
+    if (!e.clipboardData) return;
+    const files: {
+      item: (i: number) => File | undefined;
+      files: File[];
+      get length(): number;
+      [Symbol.iterator](): ArrayIterator<File>;
+    } = {
+      item(i: number) {
+        return this.files.at(i);
+      },
+      files: [],
+      get length() {
+        return this.files.length;
+      },
+      [Symbol.iterator]() {
+        return this.files[Symbol.iterator]();
+      },
+    };
+    for (let el of e.clipboardData.items) {
+      const file = el.getAsFile();
+      if (!file) continue;
+      files.files.push(file);
+    }
+    console.log("item", files.item, files.item(0));
+    previewFileUploadHandler(files as FileList, messageInputStore);
+  };
 
   const onSubmit = async (data: MessageInputForm) => {
     if (data.message.trim() === "" || !chatId) {
@@ -168,6 +197,7 @@ export default function MessageInput() {
               className="flex-1 bg-muted/50 px-4 py-2 rounded-lg resize-none min-h-[40px] max-h-[240px] no-scrollbar outline-none"
               rows={1}
               onKeyDown={handleKeyDown}
+              onPaste={pasteHandler}
               {...register("message")}
             />
             <Button
