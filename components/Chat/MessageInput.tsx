@@ -1,6 +1,6 @@
 "use client";
 import { Paperclip, Send, X } from "lucide-react";
-import React, { ClipboardEvent, KeyboardEvent, useEffect, useRef } from "react";
+import React, { ClipboardEvent, KeyboardEvent, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { useForm } from "react-hook-form";
@@ -61,7 +61,7 @@ export default function MessageInput() {
         return this.files[Symbol.iterator]();
       },
     };
-    for (let el of e.clipboardData.items) {
+    for (const el of e.clipboardData.items) {
       const file = el.getAsFile();
       if (!file) continue;
       files.files.push(file);

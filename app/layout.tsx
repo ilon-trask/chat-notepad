@@ -55,19 +55,19 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <head>
-          <link rel="manifest" href="/manifest.json" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <meta name="theme-color" content="#000000" />
-          <link rel="apple-touch-icon" href="/logo-white.svg" />
-          <meta name="apple-mobile-web-app-status-bar" content="#000000" />
-          <link rel="icon" href="/logo-white.svg" type="image/svg+xml" />
-        </head>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen`}
-        >
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#000000" />
+        <link rel="apple-touch-icon" href="/logo-white.svg" />
+        <meta name="apple-mobile-web-app-status-bar" content="#000000" />
+        <link rel="icon" href="/logo-white.svg" type="image/svg+xml" />
+      </head>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen`}
+      >
+        <ClerkProvider dynamic>
           <ConvexClientProvider>
             <ServiceProvider>
               <ThemeProvider
@@ -82,8 +82,8 @@ export default async function RootLayout({
               </ThemeProvider>
             </ServiceProvider>
           </ConvexClientProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }
