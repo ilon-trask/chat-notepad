@@ -8,16 +8,10 @@ import { MessageServer } from "./messageServer";
 import { FileServer } from "./fileServer";
 
 type ServerConstructorMap = {
-    [K in Labels]: new (ctx: MutationCtx) => ServerEntity<K>;
+  [K in Labels]: ServerEntity<K>;
 };
 export const entitiesServer: ServerConstructorMap = {
-    [CHAT_LABEL]: ChatServer as new (ctx: MutationCtx) => ServerEntity,
-    [MESSAGE_LABEL]: MessageServer as new (
-        ctx: MutationCtx
-    ) => ServerEntity<typeof MESSAGE_LABEL>,
-    [FILE_LABEL]: FileServer as new (
-        ctx: MutationCtx
-    ) => ServerEntity<typeof FILE_LABEL>,
+  [CHAT_LABEL]: new ChatServer() as ServerEntity<typeof CHAT_LABEL>,
+  [MESSAGE_LABEL]: new MessageServer() as ServerEntity<typeof MESSAGE_LABEL>,
+  [FILE_LABEL]: new FileServer() as ServerEntity<typeof FILE_LABEL>,
 };
-
-

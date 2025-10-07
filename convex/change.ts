@@ -1,8 +1,7 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, QueryCtx } from "./_generated/server";
 import { CHANGE_LABEL, Labels, PLURALS } from "../constants/labels";
 import { changeSchema } from "./schema";
-
 import { ServerData } from "@/types/data/data";
 import { entitiesServer } from "./entities/entities";
 
@@ -46,21 +45,27 @@ export const create = mutation({
     if (checkChange.length > 0) throw new Error("Change already exists");
 
     async function performChange(table: Labels) {
-      const entityServer = new entitiesServer[table](ctx);
+      const entityServer = entitiesServer[table];
       switch (args.type) {
         case "create":
           const created = await entityServer.create(
+            ctx,
             { ...args.data, userId: user?.subject! } as ServerData,
             table
           );
           return created;
           break;
         case "update":
-          const upd = await entityServer.update(args.data.id, args.data, table);
+          const upd = await entityServer.update(
+            ctx,
+            args.data.id,
+            args.data,
+            table
+          );
           return upd;
           break;
         case "delete":
-          const delEntity = await entityServer.delete(args.data.id, table);
+          const delEntity = await entityServer.delete(ctx, args.data.id, table);
           return { id: args.data.id };
           break;
         default:

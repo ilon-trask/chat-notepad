@@ -4,8 +4,10 @@ import { DATA_LABEL } from "@/data/localDB/createLocalDB";
 import { Data } from "@/types/data/data";
 import { Entity } from "../interface";
 
-//@ts-ignore
-export class MessageDB extends LocalDBService<LocalMessage> implements Entity {
+export class MessageDB
+  extends LocalDBService<LocalMessage>
+  implements Entity<LocalMessage>
+{
   constructor() {
     super(DATA_LABEL);
   }

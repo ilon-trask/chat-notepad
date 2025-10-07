@@ -23,3 +23,5 @@
 [] - minimize loading on start
 
 ## Issues
+
+- focus on newly created chat should be on message input

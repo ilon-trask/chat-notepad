@@ -46,9 +46,7 @@ export function DragAndDropProvider({
   const value = { isDragging };
 
   const RenderDropZoneContent = () => {
-    const chatId = useDynamicChatId();
-
-    if (isDragging && chatId) {
+    if (isDragging && chosenChatId) {
       return (
         <div className="absolute z-10 inset-0 flex flex-col bg-secondary items-center justify-center rounded-lg border-2 border-dashed border-blue-500">
           <p>Release to upload files</p>

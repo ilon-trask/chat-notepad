@@ -16,7 +16,7 @@ export default function useSettings() {
   useEffect(() => {
     const _settings = localStorage.getItem("settings");
     _setSettings(
-      JSON.parse(_settings || `{"privateMode":"false"}`) as Settings
+      (_settings ? JSON.parse(_settings) : DEFAULT_SETTINGS) as Settings
     );
   }, []);
 

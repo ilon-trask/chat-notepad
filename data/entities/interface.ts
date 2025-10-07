@@ -1,12 +1,12 @@
 import { Labels } from "@/constants/labels";
 import { Data, ServerData } from "@/types/data/data";
 
-export interface Entity {
-  set: (data: Data[]) => void;
-  getOne: (id: string) => Promise<Data | undefined>;
-  getAll: () => Promise<Data[]>;
-  create: (data: Data) => Promise<Data>;
-  update: (id: string, data: Partial<Data>) => Promise<Data>;
+export interface Entity<T extends Data = Data> {
+  set: (data: T[]) => void;
+  getOne: (id: string) => Promise<T | undefined>;
+  getAll: () => Promise<T[]>;
+  create: (data: T) => Promise<T>;
+  update: (id: string, data: Partial<T>) => Promise<T>;
   delete: (id: string) => Promise<boolean>;
 }
 
@@ -21,5 +21,7 @@ export interface SyncEntity {
 
 export interface Adapter {
   toServer: (data: Partial<Data>) => Promise<Partial<ServerData>>;
-  toClient: (data: Partial<ServerData & { type: Labels }>) => Promise<Partial<Data>>;
+  toClient: (
+    data: Partial<ServerData & { type: Labels }>
+  ) => Promise<Partial<Data>>;
 }

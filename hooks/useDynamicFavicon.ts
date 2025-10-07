@@ -8,15 +8,12 @@ export default function useDynamicFavicon() {
     const existingFavicons = document.querySelectorAll('link[rel="icon"]');
     existingFavicons.forEach((favicon) => favicon.remove());
 
-    // Create new favicon
     const link = document.createElement("link");
     link.rel = "icon";
 
     if (theme.theme === "dark") {
-      // Use emoji as favicon
       link.href = "/logo-black.svg";
     } else {
-      // Use image as favicon
       link.href = "/logo-white.svg";
     }
 

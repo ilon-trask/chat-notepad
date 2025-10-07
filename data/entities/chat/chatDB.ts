@@ -5,8 +5,10 @@ import { MessageDB } from "../message/messageDB";
 import { Entity } from "../interface";
 import { LocalChat } from "@/types/data/chat";
 
-//@ts-ignore
-export class ChatDB extends LocalDBService<LocalChat> implements Entity {
+export class ChatDB
+  extends LocalDBService<LocalChat>
+  implements Entity<LocalChat>
+{
   private messageDB: MessageDB;
 
   constructor() {

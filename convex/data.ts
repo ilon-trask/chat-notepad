@@ -7,12 +7,11 @@ export const getAll = query({
   handler: async (ctx) => {
     const user = await ctx.auth.getUserIdentity();
     userCheck(user);
-    //@ts-ignore
-    const defaultServer = new DefaultServer(ctx);
+    const defaultServer = new DefaultServer();
     const data = (
       await Promise.all(
         LABELS.map(async (label) => {
-          const data = await defaultServer.getAll(label);
+          const data = await defaultServer.getAll(ctx, label);
           return data.map((el) => ({ ...el, type: label }));
         })
       )

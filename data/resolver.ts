@@ -10,7 +10,6 @@ import { SyncEntity } from "./entities/interface";
 import { toast } from "sonner";
 import { enetitiesAdapter, entities } from "./entities/entities";
 import { Labels } from "@/constants/labels";
-import isOnline from "@/helpers/isOnline";
 
 async function adapterServerFromClient(
   change: LocalChange
@@ -68,9 +67,7 @@ export class Resolver {
     const changes = await this.changeDBService.getAll();
     const newChanges = changes.filter((el) => !el.synced);
     newChanges.sort((a, b) => Number(BigInt(a.index) - BigInt(b.index)));
-    newChanges.forEach((change) => {
-      this.applyChangesToUI(change);
-    });
+    newChanges.forEach((change) => this.applyChangesToUI(change));
   }
 
   applyChangesToUI(change: LocalChange) {
@@ -95,9 +92,11 @@ export class Resolver {
     console.log("apply change", change);
     switch (change.type) {
       case "create":
+        //@ts-expect-error typescript simplifies the type
         await db.create({ ...change.data });
         break;
       case "update":
+        //@ts-expect-error typescript simplifies the type
         await db.update(change.data.id, { ...change.data });
         this.applyChangesToUI(change);
         break;
